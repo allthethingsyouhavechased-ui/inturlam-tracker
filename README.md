@@ -28,6 +28,35 @@ npm run db:seed
 Seed tekrar çalıştırılabilir: marka/kişi isimlerini günceller, mevcut görev/yorumlara
 dokunmaz. (Aynı şekilde marka adlarını da `BRANDS` listesinden düzeltebilirsin.)
 
+## Ofis PC'sine taşıma (bu proje şu an başka bir bilgisayarda kuruldu)
+
+Bu proje ev/başka bir bilgisayarda geliştirildi; ofis PC'sinde henüz yok. Kod zaten
+bir git deposu (`git log` ile geçmişi görebilirsin). Ofis PC'sine taşımak için üç yol:
+
+**A) USB / taşınabilir disk (en hızlı, hesap gerektirmez)**
+1. Bu klasörü kopyala ama şunları **almadan**: `node_modules/`, `.next/`, `data/`
+   (üçü de yeniden oluşur / kasıtlı olarak boş başlar).
+2. Ofis PC'sinde Node.js kurulu değilse önce kur (bu makinede **v24.18.0** var,
+   20.9+ herhangi bir sürüm çalışır — https://nodejs.org, LTS sürümü indir).
+3. Kopyalanan klasörde: `npm install`, sonra `npm run db:seed`.
+
+**B) GitHub (özel repo) — birden fazla makinede çalışmaya devam edeceksen önerilir**
+1. github.com'da yeni bir **private** repo oluştur (ör. `inturlam-tracker`).
+2. Bu makinede:
+   ```powershell
+   git remote add origin https://github.com/<kullanici-adin>/inturlam-tracker.git
+   git push -u origin main
+   ```
+3. Ofis PC'sinde: `git clone <repo-url>`, sonra `npm install` ve `npm run db:seed`.
+4. Bundan sonra değişiklikleri `git push` / `git pull` ile iki makine arasında taşırsın.
+
+**C) Zaten paylaşılan bir bulut klasörün varsa (Drive/OneDrive)**
+Projeyi (yine `node_modules`, `.next`, `data` hariç) sıkıştırıp o klasöre koy,
+ofis PC'sinde aç, `npm install` + `npm run db:seed` çalıştır.
+
+Hangisini seçersen seç, ofis PC'sindeki ilk kurulumdan sonra aşağıdaki
+"Ofiste kullanım" adımları aynı.
+
 ## Geliştirme (tek makinede)
 
 ```powershell
@@ -70,6 +99,30 @@ npm run start     # 0.0.0.0:3000 — ağdaki diğer bilgisayarlar erişebilir
 
   Güvenilir ofis ağıysa profili **Ayarlar → Ağ ve Internet → (ağ) → Özel**'e çevir,
   ya da yukarıdaki kurala `-Profile Private,Public` ekle.
+
+## Ekip günlük nasıl kullanacak
+
+- **Sunucuyu biri (muhtemelen sen) sabah bir kere başlatır** ve o bilgisayar gün
+  boyu açık kalır: `npm run start`. Kapanırsa herkesin bağlantısı düşer, tekrar
+  `npm run start` yeterli — veri kaybolmaz (SQLite dosyada duruyor).
+- **Herkes kendi bilgisayarından/telefonundan** (aynı ofis Wi-Fi'ında) tarayıcıdan
+  `http://<sunucu-IP>:3000` adresine girer. Bu adresi herkesin tarayıcısına
+  yer imi (bookmark) olarak eklemesi işi kolaylaştırır.
+- **İlk girişte** herkes sağ üstten "Sen kimsin?" deyip kendi adını seçer —
+  bu seçim o tarayıcıda ~1 yıl hatırlanır (cookie), tekrar sormaz. Farklı bir
+  cihaz/tarayıcıdan girerse tekrar seçmesi gerekir.
+  **Önce `db/seed.mts`'teki placeholder isimleri ("Kişi 2", "Kişi 3") gerçek
+  isimlerle değiştirip `npm run db:seed` çalıştırman gerekiyor** — yoksa
+  arkadaşların kendi adını listede bulamaz.
+- **Günlük akış:** ana sayfadan marka seç → içerik/proje seç → görev panosunda
+  kendi görevini bul, durumunu ilerlet (Beklemede → Devam Ediyor → İncelemede →
+  Onaylandı → Yayınlandı), gerekirse yorum/not bırak. "Panom" sekmesi herkese
+  kendi açık görevlerini ve o hafta teslim olacakları özetler.
+- **Yeni içerik/görev eklemek** için özel bir yetki yok — marka sayfasında
+  "yeni içerik", içerik sayfasında "yeni görev" formu herkese açık.
+
+Bu ilk sürüm; yarın birlikte denerken neyin eksik/yanlış geldiğini not al,
+sonraki oturumda üzerine ekleriz.
 
 ## Yedekleme
 
