@@ -1,0 +1,87 @@
+import type { Cluster, ContentStatus, ContentType, TaskStatus } from "./types";
+
+export const CLUSTERS: { id: Cluster; label: string }[] = [
+  { id: "balik-deniz", label: "Balık & Deniz" },
+  { id: "kahve-gida", label: "Kahve & Gıda" },
+  { id: "b2b-yapi", label: "B2B / Yapı" },
+  { id: "hamam", label: "Hamam" },
+  { id: "tek", label: "Diğer" },
+];
+
+export const CLUSTER_LABEL: Record<Cluster, string> = Object.fromEntries(
+  CLUSTERS.map((c) => [c.id, c.label]),
+) as Record<Cluster, string>;
+
+export const CONTENT_TYPES: ContentType[] = [
+  "Reel",
+  "Foto",
+  "Kampanya",
+  "Video",
+  "Diger",
+];
+
+export const CONTENT_TYPE_LABEL: Record<ContentType, string> = {
+  Reel: "Reel",
+  Foto: "Foto",
+  Kampanya: "Kampanya",
+  Video: "Video",
+  Diger: "Diğer",
+};
+
+export const CONTENT_STATUSES: ContentStatus[] = [
+  "Planlandi",
+  "Uretimde",
+  "Tamamlandi",
+  "IptalEdildi",
+];
+
+export const CONTENT_STATUS_LABEL: Record<ContentStatus, string> = {
+  Planlandi: "Planlandı",
+  Uretimde: "Üretimde",
+  Tamamlandi: "Tamamlandı",
+  IptalEdildi: "İptal Edildi",
+};
+
+export const CONTENT_STATUS_BADGE: Record<ContentStatus, string> = {
+  Planlandi: "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300",
+  Uretimde: "bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300",
+  Tamamlandi: "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300",
+  IptalEdildi: "bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300",
+};
+
+export const TASK_STATUSES: TaskStatus[] = [
+  "Beklemede",
+  "DevamEdiyor",
+  "Incelemede",
+  "Onaylandi",
+  "Yayinlandi",
+];
+
+export const TASK_STATUS_LABEL: Record<TaskStatus, string> = {
+  Beklemede: "Beklemede",
+  DevamEdiyor: "Devam Ediyor",
+  Incelemede: "İncelemede",
+  Onaylandi: "Onaylandı",
+  Yayinlandi: "Yayınlandı",
+};
+
+export const TASK_STATUS_BADGE: Record<TaskStatus, string> = {
+  Beklemede: "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300",
+  DevamEdiyor: "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300",
+  Incelemede: "bg-violet-100 text-violet-700 dark:bg-violet-950 dark:text-violet-300",
+  Onaylandi: "bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300",
+  Yayinlandi: "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300",
+};
+
+export const TASK_STATUS_DOT: Record<TaskStatus, string> = {
+  Beklemede: "bg-slate-400",
+  DevamEdiyor: "bg-amber-500",
+  Incelemede: "bg-violet-500",
+  Onaylandi: "bg-blue-500",
+  Yayinlandi: "bg-emerald-500",
+};
+
+// Bir görevin "açık" (tamamlanmamış) sayılması için: yayınlanmamış olması.
+export const OPEN_TASK_STATUSES: TaskStatus[] = TASK_STATUSES.filter(
+  (s) => s !== "Yayinlandi",
+);

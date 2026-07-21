@@ -1,0 +1,57 @@
+import { getDb, plainList, plainOne } from "@/lib/db/client";
+import type { ContentItem, ContentStatus, ContentType } from "@/lib/types";
+
+export interface ContentItemWithCounts extends ContentItem {
+  task_total: number;
+  task_open: number;
+}
+
+export function listContentByBrand(brandId: string): ContentItemWithCounts[] {
+  return plainList<ContentItemWithCounts>(
+    getDb()
+      .prepare(
+        `SELECT ci.*,
+                COUNT(t.id) AS task_total,
+                COALESCE(SUM(CASE WHEN t.status != 'Yayinlandi' THEN 1 ELSE 0 END), 0) AS task_open
+         FROM content_items ci
+         LEFT JOIN tasks t ON t.content_item_id = ci.id
+         WHERE ci.brand_id = ?
+         GROUP BY ci.id
+         ORDER BY (ci.target_date IS NULL), ci.target_date, ci.created_at DESC`,
+      )
+      .all(brandId),
+  );
+}
+
+export function getContentItem(id: string): ContentItem | undefined {
+  return plainOne<ContentItem>(
+    getDb().prepare("SELECT * FROM content_items WHERE id = ?").get(id),
+  );
+}
+
+export function createContentItem(input: {
+  brandId: string;
+  title: string;
+  type: ContentType;
+  targetDate: string | null;
+}): string {
+  const id = crypto.randomUUID();
+  getDb()
+    .prepare(
+      "INSERT INTO content_items (id, brand_id, title, type, target_date) VALUES (?, ?, ?, ?, ?)",
+    )
+    .run(id, input.brandId, input.title, input.type, input.targetDate);
+  return id;
+}
+
+export function updateContentStatus(id: string, status: ContentStatus): void {
+  getDb()
+    .prepare(
+      "UPDATE content_items SET status = ?, updated_at = datetime('now') WHERE id = ?",
+    )
+    .run(status, id);
+}
+
+export function deleteContentItem(id: string): void {
+  getDb().prepare("DELETE FROM content_items WHERE id = ?").run(id);
+}
