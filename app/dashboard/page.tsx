@@ -1,6 +1,6 @@
 import Link from "next/link";
 import AutoRefresh from "@/components/AutoRefresh";
-import { TASK_STATUS_DOT, TASK_STATUS_LABEL } from "@/lib/constants";
+import TaskStatusSelect from "@/components/TaskStatusSelect";
 import { currentWeekRange, formatDateShort, isOverdue, todayISO } from "@/lib/date";
 import { getCurrentPerson } from "@/lib/identity";
 import { listBrandsWithOpenCounts } from "@/lib/repositories/brands";
@@ -15,15 +15,14 @@ export const dynamic = "force-dynamic";
 
 function TaskLine({ task }: { task: TaskWithContext }) {
   return (
-    <Link
-      href={`/tasks/${task.id}`}
-      className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg border border-black/10 bg-white px-3 py-2 text-sm transition-colors hover:border-indigo-300 hover:bg-indigo-50/50 dark:border-white/10 dark:bg-zinc-900 dark:hover:border-indigo-800"
-    >
-      <span
-        className={`h-2 w-2 shrink-0 rounded-full ${TASK_STATUS_DOT[task.status]}`}
-        title={TASK_STATUS_LABEL[task.status]}
-      />
-      <span className="font-medium">{task.title}</span>
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 rounded-lg border border-black/10 bg-white px-3 py-2 text-sm dark:border-white/10 dark:bg-zinc-900">
+      <TaskStatusSelect taskId={task.id} status={task.status} />
+      <Link
+        href={`/tasks/${task.id}`}
+        className="font-medium hover:text-indigo-600 dark:hover:text-indigo-400"
+      >
+        {task.title}
+      </Link>
       <span className="text-xs text-zinc-500">
         {task.brand_name} · {task.content_title}
       </span>
@@ -43,7 +42,7 @@ function TaskLine({ task }: { task: TaskWithContext }) {
           </span>
         )}
       </span>
-    </Link>
+    </div>
   );
 }
 

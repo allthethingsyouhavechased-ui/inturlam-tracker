@@ -12,8 +12,9 @@ kurulumu basit bir iç araç.
   Reel izlenmesi, kapak testi sonucu), öne çıkan bulgu, ilk aksiyon önerisi, diğer
   markalarla ilişkisi (rakip/tedarikçi/marka ailesi vb.) ve tam 7 katmanlı denetim
   raporu — hepsi marka sayfasında, ayrı bir dosya açmaya gerek kalmadan.
-- **"Panom" sayfası:** Herkes kendi açık görevlerini ve o hafta teslim olacakları tek
-  ekranda görür.
+- **"Panom" sayfası:** Herkes kendi açık görevlerini, gecikmişleri ve o hafta teslim
+  olacakları tek ekranda görür — durumunu da göreve girmeden, doğrudan bu listeden
+  değiştirebilir.
 
 Şifre/hesap sistemi yok — açılışta "Sen kimsin?" ile isim seçilir, cookie'de hatırlanır.
 Veri tek bir yerel dosyada tutulur (`data/inturlam.db`, SQLite) — ayrı bir veritabanı

@@ -126,6 +126,11 @@ hatırlatma — ne olursa yazıp gönder. Yorumlar altında tarih ve kimin yazd�
 
 Sabah işe başlarken önce buraya bakmak günü planlamayı kolaylaştırır.
 
+**Durumu buradan da değiştirebilirsin** — her görev satırının solundaki renkli durum
+etiketine tıkla, açılan listeden yeni durumu seç. Görevin içine girmene gerek yok,
+anında kaydolur. Görevi tamamlayıp **"Yayınlandı"** yaptığında "Benim görevlerim"
+listesinden otomatik düşer (artık açık görev sayılmaz).
+
 ---
 
 ## 10. Bilmen gereken küçük detaylar
