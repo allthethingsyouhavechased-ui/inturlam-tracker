@@ -237,29 +237,41 @@ function loadAudits(): { brandId: string; body: string; sourceFile: string }[] {
   return results;
 }
 
+// Logo dosya adı = handle (id) birebir aynı, `public/logos/<id>.jpg` altında.
+// Elle eşleştirme gerekmiyor: dosya varsa otomatik bağlanır, yoksa BrandLogo
+// component'i baş-harf fallback'ine döner.
+const LOGO_DIR = path.join(process.cwd(), "public", "logos");
+function resolveLogoPath(id: string): string | null {
+  return fs.existsSync(path.join(LOGO_DIR, `${id}.jpg`)) ? `/logos/${id}.jpg` : null;
+}
+
 const db = getDb();
 
 const insertBrand = db.prepare(
   `INSERT INTO brands (
      id, name, cluster, sort_order, instagram_handle,
      follower_count, post_count, median_reel_views,
-     cover_test_verdict, cover_test_note, key_finding, first_action, tier
-   ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+     cover_test_verdict, cover_test_note, key_finding, first_action, tier, logo_path
+   ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
    ON CONFLICT(id) DO UPDATE SET
      name = excluded.name, cluster = excluded.cluster, sort_order = excluded.sort_order,
      instagram_handle = excluded.instagram_handle,
      follower_count = excluded.follower_count, post_count = excluded.post_count,
      median_reel_views = excluded.median_reel_views,
      cover_test_verdict = excluded.cover_test_verdict, cover_test_note = excluded.cover_test_note,
-     key_finding = excluded.key_finding, first_action = excluded.first_action, tier = excluded.tier`,
+     key_finding = excluded.key_finding, first_action = excluded.first_action, tier = excluded.tier,
+     logo_path = excluded.logo_path`,
 );
+let logosLinked = 0;
 BRANDS.forEach((b, i) => {
   const stats = BRAND_STATS[b.id];
+  const logoPath = resolveLogoPath(b.id);
+  if (logoPath) logosLinked++;
   insertBrand.run(
     b.id, b.name, b.cluster, i, b.id,
     stats?.followerCount ?? null, stats?.postCount ?? null, stats?.medianReelViews ?? null,
     stats?.coverTestVerdict ?? null, stats?.coverTestNote ?? null,
-    stats?.keyFinding ?? null, stats?.firstAction ?? null, stats?.tier ?? null,
+    stats?.keyFinding ?? null, stats?.firstAction ?? null, stats?.tier ?? null, logoPath,
   );
 });
 
@@ -299,5 +311,5 @@ const peopleCount = db.prepare("SELECT COUNT(*) AS n FROM people").get() as { n:
 const relationCount = db.prepare("SELECT COUNT(*) AS n FROM brand_relations").get() as { n: number };
 
 console.log(
-  `Seed tamam → ${brandCount.n} marka, ${peopleCount.n} kişi, ${relationCount.n} ilişki, ${auditsWritten} tam denetim metni.`,
+  `Seed tamam → ${brandCount.n} marka, ${peopleCount.n} kişi, ${relationCount.n} ilişki, ${auditsWritten} tam denetim metni, ${logosLinked} logo.`,
 );
