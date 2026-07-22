@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import AssigneeSelect from "@/components/AssigneeSelect";
+import AutoRefresh from "@/components/AutoRefresh";
 import ContentStatusSelect from "@/components/ContentStatusSelect";
 import NewTaskForm from "@/components/NewTaskForm";
 import TaskStatusSelect from "@/components/TaskStatusSelect";
@@ -35,6 +36,7 @@ export default async function ContentPage({
 
   return (
     <div className="space-y-6">
+      <AutoRefresh />
       <div className="text-sm text-zinc-500">
         <Link href="/" className="hover:text-zinc-800 dark:hover:text-zinc-200">
           Markalar

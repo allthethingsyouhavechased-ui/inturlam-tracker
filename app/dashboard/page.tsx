@@ -1,4 +1,5 @@
 import Link from "next/link";
+import AutoRefresh from "@/components/AutoRefresh";
 import { TASK_STATUS_DOT, TASK_STATUS_LABEL } from "@/lib/constants";
 import { currentWeekRange, formatDateShort, isOverdue, todayISO } from "@/lib/date";
 import { getCurrentPerson } from "@/lib/identity";
@@ -85,6 +86,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-8">
+      <AutoRefresh />
       <h1 className="text-xl font-semibold tracking-tight">Panom</h1>
 
       {me ? (

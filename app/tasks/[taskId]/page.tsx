@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import AssigneeSelect from "@/components/AssigneeSelect";
+import AutoRefresh from "@/components/AutoRefresh";
 import CommentForm from "@/components/CommentForm";
 import DeleteTaskButton from "@/components/DeleteTaskButton";
 import TaskStatusSelect from "@/components/TaskStatusSelect";
@@ -31,6 +32,7 @@ export default async function TaskPage({
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
+      <AutoRefresh />
       <div className="text-sm text-zinc-500">
         <Link href="/" className="hover:text-zinc-800 dark:hover:text-zinc-200">
           Markalar
