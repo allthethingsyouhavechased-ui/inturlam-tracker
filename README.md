@@ -1,10 +1,27 @@
 # İNTURLAM · İş Takip
 
-İNTURLAM'ın 19 markası için basit, ftrack mantığında bir içerik & görev takip aracı —
-artık her markanın Instagram araştırma verisiyle (takipçi, performans, bulgular, tam
-denetim raporu, diğer markalarla ilişkisi) zenginleştirilmiş marka profili de var.
-Yapı: **Marka → İçerik/Proje → Görev (+ yorum)**. Şifre yok; açılışta "sen kimsin"
-seçimi cookie'de tutulur. Veri tek bir yerel dosyada (`data/inturlam.db`, SQLite).
+İNTURLAM'ın 19 markası için içerik & görev takip aracı + marka araştırma paneli —
+ftrack mantığında ("Marka → İçerik/Proje → Görev") ama İNTURLAM'a özel, tek dosyalık,
+kurulumu basit bir iç araç.
+
+**Ne işe yarar:**
+- **Görev takibi:** Her marka için içerik/proje planla (Reel, Foto, Kampanya…), altına
+  görevler düş (brief, çekim, kurgu, onay, yayın), kime atandığını ve son tarihini
+  işaretle, yorum bırak.
+- **Marka araştırma paneli:** Her markanın Instagram verisi (takipçi, gönderi, medyan
+  Reel izlenmesi, kapak testi sonucu), öne çıkan bulgu, ilk aksiyon önerisi, diğer
+  markalarla ilişkisi (rakip/tedarikçi/marka ailesi vb.) ve tam 7 katmanlı denetim
+  raporu — hepsi marka sayfasında, ayrı bir dosya açmaya gerek kalmadan.
+- **"Panom" sayfası:** Herkes kendi açık görevlerini ve o hafta teslim olacakları tek
+  ekranda görür.
+
+Şifre/hesap sistemi yok — açılışta "Sen kimsin?" ile isim seçilir, cookie'de hatırlanır.
+Veri tek bir yerel dosyada tutulur (`data/inturlam.db`, SQLite) — ayrı bir veritabanı
+sunucusu kurmaya gerek yok.
+
+**Ofis içinde günlük kullanım için** (kurulum bilmeden, sadece "nasıl kullanırım")
+→ **[KULLANIM-KILAVUZU.md](KULLANIM-KILAVUZU.md)** dosyasına bak. Aşağıdaki bölümler
+kurulum/geliştirme/dağıtım içindir.
 
 ## Gereksinimler
 
@@ -119,9 +136,8 @@ npm run start     # 0.0.0.0:3000 — ağdaki diğer bilgisayarlar erişebilir
 - **İlk girişte** herkes sağ üstten "Sen kimsin?" deyip kendi adını seçer —
   bu seçim o tarayıcıda ~1 yıl hatırlanır (cookie), tekrar sormaz. Farklı bir
   cihaz/tarayıcıdan girerse tekrar seçmesi gerekir.
-  **Önce `db/seed.mts`'teki placeholder isimleri ("Kişi 2", "Kişi 3") gerçek
-  isimlerle değiştirip `npm run db:seed` çalıştırman gerekiyor** — yoksa
-  arkadaşların kendi adını listede bulamaz.
+  Ekipteki 10 kişi (`db/seed.mts`'teki `PEOPLE` listesi) zaten seed'lenmiş durumda.
+  Yeni biri katılırsa listeye ekleyip `npm run db:seed` çalıştırman yeterli.
 - **Günlük akış:** ana sayfadan marka seç → içerik/proje seç → görev panosunda
   kendi görevini bul, durumunu ilerlet (Beklemede → Devam Ediyor → İncelemede →
   Onaylandı → Yayınlandı), gerekirse yorum/not bırak. "Panom" sekmesi herkese

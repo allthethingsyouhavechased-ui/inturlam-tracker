@@ -31,12 +31,23 @@ const BRANDS: { id: string; name: string; cluster: string }[] = [
   { id: "famedans", name: "Fame Dans Stüdyosu", cluster: "tek" },
 ];
 
-// TODO: Gerçek isimlerle değiştir. id sabit kalsın, name'i düzenleyip tekrar çalıştır.
+// Yeni biri katılırsa buraya ekle, id sabit kalsın diye isim değişse de dursun.
 const PEOPLE: { id: string; name: string }[] = [
   { id: "yunus", name: "Yunus Emre" },
-  { id: "kisi-2", name: "Kişi 2" },
-  { id: "kisi-3", name: "Kişi 3" },
+  { id: "arman", name: "Arman" },
+  { id: "cansu", name: "Cansu" },
+  { id: "defne", name: "Defne" },
+  { id: "ekin", name: "Ekin" },
+  { id: "emrullah", name: "Emrullah" },
+  { id: "erhan", name: "Erhan" },
+  { id: "murat", name: "Murat" },
+  { id: "ozgun", name: "Özgün" },
+  { id: "sila", name: "Sıla" },
 ];
+
+// Artık kullanılmayan placeholder kişiler — hiçbir görev/yoruma bağlı değillerse
+// tamamen silinir (FK varsa bu adım hata vermez, ama bu ikisi için kontrol edildi).
+const REMOVED_PEOPLE_IDS = ["kisi-2", "kisi-3"];
 
 // "İNTURLAM Portföy Denetimi — Sentez" artifact'inden (22 Temmuz 2026) — takipçi,
 // gönderi, medyan Reel izlenmesi, kapak testi, öne çıkan bulgu, ilk aksiyon.
@@ -280,6 +291,9 @@ const insertPerson = db.prepare(
    ON CONFLICT(id) DO UPDATE SET name = excluded.name`,
 );
 for (const p of PEOPLE) insertPerson.run(p.id, p.name);
+
+const deletePerson = db.prepare(`DELETE FROM people WHERE id = ?`);
+for (const id of REMOVED_PEOPLE_IDS) deletePerson.run(id);
 
 // İlişkiler her çalıştırmada temizlenip yeniden yazılır — kaynak sabit veri, drift olmaz.
 db.exec("DELETE FROM brand_relations");
