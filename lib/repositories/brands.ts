@@ -1,5 +1,5 @@
 import { getDb, plainList, plainOne } from "@/lib/db/client";
-import type { Brand, BrandWithCount } from "@/lib/types";
+import type { Brand, BrandAudit, BrandRelationView, BrandWithCount } from "@/lib/types";
 
 export function listBrands(): Brand[] {
   return plainList<Brand>(
@@ -28,5 +28,35 @@ export function listBrandsWithOpenCounts(): BrandWithCount[] {
 export function getBrand(id: string): Brand | undefined {
   return plainOne<Brand>(
     getDb().prepare("SELECT * FROM brands WHERE id = ?").get(id),
+  );
+}
+
+// Hangi taraf eşleşirse eşleşsin, sonuç hep "karşı marka"nın bilgisini taşır —
+// bir ilişki her iki markanın sayfasında da doğru yönde görünsün diye.
+export function listBrandRelations(brandId: string): BrandRelationView[] {
+  return plainList<BrandRelationView>(
+    getDb()
+      .prepare(
+        `SELECT
+           r.id,
+           r.relation_type,
+           r.risk_level,
+           r.note,
+           CASE WHEN r.brand_id = ? THEN r.related_brand_id ELSE r.brand_id END AS related_brand_id,
+           ob.name AS related_brand_name,
+           ob.cluster AS related_brand_cluster,
+           ob.logo_path AS related_brand_logo_path
+         FROM brand_relations r
+         JOIN brands ob ON ob.id = CASE WHEN r.brand_id = ? THEN r.related_brand_id ELSE r.brand_id END
+         WHERE r.brand_id = ? OR r.related_brand_id = ?
+         ORDER BY ob.name`,
+      )
+      .all(brandId, brandId, brandId, brandId),
+  );
+}
+
+export function getBrandAudit(brandId: string): BrandAudit | undefined {
+  return plainOne<BrandAudit>(
+    getDb().prepare("SELECT * FROM brand_audits WHERE brand_id = ?").get(brandId),
   );
 }

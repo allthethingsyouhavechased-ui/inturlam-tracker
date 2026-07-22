@@ -1,9 +1,38 @@
 CREATE TABLE IF NOT EXISTS brands (
   id         TEXT PRIMARY KEY,
   name       TEXT NOT NULL,
-  cluster    TEXT NOT NULL CHECK (cluster IN ('balik-deniz','kahve-gida','b2b-yapi','hamam','tek')),
+  cluster    TEXT NOT NULL CHECK (cluster IN ('balik-deniz','kahve-gida','b2b-yapi','hamam','emlak','tek')),
   sort_order INTEGER NOT NULL DEFAULT 0,
-  archived   INTEGER NOT NULL DEFAULT 0
+  archived   INTEGER NOT NULL DEFAULT 0,
+  logo_path          TEXT,
+  instagram_handle   TEXT,
+  follower_count     INTEGER,
+  post_count         INTEGER,
+  median_reel_views  TEXT,
+  cover_test_verdict TEXT CHECK (cover_test_verdict IN ('Gecti','Kismen','Basarisiz','Sinirda')),
+  cover_test_note    TEXT,
+  key_finding        TEXT,
+  first_action       TEXT,
+  tier               TEXT
+);
+
+CREATE TABLE IF NOT EXISTS brand_relations (
+  id               TEXT PRIMARY KEY,
+  brand_id         TEXT NOT NULL REFERENCES brands(id) ON DELETE CASCADE,
+  related_brand_id TEXT NOT NULL REFERENCES brands(id) ON DELETE CASCADE,
+  relation_type    TEXT NOT NULL CHECK (relation_type IN
+                     ('rakip','tedarikci','ortaklik_muhtemel','kismi_cakisma',
+                      'portfoy_ici','marka_ailesi','kardes_sube','nuansli')),
+  risk_level       TEXT CHECK (risk_level IN ('yuksek','dusuk','yok')),
+  note             TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS brand_audits (
+  brand_id      TEXT PRIMARY KEY REFERENCES brands(id) ON DELETE CASCADE,
+  body_markdown TEXT NOT NULL,
+  source_file   TEXT,
+  audit_date    TEXT,
+  updated_at    TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
 CREATE TABLE IF NOT EXISTS people (
@@ -49,3 +78,5 @@ CREATE INDEX IF NOT EXISTS idx_tasks_content_item  ON tasks(content_item_id);
 CREATE INDEX IF NOT EXISTS idx_tasks_assignee      ON tasks(assignee_id);
 CREATE INDEX IF NOT EXISTS idx_tasks_due_date      ON tasks(due_date);
 CREATE INDEX IF NOT EXISTS idx_comments_task       ON comments(task_id);
+CREATE INDEX IF NOT EXISTS idx_brand_relations_brand   ON brand_relations(brand_id);
+CREATE INDEX IF NOT EXISTS idx_brand_relations_related ON brand_relations(related_brand_id);

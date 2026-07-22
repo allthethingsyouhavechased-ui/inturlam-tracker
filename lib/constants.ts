@@ -1,16 +1,62 @@
-import type { Cluster, ContentStatus, ContentType, TaskStatus } from "./types";
+import type {
+  Cluster,
+  ContentStatus,
+  ContentType,
+  CoverTestVerdict,
+  RelationRisk,
+  RelationType,
+  TaskStatus,
+} from "./types";
 
 export const CLUSTERS: { id: Cluster; label: string }[] = [
   { id: "balik-deniz", label: "Balık & Deniz" },
   { id: "kahve-gida", label: "Kahve & Gıda" },
   { id: "b2b-yapi", label: "B2B / Yapı" },
   { id: "hamam", label: "Hamam" },
+  { id: "emlak", label: "Gayrimenkul" },
   { id: "tek", label: "Diğer" },
 ];
 
 export const CLUSTER_LABEL: Record<Cluster, string> = Object.fromEntries(
   CLUSTERS.map((c) => [c.id, c.label]),
 ) as Record<Cluster, string>;
+
+export const COVER_TEST_LABEL: Record<CoverTestVerdict, string> = {
+  Gecti: "Geçti",
+  Kismen: "Kısmen",
+  Basarisiz: "Başarısız",
+  Sinirda: "Sınırda",
+};
+
+export const COVER_TEST_BADGE: Record<CoverTestVerdict, string> = {
+  Gecti: "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300",
+  Kismen: "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300",
+  Basarisiz: "bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300",
+  Sinirda: "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300",
+};
+
+export const RELATION_TYPE_LABEL: Record<RelationType, string> = {
+  rakip: "Rakip",
+  tedarikci: "Tedarikçi",
+  ortaklik_muhtemel: "Muhtemel ortaklık",
+  kismi_cakisma: "Kısmi çakışma",
+  portfoy_ici: "Portföy içi bağlantı",
+  marka_ailesi: "Marka ailesi",
+  kardes_sube: "Kardeş şube",
+  nuansli: "Nüanslı ilişki",
+};
+
+export const RELATION_RISK_LABEL: Record<RelationRisk, string> = {
+  yuksek: "Yüksek risk",
+  dusuk: "Düşük risk",
+  yok: "Risk yok",
+};
+
+export const RELATION_RISK_BADGE: Record<RelationRisk, string> = {
+  yuksek: "bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300",
+  dusuk: "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300",
+  yok: "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300",
+};
 
 export const CONTENT_TYPES: ContentType[] = [
   "Reel",

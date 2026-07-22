@@ -1,6 +1,8 @@
 # İNTURLAM · İş Takip
 
-İNTURLAM'ın 17 markası için basit, ftrack mantığında bir içerik & görev takip aracı.
+İNTURLAM'ın 19 markası için basit, ftrack mantığında bir içerik & görev takip aracı —
+artık her markanın Instagram araştırma verisiyle (takipçi, performans, bulgular, tam
+denetim raporu, diğer markalarla ilişkisi) zenginleştirilmiş marka profili de var.
 Yapı: **Marka → İçerik/Proje → Görev (+ yorum)**. Şifre yok; açılışta "sen kimsin"
 seçimi cookie'de tutulur. Veri tek bir yerel dosyada (`data/inturlam.db`, SQLite).
 
@@ -13,8 +15,14 @@ seçimi cookie'de tutulur. Veri tek bir yerel dosyada (`data/inturlam.db`, SQLit
 
 ```powershell
 npm install
-npm run db:seed   # 17 markayı ve kişileri veritabanına yazar
+npm run db:seed   # 19 markayı, kişileri, marka ilişkilerini ve (varsa) tam denetim metinlerini yazar
 ```
+
+Tam denetim metinleri (her markanın 7 katmanlı Instagram analizi) paylaşımlı Obsidian
+vault'undan (`Obsidian Vault (Ofis PC)/İNTURLAM/Marka Denetimleri/`) okunur. O klasör bu
+bilgisayarda bağlı değilse (ör. Drive bağlı değilse) seed yine çalışır, sadece marka
+sayfalarındaki "Tam Denetim Raporu" bölümü boş kalır — takipçi/performans/bulgu gibi
+temel veriler zaten `db/seed.mts`'e gömülü olduğu için etkilenmez.
 
 ### Kişileri düzenleme
 

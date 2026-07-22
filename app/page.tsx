@@ -1,4 +1,5 @@
 import Link from "next/link";
+import BrandLogo from "@/components/BrandLogo";
 import { CLUSTERS } from "@/lib/constants";
 import { listBrandsWithOpenCounts } from "@/lib/repositories/brands";
 
@@ -34,7 +35,10 @@ export default function HomePage() {
                   href={`/brands/${brand.id}`}
                   className="group flex items-center justify-between rounded-xl border border-black/10 bg-white px-4 py-3 transition-colors hover:border-indigo-300 hover:bg-indigo-50/50 dark:border-white/10 dark:bg-zinc-900 dark:hover:border-indigo-800 dark:hover:bg-indigo-950/30"
                 >
-                  <span className="font-medium">{brand.name}</span>
+                  <span className="flex items-center gap-2.5">
+                    <BrandLogo name={brand.name} logoPath={brand.logo_path} size="sm" />
+                    <span className="font-medium">{brand.name}</span>
+                  </span>
                   {brand.open_count > 0 ? (
                     <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-indigo-100 px-2 text-xs font-semibold text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">
                       {brand.open_count}
