@@ -1,4 +1,5 @@
 import Link from "next/link";
+import NavLinks from "@/components/NavLinks";
 import { clearIdentity } from "@/lib/actions/identity";
 import { getCurrentPerson } from "@/lib/identity";
 
@@ -14,18 +15,7 @@ export default async function Header() {
           >
             İNTURLAM
           </Link>
-          <Link
-            href="/"
-            className="rounded-md px-2.5 py-1.5 text-zinc-600 hover:bg-black/5 dark:text-zinc-300 dark:hover:bg-white/10"
-          >
-            Markalar
-          </Link>
-          <Link
-            href="/dashboard"
-            className="rounded-md px-2.5 py-1.5 text-zinc-600 hover:bg-black/5 dark:text-zinc-300 dark:hover:bg-white/10"
-          >
-            Panom
-          </Link>
+          <NavLinks />
         </nav>
         <div className="flex items-center gap-2 text-sm">
           {person ? (

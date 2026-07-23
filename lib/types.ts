@@ -21,6 +21,8 @@ export type TaskStatus =
   | "Onaylandi"
   | "Yayinlandi";
 
+export type TaskPriority = "Dusuk" | "Normal" | "Yuksek" | "Acil";
+
 export type CoverTestVerdict = "Gecti" | "Kismen" | "Basarisiz" | "Sinirda";
 
 export type RelationType =
@@ -97,11 +99,20 @@ export interface Task {
   content_item_id: string;
   title: string;
   status: TaskStatus;
+  priority: TaskPriority;
   assignee_id: string | null;
   due_date: string | null;
   notes: string | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface CommentAttachment {
+  id: string;
+  comment_id: string;
+  file_path: string;
+  original_name: string | null;
+  created_at: string;
 }
 
 export interface Comment {
@@ -112,11 +123,20 @@ export interface Comment {
   created_at: string;
 }
 
+export interface TaskCardBadge {
+  label: string;
+  className: string;
+}
+
 export interface TaskWithContext extends Task {
   assignee_name: string | null;
   content_title: string;
   brand_id: string;
   brand_name: string;
+  // Panom'un birleşik board'unda bir görevin "neden burada" olduğunu gösteren
+  // rozetler (Benim/Gecikmiş/Bu hafta gibi) — sunucuda hesaplanıp düz veri
+  // olarak taşınır (Server→Client Component sınırında fonksiyon geçirilemez).
+  badges?: TaskCardBadge[];
 }
 
 export interface BrandWithCount extends Brand {

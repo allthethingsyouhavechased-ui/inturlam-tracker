@@ -58,6 +58,7 @@ CREATE TABLE IF NOT EXISTS tasks (
   content_item_id TEXT NOT NULL REFERENCES content_items(id) ON DELETE CASCADE,
   title           TEXT NOT NULL,
   status          TEXT NOT NULL DEFAULT 'Beklemede' CHECK (status IN ('Beklemede','DevamEdiyor','Incelemede','Onaylandi','Yayinlandi')),
+  priority        TEXT NOT NULL DEFAULT 'Normal' CHECK (priority IN ('Dusuk','Normal','Yuksek','Acil')),
   assignee_id     TEXT REFERENCES people(id) ON DELETE SET NULL,
   due_date        TEXT,
   notes           TEXT,
@@ -73,6 +74,14 @@ CREATE TABLE IF NOT EXISTS comments (
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
+CREATE TABLE IF NOT EXISTS comment_attachments (
+  id            TEXT PRIMARY KEY,
+  comment_id    TEXT NOT NULL REFERENCES comments(id) ON DELETE CASCADE,
+  file_path     TEXT NOT NULL,
+  original_name TEXT,
+  created_at    TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
 CREATE INDEX IF NOT EXISTS idx_brands_cluster      ON brands(cluster);
 CREATE INDEX IF NOT EXISTS idx_content_items_brand    ON content_items(brand_id);
 CREATE INDEX IF NOT EXISTS idx_content_items_assignee ON content_items(assignee_id);
@@ -80,5 +89,6 @@ CREATE INDEX IF NOT EXISTS idx_tasks_content_item  ON tasks(content_item_id);
 CREATE INDEX IF NOT EXISTS idx_tasks_assignee      ON tasks(assignee_id);
 CREATE INDEX IF NOT EXISTS idx_tasks_due_date      ON tasks(due_date);
 CREATE INDEX IF NOT EXISTS idx_comments_task       ON comments(task_id);
+CREATE INDEX IF NOT EXISTS idx_comment_attachments_comment ON comment_attachments(comment_id);
 CREATE INDEX IF NOT EXISTS idx_brand_relations_brand   ON brand_relations(brand_id);
 CREATE INDEX IF NOT EXISTS idx_brand_relations_related ON brand_relations(related_brand_id);

@@ -2,6 +2,7 @@
 
 import { useRef } from "react";
 import { createTaskAction } from "@/lib/actions/tasks";
+import { TASK_PRIORITIES, TASK_PRIORITY_ICON, TASK_PRIORITY_LABEL } from "@/lib/constants";
 import type { Person } from "@/lib/types";
 import SubmitButton from "./SubmitButton";
 
@@ -25,7 +26,7 @@ export default function NewTaskForm({
         await createTaskAction(fd);
         ref.current?.reset();
       }}
-      className="grid gap-3 sm:grid-cols-[1fr_auto_auto_auto] sm:items-end"
+      className="grid gap-3 sm:grid-cols-[1fr_auto_auto_auto_auto] sm:items-end"
     >
       <input type="hidden" name="contentItemId" value={contentItemId} />
       <label className="grid gap-1 text-xs font-medium text-zinc-500">
@@ -36,6 +37,16 @@ export default function NewTaskForm({
           placeholder="Örn. Çekim, Kurgu, Onay…"
           className={inputClass}
         />
+      </label>
+      <label className="grid gap-1 text-xs font-medium text-zinc-500">
+        Öncelik
+        <select name="priority" className={inputClass} defaultValue="Normal">
+          {TASK_PRIORITIES.map((p) => (
+            <option key={p} value={p}>
+              {TASK_PRIORITY_ICON[p]} {TASK_PRIORITY_LABEL[p]}
+            </option>
+          ))}
+        </select>
       </label>
       <label className="grid gap-1 text-xs font-medium text-zinc-500">
         Atanan

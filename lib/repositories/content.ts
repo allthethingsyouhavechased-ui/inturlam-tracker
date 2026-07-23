@@ -66,6 +66,22 @@ export function updateContentStatus(id: string, status: ContentStatus): void {
     .run(status, id);
 }
 
+export function updateContentItem(input: {
+  id: string;
+  title: string;
+  type: ContentType;
+  targetDate: string | null;
+  assigneeId: string | null;
+}): void {
+  getDb()
+    .prepare(
+      `UPDATE content_items
+       SET title = ?, type = ?, target_date = ?, assignee_id = ?, updated_at = datetime('now')
+       WHERE id = ?`,
+    )
+    .run(input.title, input.type, input.targetDate, input.assigneeId, input.id);
+}
+
 export function deleteContentItem(id: string): void {
   getDb().prepare("DELETE FROM content_items WHERE id = ?").run(id);
 }

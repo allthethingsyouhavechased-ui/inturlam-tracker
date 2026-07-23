@@ -2,16 +2,17 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { TASK_STATUSES } from "@/lib/constants";
+import { TASK_PRIORITIES, TASK_STATUSES } from "@/lib/constants";
 import {
   createTask,
   deleteTask,
   getTask,
   updateTaskAssignee,
   updateTaskDetails,
+  updateTaskPriority,
   updateTaskStatus,
 } from "@/lib/repositories/tasks";
-import type { TaskStatus } from "@/lib/types";
+import type { TaskPriority, TaskStatus } from "@/lib/types";
 
 function cleanText(value: FormDataEntryValue | null): string | null {
   const s = String(value ?? "").trim();
@@ -21,6 +22,8 @@ function cleanText(value: FormDataEntryValue | null): string | null {
 export async function createTaskAction(formData: FormData) {
   const contentItemId = String(formData.get("contentItemId") ?? "").trim();
   const title = String(formData.get("title") ?? "").trim();
+  const priorityRaw = String(formData.get("priority") ?? "Normal") as TaskPriority;
+  const priority = TASK_PRIORITIES.includes(priorityRaw) ? priorityRaw : "Normal";
 
   if (!contentItemId) throw new Error("İçerik bulunamadı.");
   if (!title) throw new Error("Görev başlığı zorunlu.");
@@ -30,6 +33,7 @@ export async function createTaskAction(formData: FormData) {
     title,
     assigneeId: cleanText(formData.get("assigneeId")),
     dueDate: cleanText(formData.get("dueDate")),
+    priority,
   });
 
   revalidatePath("/", "layout");
@@ -38,6 +42,15 @@ export async function createTaskAction(formData: FormData) {
 export async function setTaskStatusAction(taskId: string, status: TaskStatus) {
   if (!TASK_STATUSES.includes(status)) throw new Error("Geçersiz durum.");
   updateTaskStatus(taskId, status);
+  revalidatePath("/", "layout");
+}
+
+export async function setTaskPriorityAction(
+  taskId: string,
+  priority: TaskPriority,
+) {
+  if (!TASK_PRIORITIES.includes(priority)) throw new Error("Geçersiz öncelik.");
+  updateTaskPriority(taskId, priority);
   revalidatePath("/", "layout");
 }
 

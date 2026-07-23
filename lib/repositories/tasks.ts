@@ -1,5 +1,9 @@
 import { getDb, plainList, plainOne } from "@/lib/db/client";
-import type { Task, TaskStatus, TaskWithContext } from "@/lib/types";
+import type { Task, TaskPriority, TaskStatus, TaskWithContext } from "@/lib/types";
+
+// Acil→Düşük sıralaması için ORDER BY'da kullanılan CASE ifadesi.
+const PRIORITY_ORDER_SQL = `CASE t.priority
+  WHEN 'Acil' THEN 0 WHEN 'Yuksek' THEN 1 WHEN 'Normal' THEN 2 ELSE 3 END`;
 
 const WITH_CONTEXT_SELECT = `
   SELECT t.*, p.name AS assignee_name,
@@ -15,7 +19,7 @@ export function listTasksByContent(contentItemId: string): TaskWithContext[] {
   return plainList<TaskWithContext>(
     getDb()
       .prepare(
-        `${WITH_CONTEXT_SELECT} WHERE t.content_item_id = ? ORDER BY t.created_at`,
+        `${WITH_CONTEXT_SELECT} WHERE t.content_item_id = ? ORDER BY ${PRIORITY_ORDER_SQL}, t.created_at`,
       )
       .all(contentItemId),
   );
@@ -24,6 +28,18 @@ export function listTasksByContent(contentItemId: string): TaskWithContext[] {
 export function getTask(id: string): TaskWithContext | undefined {
   return plainOne<TaskWithContext>(
     getDb().prepare(`${WITH_CONTEXT_SELECT} WHERE t.id = ?`).get(id),
+  );
+}
+
+// "/tasks" (Görevler) sayfası için — portföydeki tüm görevler, istemci
+// tarafında filtrelenmek üzere tek seferde çekilir.
+export function listAllTasks(): TaskWithContext[] {
+  return plainList<TaskWithContext>(
+    getDb()
+      .prepare(
+        `${WITH_CONTEXT_SELECT} ORDER BY ${PRIORITY_ORDER_SQL}, (t.due_date IS NULL), t.due_date, b.name`,
+      )
+      .all(),
   );
 }
 
@@ -73,13 +89,21 @@ export function createTask(input: {
   title: string;
   assigneeId: string | null;
   dueDate: string | null;
+  priority?: TaskPriority;
 }): string {
   const id = crypto.randomUUID();
   getDb()
     .prepare(
-      "INSERT INTO tasks (id, content_item_id, title, assignee_id, due_date) VALUES (?, ?, ?, ?, ?)",
+      "INSERT INTO tasks (id, content_item_id, title, assignee_id, due_date, priority) VALUES (?, ?, ?, ?, ?, ?)",
     )
-    .run(id, input.contentItemId, input.title, input.assigneeId, input.dueDate);
+    .run(
+      id,
+      input.contentItemId,
+      input.title,
+      input.assigneeId,
+      input.dueDate,
+      input.priority ?? "Normal",
+    );
   return id;
 }
 
@@ -89,6 +113,14 @@ export function updateTaskStatus(id: string, status: TaskStatus): void {
       "UPDATE tasks SET status = ?, updated_at = datetime('now') WHERE id = ?",
     )
     .run(status, id);
+}
+
+export function updateTaskPriority(id: string, priority: TaskPriority): void {
+  getDb()
+    .prepare(
+      "UPDATE tasks SET priority = ?, updated_at = datetime('now') WHERE id = ?",
+    )
+    .run(priority, id);
 }
 
 export function updateTaskAssignee(id: string, assigneeId: string | null): void {

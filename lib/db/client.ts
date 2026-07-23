@@ -27,6 +27,7 @@ function createConnection(): DatabaseSync {
   }
   migrateBrandsTableIfNeeded(db);
   migrateContentItemsTableIfNeeded(db);
+  migrateTasksTableIfNeeded(db);
   db.exec(schemaSql);
   return db;
 }
@@ -121,6 +122,53 @@ function migrateContentItemsTableIfNeeded(db: DatabaseSync): void {
     db.exec(`ALTER TABLE content_items_new_migration RENAME TO content_items`);
     db.exec(`CREATE INDEX IF NOT EXISTS idx_content_items_brand ON content_items(brand_id)`);
     db.exec(`CREATE INDEX IF NOT EXISTS idx_content_items_assignee ON content_items(assignee_id)`);
+    db.exec("COMMIT");
+  } catch (e) {
+    db.exec("ROLLBACK");
+    throw e;
+  } finally {
+    db.exec("PRAGMA foreign_keys = ON");
+  }
+}
+
+// tasks tablosu priority sütunundan önce kurulmuş olabilir — aynı "yeni tabloyu
+// geçici isimle kur, veriyi kopyala (priority='Normal' ile), eskiyi sil, yeniyi
+// doğru isme çevir" deseni (bkz. migrateBrandsTableIfNeeded). comments tablosunun
+// task_id FK'si etkilenmez çünkü tasks adı hiç değişmeden kalıyor.
+function migrateTasksTableIfNeeded(db: DatabaseSync): void {
+  const row = db
+    .prepare(`SELECT sql FROM sqlite_master WHERE type='table' AND name='tasks'`)
+    .get() as { sql: string } | undefined;
+  if (!row || row.sql.includes("'Acil'")) return;
+
+  db.exec("PRAGMA foreign_keys = OFF");
+  try {
+    db.exec("BEGIN");
+    db.exec(`
+      CREATE TABLE tasks_new_migration (
+        id              TEXT PRIMARY KEY,
+        content_item_id TEXT NOT NULL REFERENCES content_items(id) ON DELETE CASCADE,
+        title           TEXT NOT NULL,
+        status          TEXT NOT NULL DEFAULT 'Beklemede' CHECK (status IN ('Beklemede','DevamEdiyor','Incelemede','Onaylandi','Yayinlandi')),
+        priority        TEXT NOT NULL DEFAULT 'Normal' CHECK (priority IN ('Dusuk','Normal','Yuksek','Acil')),
+        assignee_id     TEXT REFERENCES people(id) ON DELETE SET NULL,
+        due_date        TEXT,
+        notes           TEXT,
+        created_at      TEXT NOT NULL DEFAULT (datetime('now')),
+        updated_at      TEXT NOT NULL DEFAULT (datetime('now'))
+      )
+    `);
+    db.exec(`
+      INSERT INTO tasks_new_migration
+        (id, content_item_id, title, status, priority, assignee_id, due_date, notes, created_at, updated_at)
+      SELECT id, content_item_id, title, status, 'Normal', assignee_id, due_date, notes, created_at, updated_at
+      FROM tasks
+    `);
+    db.exec(`DROP TABLE tasks`);
+    db.exec(`ALTER TABLE tasks_new_migration RENAME TO tasks`);
+    db.exec(`CREATE INDEX IF NOT EXISTS idx_tasks_content_item ON tasks(content_item_id)`);
+    db.exec(`CREATE INDEX IF NOT EXISTS idx_tasks_assignee ON tasks(assignee_id)`);
+    db.exec(`CREATE INDEX IF NOT EXISTS idx_tasks_due_date ON tasks(due_date)`);
     db.exec("COMMIT");
   } catch (e) {
     db.exec("ROLLBACK");

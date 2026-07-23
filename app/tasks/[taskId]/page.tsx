@@ -4,6 +4,7 @@ import AssigneeSelect from "@/components/AssigneeSelect";
 import AutoRefresh from "@/components/AutoRefresh";
 import CommentForm from "@/components/CommentForm";
 import DeleteTaskButton from "@/components/DeleteTaskButton";
+import TaskPrioritySelect from "@/components/TaskPrioritySelect";
 import TaskStatusSelect from "@/components/TaskStatusSelect";
 import { updateTaskDetailsAction } from "@/lib/actions/tasks";
 import { formatDateTime } from "@/lib/date";
@@ -68,6 +69,10 @@ export default async function TaskPage({
             people={people}
           />
         </label>
+        <label className="flex items-center gap-2 text-sm text-zinc-500">
+          Öncelik
+          <TaskPrioritySelect taskId={task.id} priority={task.priority} />
+        </label>
       </div>
 
       <form
@@ -119,7 +124,26 @@ export default async function TaskPage({
                 </span>
                 <span>{formatDateTime(c.created_at)}</span>
               </div>
-              <p className="whitespace-pre-wrap">{c.body}</p>
+              {c.body && <p className="whitespace-pre-wrap">{c.body}</p>}
+              {c.attachments.length > 0 && (
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {c.attachments.map((a) => (
+                    <a
+                      key={a.id}
+                      href={a.file_path}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={a.file_path}
+                        alt={a.original_name ?? "Ek görsel"}
+                        className="h-24 w-24 rounded-md border border-black/10 object-cover transition-opacity hover:opacity-90 dark:border-white/15"
+                      />
+                    </a>
+                  ))}
+                </div>
+              )}
             </li>
           ))}
           {comments.length === 0 && (

@@ -5,6 +5,7 @@ import type {
   CoverTestVerdict,
   RelationRisk,
   RelationType,
+  TaskPriority,
   TaskStatus,
 } from "./types";
 
@@ -131,7 +132,54 @@ export const TASK_STATUS_DOT: Record<TaskStatus, string> = {
   Yayinlandi: "bg-emerald-500",
 };
 
+// Kanban kolon başlıklarının üst çizgisi — TASK_STATUS_DOT ile aynı renk
+// paleti, ama Tailwind'in derleme-zamanı taraması runtime'da üretilen class
+// string'lerini yakalayamadığı için (ör. .replace("bg-","border-t-")) ayrı
+// bir sabit olarak literal yazılmalı.
+export const TASK_STATUS_BORDER_TOP: Record<TaskStatus, string> = {
+  Beklemede: "border-t-slate-400",
+  DevamEdiyor: "border-t-amber-500",
+  Incelemede: "border-t-violet-500",
+  Onaylandi: "border-t-blue-500",
+  Yayinlandi: "border-t-emerald-500",
+};
+
 // Bir görevin "açık" (tamamlanmamış) sayılması için: yayınlanmamış olması.
 export const OPEN_TASK_STATUSES: TaskStatus[] = TASK_STATUSES.filter(
   (s) => s !== "Yayinlandi",
 );
+
+export const TASK_PRIORITIES: TaskPriority[] = ["Dusuk", "Normal", "Yuksek", "Acil"];
+
+export const TASK_PRIORITY_LABEL: Record<TaskPriority, string> = {
+  Dusuk: "Düşük",
+  Normal: "Normal",
+  Yuksek: "Yüksek",
+  Acil: "Acil",
+};
+
+export const TASK_PRIORITY_ICON: Record<TaskPriority, string> = {
+  Dusuk: "🔽",
+  Normal: "▪️",
+  Yuksek: "🔺",
+  Acil: "🔥",
+};
+
+export const TASK_PRIORITY_BADGE: Record<TaskPriority, string> = {
+  Dusuk: "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300",
+  Normal: "bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300",
+  Yuksek: "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300",
+  Acil: "bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300",
+};
+
+// Kanban kartlarında başlığın önüne sadece göz ardı edilmemesi gereken
+// öncelikler için bayrak konur — Normal/Düşük görsel gürültü yaratmasın diye.
+export const TASK_PRIORITY_FLAG_THRESHOLD: TaskPriority[] = ["Yuksek", "Acil"];
+
+// Görev kartlarının/satırlarının sol kenarındaki öncelik rengi (border-l-4 ile).
+export const TASK_PRIORITY_BORDER: Record<TaskPriority, string> = {
+  Dusuk: "border-l-slate-300 dark:border-l-slate-600",
+  Normal: "border-l-sky-400 dark:border-l-sky-600",
+  Yuksek: "border-l-amber-500",
+  Acil: "border-l-rose-500",
+};

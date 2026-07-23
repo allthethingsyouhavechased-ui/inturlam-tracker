@@ -1,17 +1,13 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import AssigneeSelect from "@/components/AssigneeSelect";
 import AutoRefresh from "@/components/AutoRefresh";
 import ContentStatusSelect from "@/components/ContentStatusSelect";
+import DeleteContentButton from "@/components/DeleteContentButton";
+import EditContentForm from "@/components/EditContentForm";
+import KanbanBoard from "@/components/KanbanBoard";
 import NewTaskForm from "@/components/NewTaskForm";
-import TaskStatusSelect from "@/components/TaskStatusSelect";
-import {
-  CONTENT_TYPE_LABEL,
-  TASK_STATUS_DOT,
-  TASK_STATUS_LABEL,
-  TASK_STATUSES,
-} from "@/lib/constants";
-import { formatDateShort, isOverdue } from "@/lib/date";
+import { CONTENT_TYPE_LABEL } from "@/lib/constants";
+import { formatDateShort } from "@/lib/date";
 import { getCurrentPerson } from "@/lib/identity";
 import { getBrand } from "@/lib/repositories/brands";
 import { getContentItem } from "@/lib/repositories/content";
@@ -70,6 +66,11 @@ export default async function ContentPage({
         )}
       </div>
 
+      <div className="flex flex-wrap items-center gap-4">
+        <EditContentForm content={content} people={people} />
+        <DeleteContentButton contentId={content.id} />
+      </div>
+
       <section className="rounded-xl border border-black/10 bg-white p-4 dark:border-white/10 dark:bg-zinc-900">
         <h2 className="mb-3 text-sm font-semibold">Yeni görev</h2>
         <NewTaskForm
@@ -80,59 +81,10 @@ export default async function ContentPage({
       </section>
 
       <section>
-        <div className="grid gap-4 lg:grid-cols-5">
-          {TASK_STATUSES.map((status) => {
-            const columnTasks = tasks.filter((t) => t.status === status);
-            return (
-              <div key={status} className="space-y-2">
-                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-zinc-400">
-                  <span
-                    className={`h-2 w-2 rounded-full ${TASK_STATUS_DOT[status]}`}
-                  />
-                  {TASK_STATUS_LABEL[status]}
-                  <span className="text-zinc-300 dark:text-zinc-600">
-                    {columnTasks.length}
-                  </span>
-                </div>
-                <div className="space-y-2">
-                  {columnTasks.map((task) => (
-                    <div
-                      key={task.id}
-                      className="space-y-2 rounded-lg border border-black/10 bg-white p-3 dark:border-white/10 dark:bg-zinc-900"
-                    >
-                      <Link
-                        href={`/tasks/${task.id}`}
-                        className="block text-sm font-medium hover:text-indigo-600 dark:hover:text-indigo-400"
-                      >
-                        {task.title}
-                      </Link>
-                      {task.due_date && (
-                        <div
-                          className={`text-xs ${isOverdue(task.due_date) ? "font-medium text-rose-600" : "text-zinc-500"}`}
-                        >
-                          📅 {formatDateShort(task.due_date)}
-                        </div>
-                      )}
-                      <div className="flex flex-wrap items-center gap-1.5">
-                        <AssigneeSelect
-                          taskId={task.id}
-                          assigneeId={task.assignee_id}
-                          people={people}
-                        />
-                        <TaskStatusSelect taskId={task.id} status={task.status} />
-                      </div>
-                    </div>
-                  ))}
-                  {columnTasks.length === 0 && (
-                    <div className="rounded-lg border border-dashed border-black/10 py-3 text-center text-xs text-zinc-300 dark:border-white/10 dark:text-zinc-600">
-                      —
-                    </div>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
+        <p className="mb-2 text-xs text-zinc-400">
+          Bir kartı tutup başka bir sütuna sürükleyerek durumunu değiştirebilirsin.
+        </p>
+        <KanbanBoard tasks={tasks} people={people} />
       </section>
     </div>
   );
