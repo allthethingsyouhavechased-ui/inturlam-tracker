@@ -58,6 +58,11 @@ export default async function ContentPage({
           {CONTENT_TYPE_LABEL[content.type]}
         </span>
         <ContentStatusSelect contentId={content.id} status={content.status} />
+        {content.assignee_name && (
+          <span className="text-xs text-zinc-500">
+            👤 {content.assignee_name}
+          </span>
+        )}
         {content.target_date && (
           <span className="text-xs text-zinc-500">
             📅 Hedef: {formatDateShort(content.target_date)}

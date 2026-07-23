@@ -50,9 +50,18 @@ Marka → İçerik → Görev (+yorum). Her markanın ayrıca Instagram araştı
   `tsconfig.json`'da `allowImportingTsExtensions: true` var (yalnızca `noEmit: true` ile
   birlikte kullanılabilir, bizde zaten öyle).
 - **Migration DDL + dev sunucusu:** `npm run db:seed` şema değiştiren bir migration tetikleyebilir
-  (`migrateBrandsTableIfNeeded`). Dev sunucusu (`npm run dev`) aynı `data/inturlam.db` dosyasını
-  açık tutarken seed'i çalıştırmak kilit çakışmasına yol açabilir — önce dev sunucusunu durdur,
-  seed'i çalıştır, sonra tekrar başlat.
+  (`migrateBrandsTableIfNeeded`, `migrateContentItemsTableIfNeeded`). Dev sunucusu (`npm run dev`)
+  aynı `data/inturlam.db` dosyasını açık tutarken seed'i çalıştırmak kilit çakışmasına yol
+  açabilir — önce dev sunucusunu durdur, seed'i çalıştır, sonra tekrar başlat.
+- **`schema.sql`'in ilk uygulaması eski DB'de patlayabilir:** Yeni bir sütuna referans veren yeni
+  bir `CREATE INDEX IF NOT EXISTS` eklersen (ör. `idx_content_items_assignee`), bu satır migration
+  henüz çalışmadan, `schema.sql`'in İLK geçişinde (henüz eski yapıdaki tabloya karşı) çalışır ve
+  "no such column" hatası verir — `CREATE TABLE IF NOT EXISTS` tablo zaten varsa no-op olur ama
+  `CREATE INDEX IF NOT EXISTS` sadece o İSİMDE bir indeks zaten varsa no-op olur, sütunun var olup
+  olmadığına bakmaz. Çözüm zaten `client.ts`'te: ilk `db.exec(schemaSql)` bir `try/catch` içinde
+  (best-effort), sonra migration fonksiyonları çalışır, sonra `schemaSql` İKİNCİ kez uygulanır
+  (bu sefer tablo doğru şekilde kurulmuş olduğu için hatasız geçer). Yeni bir migration eklerken
+  bu deseni boz­ma — özellikle yeni sütun/CHECK içeren yeni bir index/constraint eklediğinde.
 
 ## Genişletirken
 

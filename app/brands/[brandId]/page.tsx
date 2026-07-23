@@ -15,12 +15,14 @@ import {
   RELATION_TYPE_LABEL,
 } from "@/lib/constants";
 import { formatDateShort } from "@/lib/date";
+import { getCurrentPerson } from "@/lib/identity";
 import {
   getBrand,
   getBrandAudit,
   listBrandRelations,
 } from "@/lib/repositories/brands";
 import { listContentByBrand } from "@/lib/repositories/content";
+import { listActivePeople } from "@/lib/repositories/people";
 
 export const dynamic = "force-dynamic";
 
@@ -36,6 +38,8 @@ export default async function BrandPage({
   const items = listContentByBrand(brandId);
   const relations = listBrandRelations(brandId);
   const audit = getBrandAudit(brandId);
+  const people = listActivePeople();
+  const me = await getCurrentPerson();
 
   return (
     <div className="space-y-6">
@@ -176,7 +180,11 @@ export default async function BrandPage({
 
       <section className="rounded-xl border border-black/10 bg-white p-4 dark:border-white/10 dark:bg-zinc-900">
         <h2 className="mb-3 text-sm font-semibold">Yeni içerik / proje</h2>
-        <NewContentForm brandId={brand.id} />
+        <NewContentForm
+          brandId={brand.id}
+          people={people}
+          defaultAssigneeId={me?.id ?? null}
+        />
       </section>
 
       <section className="space-y-2">
@@ -205,6 +213,7 @@ export default async function BrandPage({
                     {CONTENT_STATUS_LABEL[item.status]}
                   </span>
                   <span className="ml-auto flex items-center gap-3 text-xs text-zinc-500">
+                    {item.assignee_name && <span>{item.assignee_name}</span>}
                     {item.task_total > 0 && (
                       <span>
                         {item.task_open} açık / {item.task_total} görev

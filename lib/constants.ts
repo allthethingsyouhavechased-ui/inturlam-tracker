@@ -63,6 +63,8 @@ export const CONTENT_TYPES: ContentType[] = [
   "Foto",
   "Kampanya",
   "Video",
+  "Carousel",
+  "KurumsalKimlik",
   "Diger",
 ];
 
@@ -71,6 +73,8 @@ export const CONTENT_TYPE_LABEL: Record<ContentType, string> = {
   Foto: "Foto",
   Kampanya: "Kampanya",
   Video: "Video",
+  Carousel: "Carousel",
+  KurumsalKimlik: "Kurumsal Kimlik",
   Diger: "Diğer",
 };
 

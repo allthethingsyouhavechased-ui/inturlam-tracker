@@ -4,16 +4,18 @@ import type { ContentItem, ContentStatus, ContentType } from "@/lib/types";
 export interface ContentItemWithCounts extends ContentItem {
   task_total: number;
   task_open: number;
+  assignee_name: string | null;
 }
 
 export function listContentByBrand(brandId: string): ContentItemWithCounts[] {
   return plainList<ContentItemWithCounts>(
     getDb()
       .prepare(
-        `SELECT ci.*,
+        `SELECT ci.*, p.name AS assignee_name,
                 COUNT(t.id) AS task_total,
                 COALESCE(SUM(CASE WHEN t.status != 'Yayinlandi' THEN 1 ELSE 0 END), 0) AS task_open
          FROM content_items ci
+         LEFT JOIN people p ON p.id = ci.assignee_id
          LEFT JOIN tasks t ON t.content_item_id = ci.id
          WHERE ci.brand_id = ?
          GROUP BY ci.id
@@ -23,9 +25,20 @@ export function listContentByBrand(brandId: string): ContentItemWithCounts[] {
   );
 }
 
-export function getContentItem(id: string): ContentItem | undefined {
-  return plainOne<ContentItem>(
-    getDb().prepare("SELECT * FROM content_items WHERE id = ?").get(id),
+export interface ContentItemWithAssignee extends ContentItem {
+  assignee_name: string | null;
+}
+
+export function getContentItem(id: string): ContentItemWithAssignee | undefined {
+  return plainOne<ContentItemWithAssignee>(
+    getDb()
+      .prepare(
+        `SELECT ci.*, p.name AS assignee_name
+         FROM content_items ci
+         LEFT JOIN people p ON p.id = ci.assignee_id
+         WHERE ci.id = ?`,
+      )
+      .get(id),
   );
 }
 
@@ -34,13 +47,14 @@ export function createContentItem(input: {
   title: string;
   type: ContentType;
   targetDate: string | null;
+  assigneeId: string | null;
 }): string {
   const id = crypto.randomUUID();
   getDb()
     .prepare(
-      "INSERT INTO content_items (id, brand_id, title, type, target_date) VALUES (?, ?, ?, ?, ?)",
+      "INSERT INTO content_items (id, brand_id, title, type, target_date, assignee_id) VALUES (?, ?, ?, ?, ?, ?)",
     )
-    .run(id, input.brandId, input.title, input.type, input.targetDate);
+    .run(id, input.brandId, input.title, input.type, input.targetDate, input.assigneeId);
   return id;
 }
 

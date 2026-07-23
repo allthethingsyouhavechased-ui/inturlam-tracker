@@ -84,7 +84,9 @@ Bunların altında markanın **içerik/proje listesi** var.
 Marka sayfasında, üstteki "Yeni içerik / proje" kutusuna:
 
 - **Başlık** (ör. "Ağustos Reels paketi", "Yeni ürün lansmanı")
-- **Tür**: Reel / Foto / Kampanya / Video / Diğer
+- **Tür**: Reel / Foto / Kampanya / Video / Carousel / Kurumsal Kimlik / Diğer
+- **Atanan**: bu içerikten/projeden kim sorumlu — açılışta kendi adın seçili gelir,
+  istersen başka birine ata ya da "— kimse —" bırak
 - **Hedef tarih** (opsiyonel)
 
 yazıp eklersin. Listede görünür, tıklayınca içine girip görev eklemeye başlayabilirsin.

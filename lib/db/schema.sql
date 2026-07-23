@@ -45,9 +45,10 @@ CREATE TABLE IF NOT EXISTS content_items (
   id          TEXT PRIMARY KEY,
   brand_id    TEXT NOT NULL REFERENCES brands(id) ON DELETE CASCADE,
   title       TEXT NOT NULL,
-  type        TEXT NOT NULL CHECK (type IN ('Reel','Foto','Kampanya','Video','Diger')),
+  type        TEXT NOT NULL CHECK (type IN ('Reel','Foto','Kampanya','Video','Carousel','KurumsalKimlik','Diger')),
   target_date TEXT,
   status      TEXT NOT NULL DEFAULT 'Planlandi' CHECK (status IN ('Planlandi','Uretimde','Tamamlandi','IptalEdildi')),
+  assignee_id TEXT REFERENCES people(id) ON DELETE SET NULL,
   created_at  TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at  TEXT NOT NULL DEFAULT (datetime('now'))
 );
@@ -73,7 +74,8 @@ CREATE TABLE IF NOT EXISTS comments (
 );
 
 CREATE INDEX IF NOT EXISTS idx_brands_cluster      ON brands(cluster);
-CREATE INDEX IF NOT EXISTS idx_content_items_brand ON content_items(brand_id);
+CREATE INDEX IF NOT EXISTS idx_content_items_brand    ON content_items(brand_id);
+CREATE INDEX IF NOT EXISTS idx_content_items_assignee ON content_items(assignee_id);
 CREATE INDEX IF NOT EXISTS idx_tasks_content_item  ON tasks(content_item_id);
 CREATE INDEX IF NOT EXISTS idx_tasks_assignee      ON tasks(assignee_id);
 CREATE INDEX IF NOT EXISTS idx_tasks_due_date      ON tasks(due_date);

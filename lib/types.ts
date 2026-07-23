@@ -5,7 +5,14 @@ export type Cluster =
   | "hamam"
   | "emlak"
   | "tek";
-export type ContentType = "Reel" | "Foto" | "Kampanya" | "Video" | "Diger";
+export type ContentType =
+  | "Reel"
+  | "Foto"
+  | "Kampanya"
+  | "Video"
+  | "Carousel"
+  | "KurumsalKimlik"
+  | "Diger";
 export type ContentStatus = "Planlandi" | "Uretimde" | "Tamamlandi" | "IptalEdildi";
 export type TaskStatus =
   | "Beklemede"
@@ -80,6 +87,7 @@ export interface ContentItem {
   type: ContentType;
   target_date: string | null;
   status: ContentStatus;
+  assignee_id: string | null;
   created_at: string;
   updated_at: string;
 }

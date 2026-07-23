@@ -15,8 +15,19 @@ function createConnection(): DatabaseSync {
   const db = new DatabaseSync(DB_PATH);
   db.exec("PRAGMA journal_mode = WAL");
   db.exec("PRAGMA foreign_keys = ON");
-  db.exec(fs.readFileSync(SCHEMA_PATH, "utf-8"));
+  const schemaSql = fs.readFileSync(SCHEMA_PATH, "utf-8");
+  try {
+    db.exec(schemaSql);
+  } catch {
+    // schema.sql, henüz migrate edilmemiş eski bir tabloya yeni bir sütun/indeks
+    // varsayıyor olabilir (ör. yeni eklenen bir sütun üzerinde CREATE INDEX).
+    // Migration'lar tabloyu düzeltir, aşağıda şema ikinci kez uygulanır — o
+    // geçişte artık hata vermez. Önceki CREATE TABLE/INDEX ifadeleri bu satıra
+    // kadar zaten no-op ya da başarılı şekilde uygulanmış olur.
+  }
   migrateBrandsTableIfNeeded(db);
+  migrateContentItemsTableIfNeeded(db);
+  db.exec(schemaSql);
   return db;
 }
 
@@ -64,6 +75,52 @@ function migrateBrandsTableIfNeeded(db: DatabaseSync): void {
     db.exec(`DROP TABLE brands`);
     db.exec(`ALTER TABLE brands_new_migration RENAME TO brands`);
     db.exec(`CREATE INDEX IF NOT EXISTS idx_brands_cluster ON brands(cluster)`);
+    db.exec("COMMIT");
+  } catch (e) {
+    db.exec("ROLLBACK");
+    throw e;
+  } finally {
+    db.exec("PRAGMA foreign_keys = ON");
+  }
+}
+
+// content_items tablosu Carousel/Kurumsal Kimlik türleri ve assignee_id'den önce
+// kurulmuş olabilir — aynı "yeni tabloyu geçici isimle kur, veriyi kopyala, eskiyi
+// sil, yeniyi doğru isme çevir" deseni (bkz. migrateBrandsTableIfNeeded). tasks
+// tablosunun content_item_id FK'si etkilenmez çünkü content_items adı hiç
+// değişmeden kalıyor.
+function migrateContentItemsTableIfNeeded(db: DatabaseSync): void {
+  const row = db
+    .prepare(`SELECT sql FROM sqlite_master WHERE type='table' AND name='content_items'`)
+    .get() as { sql: string } | undefined;
+  if (!row || row.sql.includes("'Carousel'")) return;
+
+  db.exec("PRAGMA foreign_keys = OFF");
+  try {
+    db.exec("BEGIN");
+    db.exec(`
+      CREATE TABLE content_items_new_migration (
+        id          TEXT PRIMARY KEY,
+        brand_id    TEXT NOT NULL REFERENCES brands(id) ON DELETE CASCADE,
+        title       TEXT NOT NULL,
+        type        TEXT NOT NULL CHECK (type IN ('Reel','Foto','Kampanya','Video','Carousel','KurumsalKimlik','Diger')),
+        target_date TEXT,
+        status      TEXT NOT NULL DEFAULT 'Planlandi' CHECK (status IN ('Planlandi','Uretimde','Tamamlandi','IptalEdildi')),
+        assignee_id TEXT REFERENCES people(id) ON DELETE SET NULL,
+        created_at  TEXT NOT NULL DEFAULT (datetime('now')),
+        updated_at  TEXT NOT NULL DEFAULT (datetime('now'))
+      )
+    `);
+    db.exec(`
+      INSERT INTO content_items_new_migration
+        (id, brand_id, title, type, target_date, status, created_at, updated_at)
+      SELECT id, brand_id, title, type, target_date, status, created_at, updated_at
+      FROM content_items
+    `);
+    db.exec(`DROP TABLE content_items`);
+    db.exec(`ALTER TABLE content_items_new_migration RENAME TO content_items`);
+    db.exec(`CREATE INDEX IF NOT EXISTS idx_content_items_brand ON content_items(brand_id)`);
+    db.exec(`CREATE INDEX IF NOT EXISTS idx_content_items_assignee ON content_items(assignee_id)`);
     db.exec("COMMIT");
   } catch (e) {
     db.exec("ROLLBACK");

@@ -8,7 +8,7 @@ import {
 } from "@/lib/repositories/content";
 import type { ContentStatus, ContentType } from "@/lib/types";
 
-function cleanDate(value: FormDataEntryValue | null): string | null {
+function cleanValue(value: FormDataEntryValue | null): string | null {
   const s = String(value ?? "").trim();
   return s.length > 0 ? s : null;
 }
@@ -26,7 +26,8 @@ export async function createContentItemAction(formData: FormData) {
     brandId,
     title,
     type,
-    targetDate: cleanDate(formData.get("targetDate")),
+    targetDate: cleanValue(formData.get("targetDate")),
+    assigneeId: cleanValue(formData.get("assigneeId")),
   });
 
   revalidatePath("/", "layout");
