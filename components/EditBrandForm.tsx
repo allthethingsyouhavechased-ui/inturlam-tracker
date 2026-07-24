@@ -1,21 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import { updateContentItemAction } from "@/lib/actions/content";
-import { CONTENT_TYPES, CONTENT_TYPE_LABEL } from "@/lib/constants";
+import { updateBrandAction } from "@/lib/actions/brands";
+import { CLUSTERS } from "@/lib/constants";
 import { getActionErrorMessage } from "@/lib/errorMessage";
-import type { ContentItem, Person } from "@/lib/types";
+import type { Brand } from "@/lib/types";
 import SubmitButton from "./SubmitButton";
 
 const inputClass =
   "w-full rounded-md border border-black/10 bg-white px-3 py-2 text-sm outline-none focus:border-indigo-500 dark:border-white/15 dark:bg-zinc-900";
 
-export default function EditContentForm({
-  content,
-  people,
+export default function EditBrandForm({
+  brand,
 }: {
-  content: Pick<ContentItem, "id" | "title" | "type" | "target_date" | "assignee_id">;
-  people: Person[];
+  brand: Pick<Brand, "id" | "name" | "cluster" | "instagram_handle">;
 }) {
   const [editing, setEditing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -37,7 +35,7 @@ export default function EditContentForm({
       action={async (fd) => {
         setError(null);
         try {
-          await updateContentItemAction(fd);
+          await updateBrandAction(fd);
           setEditing(false);
         } catch (e) {
           setError(getActionErrorMessage(e));
@@ -45,47 +43,27 @@ export default function EditContentForm({
       }}
       className="grid w-full gap-3 rounded-xl border border-black/10 bg-white p-4 dark:border-white/10 dark:bg-zinc-900 sm:grid-cols-[1fr_auto_auto_auto]"
     >
-      <input type="hidden" name="contentId" value={content.id} />
+      <input type="hidden" name="brandId" value={brand.id} />
       <label className="grid gap-1 text-xs font-medium text-zinc-500">
-        Başlık
-        <input
-          name="title"
-          required
-          defaultValue={content.title}
-          className={inputClass}
-        />
+        Marka adı
+        <input name="name" required defaultValue={brand.name} className={inputClass} />
       </label>
       <label className="grid gap-1 text-xs font-medium text-zinc-500">
-        Tür
-        <select name="type" defaultValue={content.type} className={inputClass}>
-          {CONTENT_TYPES.map((t) => (
-            <option key={t} value={t}>
-              {CONTENT_TYPE_LABEL[t]}
+        Kategori
+        <select name="cluster" defaultValue={brand.cluster} className={inputClass}>
+          {CLUSTERS.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.label}
             </option>
           ))}
         </select>
       </label>
       <label className="grid gap-1 text-xs font-medium text-zinc-500">
-        Atanan
-        <select
-          name="assigneeId"
-          defaultValue={content.assignee_id ?? ""}
-          className={inputClass}
-        >
-          <option value="">— kimse —</option>
-          {people.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.name}
-            </option>
-          ))}
-        </select>
-      </label>
-      <label className="grid gap-1 text-xs font-medium text-zinc-500">
-        Hedef tarih
+        Instagram
         <input
-          type="date"
-          name="targetDate"
-          defaultValue={content.target_date ?? ""}
+          name="instagramHandle"
+          defaultValue={brand.instagram_handle ?? ""}
+          placeholder="kullaniciadi"
           className={inputClass}
         />
       </label>

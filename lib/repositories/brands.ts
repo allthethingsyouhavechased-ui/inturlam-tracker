@@ -34,6 +34,17 @@ export function createBrand(input: {
   return id;
 }
 
+export function updateBrand(input: {
+  id: string;
+  name: string;
+  cluster: Cluster;
+  instagramHandle: string | null;
+}): void {
+  getDb()
+    .prepare("UPDATE brands SET name = ?, cluster = ?, instagram_handle = ? WHERE id = ?")
+    .run(input.name, input.cluster, input.instagramHandle, input.id);
+}
+
 export function setBrandArchived(id: string, archived: boolean): void {
   getDb()
     .prepare("UPDATE brands SET archived = ? WHERE id = ?")

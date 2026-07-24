@@ -9,6 +9,7 @@ import {
   TASK_PRIORITIES,
   TASK_PRIORITY_LABEL,
 } from "@/lib/constants";
+import { getActionErrorMessage } from "@/lib/errorMessage";
 import type { Person } from "@/lib/types";
 
 const NEW_CONTENT = "__new__";
@@ -84,25 +85,29 @@ export default function QuickAddModal({
     }
 
     startTransition(async () => {
-      let targetContentId = effectiveContentId;
-      if (targetContentId === NEW_CONTENT) {
-        const fd = new FormData();
-        fd.set("brandId", brandId);
-        fd.set("title", newContentTitle.trim());
-        fd.set("type", newContentType);
-        targetContentId = await createContentItemAction(fd);
+      try {
+        let targetContentId = effectiveContentId;
+        if (targetContentId === NEW_CONTENT) {
+          const fd = new FormData();
+          fd.set("brandId", brandId);
+          fd.set("title", newContentTitle.trim());
+          fd.set("type", newContentType);
+          targetContentId = await createContentItemAction(fd);
+        }
+
+        const fd2 = new FormData();
+        fd2.set("contentItemId", targetContentId);
+        fd2.set("title", taskTitle.trim());
+        fd2.set("priority", priority);
+        if (assigneeId) fd2.set("assigneeId", assigneeId);
+        if (dueDate) fd2.set("dueDate", dueDate);
+        await createTaskAction(fd2);
+
+        reset();
+        setOpen(false);
+      } catch (e) {
+        setError(getActionErrorMessage(e));
       }
-
-      const fd2 = new FormData();
-      fd2.set("contentItemId", targetContentId);
-      fd2.set("title", taskTitle.trim());
-      fd2.set("priority", priority);
-      if (assigneeId) fd2.set("assigneeId", assigneeId);
-      if (dueDate) fd2.set("dueDate", dueDate);
-      await createTaskAction(fd2);
-
-      reset();
-      setOpen(false);
     });
   }
 

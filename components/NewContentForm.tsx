@@ -1,8 +1,9 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { createContentItemAction } from "@/lib/actions/content";
 import { CONTENT_TYPES, CONTENT_TYPE_LABEL } from "@/lib/constants";
+import { getActionErrorMessage } from "@/lib/errorMessage";
 import type { Person } from "@/lib/types";
 import SubmitButton from "./SubmitButton";
 
@@ -19,12 +20,18 @@ export default function NewContentForm({
   defaultAssigneeId?: string | null;
 }) {
   const ref = useRef<HTMLFormElement>(null);
+  const [error, setError] = useState<string | null>(null);
   return (
     <form
       ref={ref}
       action={async (fd) => {
-        await createContentItemAction(fd);
-        ref.current?.reset();
+        setError(null);
+        try {
+          await createContentItemAction(fd);
+          ref.current?.reset();
+        } catch (e) {
+          setError(getActionErrorMessage(e));
+        }
       }}
       className="grid gap-3 sm:grid-cols-[1fr_auto_auto_auto_auto] sm:items-end"
     >
@@ -68,6 +75,7 @@ export default function NewContentForm({
         <input type="date" name="targetDate" className={inputClass} />
       </label>
       <SubmitButton>Ekle</SubmitButton>
+      {error && <p className="text-xs text-rose-600 sm:col-span-5">{error}</p>}
     </form>
   );
 }

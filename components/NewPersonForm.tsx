@@ -1,7 +1,8 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { createPersonAction } from "@/lib/actions/people";
+import { getActionErrorMessage } from "@/lib/errorMessage";
 import SubmitButton from "./SubmitButton";
 
 const inputClass =
@@ -9,12 +10,18 @@ const inputClass =
 
 export default function NewPersonForm() {
   const ref = useRef<HTMLFormElement>(null);
+  const [error, setError] = useState<string | null>(null);
   return (
     <form
       ref={ref}
       action={async (fd) => {
-        await createPersonAction(fd);
-        ref.current?.reset();
+        setError(null);
+        try {
+          await createPersonAction(fd);
+          ref.current?.reset();
+        } catch (e) {
+          setError(getActionErrorMessage(e));
+        }
       }}
       className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end"
     >
@@ -23,6 +30,7 @@ export default function NewPersonForm() {
         <input name="name" required placeholder="Örn. Ada Yılmaz" className={inputClass} />
       </label>
       <SubmitButton>Ekip üyesi ekle</SubmitButton>
+      {error && <p className="text-xs text-rose-600 sm:col-span-2">{error}</p>}
     </form>
   );
 }

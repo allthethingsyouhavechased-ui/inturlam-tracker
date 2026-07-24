@@ -1,8 +1,9 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { createBrandAction } from "@/lib/actions/brands";
 import { CLUSTERS } from "@/lib/constants";
+import { getActionErrorMessage } from "@/lib/errorMessage";
 import SubmitButton from "./SubmitButton";
 
 const inputClass =
@@ -10,12 +11,18 @@ const inputClass =
 
 export default function NewBrandForm() {
   const ref = useRef<HTMLFormElement>(null);
+  const [error, setError] = useState<string | null>(null);
   return (
     <form
       ref={ref}
       action={async (fd) => {
-        await createBrandAction(fd);
-        ref.current?.reset();
+        setError(null);
+        try {
+          await createBrandAction(fd);
+          ref.current?.reset();
+        } catch (e) {
+          setError(getActionErrorMessage(e));
+        }
       }}
       className="grid gap-3 sm:grid-cols-[1fr_auto_auto_auto] sm:items-end"
     >
@@ -47,6 +54,7 @@ export default function NewBrandForm() {
         />
       </label>
       <SubmitButton>Marka ekle</SubmitButton>
+      {error && <p className="text-xs text-rose-600 sm:col-span-4">{error}</p>}
     </form>
   );
 }

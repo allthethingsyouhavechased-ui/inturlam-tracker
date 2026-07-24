@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { CLUSTERS } from "@/lib/constants";
-import { createBrand, setBrandArchived } from "@/lib/repositories/brands";
+import { createBrand, setBrandArchived, updateBrand } from "@/lib/repositories/brands";
 import type { Cluster } from "@/lib/types";
 
 function cleanValue(value: FormDataEntryValue | null): string | null {
@@ -18,6 +18,25 @@ export async function createBrandAction(formData: FormData) {
   if (!CLUSTERS.some((c) => c.id === cluster)) throw new Error("Geçersiz kategori.");
 
   createBrand({
+    name,
+    cluster,
+    instagramHandle: cleanValue(formData.get("instagramHandle")),
+  });
+
+  revalidatePath("/", "layout");
+}
+
+export async function updateBrandAction(formData: FormData) {
+  const id = String(formData.get("brandId") ?? "").trim();
+  const name = String(formData.get("name") ?? "").trim();
+  const cluster = String(formData.get("cluster") ?? "") as Cluster;
+
+  if (!id) throw new Error("Marka bulunamadı.");
+  if (!name) throw new Error("Marka adı zorunlu.");
+  if (!CLUSTERS.some((c) => c.id === cluster)) throw new Error("Geçersiz kategori.");
+
+  updateBrand({
+    id,
     name,
     cluster,
     instagramHandle: cleanValue(formData.get("instagramHandle")),

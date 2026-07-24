@@ -68,3 +68,28 @@ export function addCommentAttachment(input: {
     )
     .run(id, input.commentId, input.filePath, input.originalName);
 }
+
+export function getCommentAuthorId(commentId: string): string | undefined {
+  const row = getDb()
+    .prepare("SELECT author_id FROM comments WHERE id = ?")
+    .get(commentId) as { author_id: string } | undefined;
+  return row?.author_id;
+}
+
+export function updateCommentBody(commentId: string, body: string): void {
+  getDb().prepare("UPDATE comments SET body = ? WHERE id = ?").run(body, commentId);
+}
+
+export function listAttachmentPaths(commentId: string): string[] {
+  return plainList<{ file_path: string }>(
+    getDb()
+      .prepare("SELECT file_path FROM comment_attachments WHERE comment_id = ?")
+      .all(commentId),
+  ).map((r) => r.file_path);
+}
+
+// comment_attachments satırları ON DELETE CASCADE ile otomatik silinir;
+// diskteki dosyaları temizlemek çağıran tarafın (action katmanı) işi.
+export function deleteComment(id: string): void {
+  getDb().prepare("DELETE FROM comments WHERE id = ?").run(id);
+}

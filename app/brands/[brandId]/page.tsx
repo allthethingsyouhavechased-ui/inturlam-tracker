@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import AutoRefresh from "@/components/AutoRefresh";
 import BrandLogo from "@/components/BrandLogo";
+import EditBrandForm from "@/components/EditBrandForm";
 import NewContentForm from "@/components/NewContentForm";
 import {
   CLUSTER_LABEL,
@@ -79,6 +80,8 @@ export default async function BrandPage({
           </div>
         </div>
       </div>
+
+      <EditBrandForm brand={brand} />
 
       {(brand.follower_count != null ||
         brand.cover_test_verdict ||

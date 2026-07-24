@@ -4,7 +4,14 @@ import { revalidatePath } from "next/cache";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { getCurrentPerson } from "@/lib/identity";
-import { addCommentAttachment, createComment } from "@/lib/repositories/comments";
+import {
+  addCommentAttachment,
+  createComment,
+  deleteComment,
+  getCommentAuthorId,
+  listAttachmentPaths,
+  updateCommentBody,
+} from "@/lib/repositories/comments";
 
 const MAX_FILES = 6;
 const MAX_FILE_SIZE = 8 * 1024 * 1024; // 8MB
@@ -57,5 +64,38 @@ export async function addCommentAction(formData: FormData) {
     }
   }
 
+  revalidatePath("/", "layout");
+}
+
+export async function updateCommentAction(formData: FormData) {
+  const commentId = String(formData.get("commentId") ?? "").trim();
+  const body = String(formData.get("body") ?? "").trim();
+
+  if (!commentId) throw new Error("Yorum bulunamadı.");
+  if (!body) throw new Error("Yorum boş olamaz.");
+
+  const person = await getCurrentPerson();
+  const authorId = getCommentAuthorId(commentId);
+  if (!person || person.id !== authorId) {
+    throw new Error("Sadece kendi yorumunu düzenleyebilirsin.");
+  }
+
+  updateCommentBody(commentId, body);
+  revalidatePath("/", "layout");
+}
+
+export async function deleteCommentAction(commentId: string) {
+  const person = await getCurrentPerson();
+  const authorId = getCommentAuthorId(commentId);
+  if (!person || person.id !== authorId) {
+    throw new Error("Sadece kendi yorumunu silebilirsin.");
+  }
+
+  const filePaths = listAttachmentPaths(commentId);
+  deleteComment(commentId);
+  for (const filePath of filePaths) {
+    const abs = path.join(process.cwd(), "public", filePath.replace(/^\//, ""));
+    await fs.unlink(abs).catch(() => {});
+  }
   revalidatePath("/", "layout");
 }

@@ -2,6 +2,7 @@
 
 import { useRef, useState, useTransition } from "react";
 import { addCommentAction } from "@/lib/actions/comments";
+import { getActionErrorMessage } from "@/lib/errorMessage";
 
 interface PendingImage {
   file: File;
@@ -14,6 +15,7 @@ export default function CommentForm({ taskId }: { taskId: string }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [images, setImages] = useState<PendingImage[]>([]);
   const [pending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
 
   function addFiles(fileList: FileList | null) {
     if (!fileList || fileList.length === 0) return;
@@ -46,13 +48,18 @@ export default function CommentForm({ taskId }: { taskId: string }) {
       ref={formRef}
       onSubmit={(e) => {
         e.preventDefault();
+        setError(null);
         const fd = new FormData();
         fd.set("taskId", taskId);
         fd.set("body", bodyRef.current?.value ?? "");
         for (const { file } of images) fd.append("images", file);
         startTransition(async () => {
-          await addCommentAction(fd);
-          reset();
+          try {
+            await addCommentAction(fd);
+            reset();
+          } catch (err) {
+            setError(getActionErrorMessage(err));
+          }
         });
       }}
       className="flex flex-col gap-2"
@@ -86,6 +93,7 @@ export default function CommentForm({ taskId }: { taskId: string }) {
           ))}
         </div>
       )}
+      {error && <p className="text-xs text-rose-600">{error}</p>}
       <div className="flex items-center justify-between gap-2">
         <label className="cursor-pointer text-xs font-medium text-zinc-500 hover:text-indigo-600 dark:hover:text-indigo-400">
           📎 Görsel ekle
