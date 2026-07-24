@@ -1,118 +1,83 @@
 import Link from "next/link";
-import AutoRefresh from "@/components/AutoRefresh";
-import TaskBoard from "@/components/TaskBoard";
 import { currentWeekRange, todayISO } from "@/lib/date";
-import { getCurrentPerson } from "@/lib/identity";
 import { listBrandsWithOpenCounts } from "@/lib/repositories/brands";
 import {
-  listOpenTasksByAssignee,
+  listAllTasks,
   listOverdueTasks,
   listTasksDueThisWeek,
 } from "@/lib/repositories/tasks";
-import type { TaskCardBadge, TaskWithContext } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
-const BADGE_MINE: TaskCardBadge = {
-  label: "Benim",
-  className: "bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300",
-};
-const BADGE_OVERDUE: TaskCardBadge = {
-  label: "Gecikmiş",
-  className: "bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300",
-};
-const BADGE_THIS_WEEK: TaskCardBadge = {
-  label: "Bu hafta",
-  className: "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300",
-};
+const QUICK_LINKS = [
+  { href: "/brands", label: "Markalar", desc: "Tüm markalar, içerikler ve denetim verileri" },
+  { href: "/panom", label: "Panom", desc: "Bana atanmış, gecikmiş ve bu hafta teslim görevler" },
+  { href: "/tasks", label: "Görevler", desc: "Portföydeki tüm görevler, filtrelenebilir" },
+  { href: "/reports", label: "Raporlar", desc: "Kişi ve marka bazlı görev özetleri" },
+  { href: "/team", label: "Ekip", desc: "Ekip üyelerini ekle/çıkar" },
+];
 
-export default async function HomePage() {
-  const me = await getCurrentPerson();
+const ACCENT = {
+  default: "text-zinc-900 dark:text-white",
+  rose: "text-rose-600 dark:text-rose-400",
+  amber: "text-amber-600 dark:text-amber-400",
+} as const;
+
+function StatCard({
+  label,
+  value,
+  accent = "default",
+}: {
+  label: string;
+  value: number;
+  accent?: keyof typeof ACCENT;
+}) {
+  return (
+    <div className="rounded-xl border border-black/10 bg-white p-4 dark:border-white/10 dark:bg-zinc-900">
+      <div className={`text-2xl font-semibold tabular-nums ${ACCENT[accent]}`}>{value}</div>
+      <div className="mt-0.5 text-xs text-zinc-500">{label}</div>
+    </div>
+  );
+}
+
+export default function HomePage() {
   const today = todayISO();
   const weekEnd = currentWeekRange().end;
 
-  const myTasks = me ? listOpenTasksByAssignee(me.id) : [];
+  const brands = listBrandsWithOpenCounts();
+  const allTasks = listAllTasks();
+  const openTasks = allTasks.filter((t) => t.status !== "Yayinlandi");
   const overdue = listOverdueTasks(today);
   const thisWeek = listTasksDueThisWeek(today, weekEnd);
-  const brands = listBrandsWithOpenCounts();
-
-  const myIds = new Set(myTasks.map((t) => t.id));
-  const overdueIds = new Set(overdue.map((t) => t.id));
-  const thisWeekIds = new Set(thisWeek.map((t) => t.id));
-
-  // Panom, Görevler'in aksine "her şeyi" değil, kişiye özel ("bana atanmış /
-  // gecikmiş / bu hafta teslim") tek bir kürate edilmiş board gösterir — her
-  // kart hangi nedenle/nedenlerle burada olduğunu rozetle taşır. Rozetler
-  // sunucuda düz veri olarak her task'a iliştirilir — Server Component'ten
-  // Client Component'e fonksiyon geçirilemediği için (RSC kısıtı) bir
-  // callback yerine bunu tercih ediyoruz.
-  function badgesFor(taskId: string): TaskCardBadge[] {
-    const badges: TaskCardBadge[] = [];
-    if (myIds.has(taskId)) badges.push(BADGE_MINE);
-    if (overdueIds.has(taskId)) badges.push(BADGE_OVERDUE);
-    if (thisWeekIds.has(taskId)) badges.push(BADGE_THIS_WEEK);
-    return badges;
-  }
-
-  const merged = new Map<string, TaskWithContext>();
-  for (const t of [...myTasks, ...overdue, ...thisWeek]) {
-    merged.set(t.id, { ...t, badges: badgesFor(t.id) });
-  }
-  const relevantTasks = [...merged.values()];
 
   return (
     <div className="space-y-8">
-      <AutoRefresh />
-      <h1 className="text-xl font-semibold tracking-tight">Panom</h1>
+      <div>
+        <h1 className="text-xl font-semibold tracking-tight">İNTURLAM İş Takip</h1>
+        <p className="mt-1 text-sm text-zinc-500">
+          Ajans genelinde marka, içerik ve görev takibi.
+        </p>
+      </div>
 
-      {!me && (
-        <section className="rounded-xl border border-black/10 bg-white p-4 text-sm text-zinc-600 dark:border-white/10 dark:bg-zinc-900 dark:text-zinc-300">
-          Kendi görevlerin (“Benim” rozetiyle) burada da görünsün istersen{" "}
-          <Link href="/whoami" className="font-medium text-indigo-600">
-            kim olduğunu seç
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard label="Marka" value={brands.length} />
+        <StatCard label="Açık görev" value={openTasks.length} />
+        <StatCard label="Gecikmiş görev" value={overdue.length} accent="rose" />
+        <StatCard label="Bu hafta teslim" value={thisWeek.length} accent="amber" />
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {QUICK_LINKS.map((l) => (
+          <Link
+            key={l.href}
+            href={l.href}
+            className="rounded-xl border border-black/10 bg-white p-4 transition-colors hover:border-indigo-300 hover:bg-indigo-50/50 dark:border-white/10 dark:bg-zinc-900 dark:hover:border-indigo-800 dark:hover:bg-indigo-950/30"
+          >
+            <div className="font-medium">{l.label}</div>
+            <div className="mt-1 text-xs text-zinc-500">{l.desc}</div>
           </Link>
-          . Gecikmiş ve bu hafta teslim olacak görevler zaten aşağıda.
-        </section>
-      )}
-
-      <section className="space-y-2">
-        <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
-          İlgilenmen gereken görevler{" "}
-          {relevantTasks.length > 0 && <span>({relevantTasks.length})</span>}
-        </h2>
-        {relevantTasks.length === 0 ? (
-          <p className="text-sm text-zinc-500">
-            Bana atanmış, gecikmiş ya da bu hafta teslim olacak açık görev yok. 🎉
-          </p>
-        ) : (
-          <TaskBoard tasks={relevantTasks} boardId="panom" />
-        )}
-      </section>
-
-      <section className="space-y-2">
-        <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
-          Markalara göre açık görevler
-        </h2>
-        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-          {brands
-            .filter((b) => b.open_count > 0)
-            .map((b) => (
-              <Link
-                key={b.id}
-                href={`/brands/${b.id}`}
-                className="flex items-center justify-between rounded-lg border border-black/10 bg-white px-3 py-2 text-sm transition-colors hover:border-indigo-300 dark:border-white/10 dark:bg-zinc-900 dark:hover:border-indigo-800"
-              >
-                <span className="font-medium">{b.name}</span>
-                <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-indigo-100 px-2 text-xs font-semibold text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">
-                  {b.open_count}
-                </span>
-              </Link>
-            ))}
-        </div>
-        {brands.every((b) => b.open_count === 0) && (
-          <p className="text-sm text-zinc-500">Hiç açık görev yok.</p>
-        )}
-      </section>
+        ))}
+      </div>
     </div>
   );
 }
