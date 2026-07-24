@@ -11,10 +11,10 @@ export const dynamic = "force-dynamic";
 
 const QUICK_LINKS = [
   { href: "/brands", label: "Markalar", desc: "Tüm markalar, içerikler ve denetim verileri" },
-  { href: "/panom", label: "Panom", desc: "Bana atanmış, gecikmiş ve bu hafta teslim görevler" },
   { href: "/tasks", label: "Görevler", desc: "Portföydeki tüm görevler, filtrelenebilir" },
   { href: "/reports", label: "Raporlar", desc: "Kişi ve marka bazlı görev özetleri" },
   { href: "/team", label: "Ekip", desc: "Ekip üyelerini ekle/çıkar" },
+  { href: "/panom", label: "Panom", desc: "Bana atanmış, gecikmiş ve bu hafta teslim görevler" },
 ];
 
 const ACCENT = {
