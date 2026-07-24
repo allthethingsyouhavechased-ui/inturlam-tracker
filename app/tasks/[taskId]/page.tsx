@@ -35,7 +35,7 @@ export default async function TaskPage({
     <div className="mx-auto max-w-2xl space-y-6">
       <AutoRefresh />
       <div className="text-sm text-zinc-500">
-        <Link href="/" className="hover:text-zinc-800 dark:hover:text-zinc-200">
+        <Link href="/brands" className="hover:text-zinc-800 dark:hover:text-zinc-200">
           Markalar
         </Link>{" "}
         /{" "}

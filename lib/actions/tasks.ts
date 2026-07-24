@@ -19,7 +19,7 @@ function cleanText(value: FormDataEntryValue | null): string | null {
   return s.length > 0 ? s : null;
 }
 
-export async function createTaskAction(formData: FormData) {
+export async function createTaskAction(formData: FormData): Promise<string> {
   const contentItemId = String(formData.get("contentItemId") ?? "").trim();
   const title = String(formData.get("title") ?? "").trim();
   const priorityRaw = String(formData.get("priority") ?? "Normal") as TaskPriority;
@@ -28,7 +28,7 @@ export async function createTaskAction(formData: FormData) {
   if (!contentItemId) throw new Error("İçerik bulunamadı.");
   if (!title) throw new Error("Görev başlığı zorunlu.");
 
-  createTask({
+  const id = createTask({
     contentItemId,
     title,
     assigneeId: cleanText(formData.get("assigneeId")),
@@ -37,6 +37,7 @@ export async function createTaskAction(formData: FormData) {
   });
 
   revalidatePath("/", "layout");
+  return id;
 }
 
 export async function setTaskStatusAction(taskId: string, status: TaskStatus) {

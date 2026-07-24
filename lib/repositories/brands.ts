@@ -1,5 +1,5 @@
 import { getDb, plainList, plainOne } from "@/lib/db/client";
-import type { Brand, BrandAudit, BrandRelationView, BrandWithCount } from "@/lib/types";
+import type { Brand, BrandAudit, BrandRelationView, BrandWithCount, Cluster } from "@/lib/types";
 
 export function listBrands(): Brand[] {
   return plainList<Brand>(
@@ -7,6 +7,37 @@ export function listBrands(): Brand[] {
       .prepare("SELECT * FROM brands WHERE archived = 0 ORDER BY sort_order, name")
       .all(),
   );
+}
+
+export function listArchivedBrands(): Brand[] {
+  return plainList<Brand>(
+    getDb()
+      .prepare("SELECT * FROM brands WHERE archived = 1 ORDER BY name")
+      .all(),
+  );
+}
+
+export function createBrand(input: {
+  name: string;
+  cluster: Cluster;
+  instagramHandle: string | null;
+}): string {
+  const id = crypto.randomUUID();
+  const { maxOrder } = plainOne<{ maxOrder: number | null }>(
+    getDb().prepare("SELECT MAX(sort_order) AS maxOrder FROM brands").get(),
+  )!;
+  getDb()
+    .prepare(
+      "INSERT INTO brands (id, name, cluster, sort_order, instagram_handle) VALUES (?, ?, ?, ?, ?)",
+    )
+    .run(id, input.name, input.cluster, (maxOrder ?? 0) + 10, input.instagramHandle);
+  return id;
+}
+
+export function setBrandArchived(id: string, archived: boolean): void {
+  getDb()
+    .prepare("UPDATE brands SET archived = ? WHERE id = ?")
+    .run(archived ? 1 : 0, id);
 }
 
 export function listBrandsWithOpenCounts(): BrandWithCount[] {

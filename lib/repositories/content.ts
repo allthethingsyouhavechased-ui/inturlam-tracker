@@ -25,6 +25,25 @@ export function listContentByBrand(brandId: string): ContentItemWithCounts[] {
   );
 }
 
+export interface ContentSummary {
+  id: string;
+  brand_id: string;
+  title: string;
+  status: ContentStatus;
+}
+
+// Sidebar için: tüm markaların içeriklerini TEK sorguda getirir (19 marka için
+// her biri ayrı sorgu atmak yerine) — çağıran taraf brand_id'ye göre grupluyor.
+export function listAllContentSummaries(): ContentSummary[] {
+  return plainList<ContentSummary>(
+    getDb()
+      .prepare(
+        "SELECT id, brand_id, title, status FROM content_items ORDER BY created_at DESC",
+      )
+      .all(),
+  );
+}
+
 export interface ContentItemWithAssignee extends ContentItem {
   assignee_name: string | null;
 }

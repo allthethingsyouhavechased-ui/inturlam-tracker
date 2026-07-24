@@ -17,7 +17,7 @@ function cleanValue(value: FormDataEntryValue | null): string | null {
   return s.length > 0 ? s : null;
 }
 
-export async function createContentItemAction(formData: FormData) {
+export async function createContentItemAction(formData: FormData): Promise<string> {
   const brandId = String(formData.get("brandId") ?? "").trim();
   const title = String(formData.get("title") ?? "").trim();
   const type = String(formData.get("type") ?? "") as ContentType;
@@ -26,7 +26,7 @@ export async function createContentItemAction(formData: FormData) {
   if (!title) throw new Error("Başlık zorunlu.");
   if (!CONTENT_TYPES.includes(type)) throw new Error("Geçersiz içerik türü.");
 
-  createContentItem({
+  const id = createContentItem({
     brandId,
     title,
     type,
@@ -35,6 +35,7 @@ export async function createContentItemAction(formData: FormData) {
   });
 
   revalidatePath("/", "layout");
+  return id;
 }
 
 export async function setContentStatusAction(

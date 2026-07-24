@@ -45,7 +45,7 @@ export default async function BrandPage({
     <div className="space-y-6">
       <AutoRefresh />
       <div className="text-sm text-zinc-500">
-        <Link href="/" className="hover:text-zinc-800 dark:hover:text-zinc-200">
+        <Link href="/brands" className="hover:text-zinc-800 dark:hover:text-zinc-200">
           Markalar
         </Link>{" "}
         / <span className="text-zinc-800 dark:text-zinc-200">{brand.name}</span>
@@ -82,9 +82,13 @@ export default async function BrandPage({
 
       {(brand.follower_count != null ||
         brand.cover_test_verdict ||
-        brand.key_finding ||
-        brand.first_action) && (
+        relations.length > 0 ||
+        audit) && (
         <section className="space-y-3 rounded-xl border border-black/10 bg-white p-4 dark:border-white/10 dark:bg-zinc-900">
+          {(brand.follower_count != null ||
+            brand.post_count != null ||
+            brand.median_reel_views ||
+            brand.cover_test_verdict) && (
           <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
             {brand.follower_count != null && (
               <span>
@@ -117,22 +121,6 @@ export default async function BrandPage({
               </span>
             )}
           </div>
-
-          {brand.key_finding && (
-            <p className="text-sm">
-              <span className="font-semibold">Öne çıkan bulgu:</span>{" "}
-              <span className="text-zinc-600 dark:text-zinc-300">
-                {brand.key_finding}
-              </span>
-            </p>
-          )}
-          {brand.first_action && (
-            <p className="text-sm">
-              <span className="font-semibold">İlk aksiyon:</span>{" "}
-              <span className="text-zinc-600 dark:text-zinc-300">
-                {brand.first_action}
-              </span>
-            </p>
           )}
 
           {relations.length > 0 && (

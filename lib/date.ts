@@ -1,4 +1,4 @@
-import { endOfWeek, format, parseISO, startOfWeek } from "date-fns";
+import { endOfMonth, endOfWeek, format, parseISO, startOfMonth, startOfWeek } from "date-fns";
 import { tr } from "date-fns/locale";
 
 function toISODate(d: Date): string {
@@ -16,6 +16,12 @@ export function currentWeekRange(): { start: string; end: string } {
     start: toISODate(startOfWeek(now, { weekStartsOn: 1 })),
     end: toISODate(endOfWeek(now, { weekStartsOn: 1 })),
   };
+}
+
+// Ayın 1'i–son günü (dahil) aralığını 'YYYY-MM-DD' string olarak döner.
+export function currentMonthRange(): { start: string; end: string } {
+  const now = new Date();
+  return { start: toISODate(startOfMonth(now)), end: toISODate(endOfMonth(now)) };
 }
 
 export function formatDateShort(iso: string | null): string {

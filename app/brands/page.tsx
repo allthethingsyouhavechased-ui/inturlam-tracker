@@ -1,0 +1,90 @@
+import BrandLogo from "@/components/BrandLogo";
+import ArchiveBrandButton from "@/components/ArchiveBrandButton";
+import NewBrandForm from "@/components/NewBrandForm";
+import Link from "next/link";
+import { CLUSTERS } from "@/lib/constants";
+import { listArchivedBrands, listBrandsWithOpenCounts } from "@/lib/repositories/brands";
+
+export const dynamic = "force-dynamic";
+
+export default function BrandsPage() {
+  const brands = listBrandsWithOpenCounts();
+  const archived = listArchivedBrands();
+
+  return (
+    <div className="space-y-8">
+      <h1 className="text-xl font-semibold tracking-tight">Markalar</h1>
+
+      <section className="rounded-xl border border-black/10 bg-white p-4 dark:border-white/10 dark:bg-zinc-900">
+        <h2 className="mb-3 text-sm font-semibold">Yeni marka ekle</h2>
+        <NewBrandForm />
+      </section>
+
+      {CLUSTERS.map((cluster) => {
+        const inCluster = brands.filter((b) => b.cluster === cluster.id);
+        if (inCluster.length === 0) return null;
+        return (
+          <section key={cluster.id} className="space-y-3">
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+              {cluster.label}
+            </h2>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {inCluster.map((brand) => (
+                <div
+                  key={brand.id}
+                  className="group flex items-center justify-between gap-2 rounded-xl border border-black/10 bg-white px-4 py-3 transition-colors hover:border-indigo-300 hover:bg-indigo-50/50 dark:border-white/10 dark:bg-zinc-900 dark:hover:border-indigo-800 dark:hover:bg-indigo-950/30"
+                >
+                  <Link
+                    href={`/brands/${brand.id}`}
+                    className="flex flex-1 items-center gap-2.5"
+                  >
+                    <BrandLogo name={brand.name} logoPath={brand.logo_path} size="sm" />
+                    <span className="font-medium">{brand.name}</span>
+                  </Link>
+                  <div className="flex items-center gap-2">
+                    {brand.open_count > 0 ? (
+                      <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-indigo-100 px-2 text-xs font-semibold text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">
+                        {brand.open_count}
+                      </span>
+                    ) : (
+                      <span className="text-xs text-zinc-400">boş</span>
+                    )}
+                    <ArchiveBrandButton brandId={brand.id} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        );
+      })}
+
+      {brands.length === 0 && (
+        <p className="text-sm text-zinc-500">
+          Henüz marka yok. Yukarıdan yeni bir marka ekleyebilirsin.
+        </p>
+      )}
+
+      {archived.length > 0 && (
+        <section className="space-y-2">
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+            Arşivlenenler ({archived.length})
+          </h2>
+          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {archived.map((brand) => (
+              <div
+                key={brand.id}
+                className="flex items-center justify-between gap-2 rounded-xl border border-dashed border-black/10 bg-white/60 px-4 py-3 text-sm text-zinc-500 dark:border-white/10 dark:bg-zinc-900/60"
+              >
+                <span className="flex items-center gap-2.5">
+                  <BrandLogo name={brand.name} logoPath={brand.logo_path} size="sm" />
+                  <span>{brand.name}</span>
+                </span>
+                <ArchiveBrandButton brandId={brand.id} archived />
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+    </div>
+  );
+}
