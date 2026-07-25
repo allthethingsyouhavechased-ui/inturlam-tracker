@@ -36,9 +36,27 @@ function createConnection(): DatabaseSync {
   migrateContentItemsArchivedIfNeeded(db);
   migrateTasksTableIfNeeded(db);
   migrateTasksRepeatIfNeeded(db);
+  // SIRA ÖNEMLİ: yukarıdaki iki brands migration'ı tabloyu SABİT bir sütun
+  // listesiyle yeniden kuruyor; bu ALTER onlardan sonra çalışmalı, yoksa
+  // eklediği sütun rebuild sırasında düşer.
+  migrateBrandsStatsUpdatedIfNeeded(db);
   db.exec(schemaSql);
   seedTaskTemplatesIfNeeded(db);
   return db;
+}
+
+// brands.stats_updated_at — takipçi/gönderi sayılarının en son ne zaman
+// tazelendiği. Sayılar haftalık elle güncelleniyor; damga olmadan ekrandaki
+// rakamın geçen haftadan mı yoksa aylar öncesinden mi kaldığı anlaşılmıyor.
+// Düz sütun, CHECK/FK yok → ALTER yeterli. Idempotent: sütun varsa no-op.
+function migrateBrandsStatsUpdatedIfNeeded(db: DatabaseSync): void {
+  const exists = db
+    .prepare(`SELECT 1 FROM sqlite_master WHERE type='table' AND name='brands'`)
+    .get();
+  if (!exists) return;
+  const columns = db.prepare(`PRAGMA table_info(brands)`).all() as { name: string }[];
+  if (columns.some((c) => c.name === "stats_updated_at")) return;
+  db.exec(`ALTER TABLE brands ADD COLUMN stats_updated_at TEXT`);
 }
 
 // tasks.repeat_days — tekrar eden görevler için. CHECK/FK içermediği için

@@ -78,6 +78,25 @@ body {
   outline-color: var(--color-brand-400);
 }
 
+/* --- Sidebar daraltma -----------------------------------------------------
+   Masaüstü genişliği Tailwind sınıfıyla değil buradan veriliyor: daraltılmış
+   tercih localStorage'da ve layout'taki no-FOUC script'i <html data-sidebar>'ı
+   React çalışmadan ÖNCE yazıyor. Genişlik React state'ine bağlı olsaydı sayfa
+   bir kare açık sidebar'la boyanıp sonra kapanırdı.
+
+   `width: 0` + `overflow: hidden` (display:none değil): panel DOM'da kalır,
+   marka ağacının açık/kapalı durumu geri açıldığında korunur. */
+@media (min-width: 768px) {
+  .sidebar-panel {
+    width: 15rem;
+    overflow: visible;
+  }
+  html[data-sidebar="collapsed"] .sidebar-panel {
+    width: 0;
+    overflow: hidden;
+  }
+}
+
 /* --- Dokunma hedefi -------------------------------------------------------
    Yoğun listelerdeki minik butonlar (sidebar aç/kapa oku, şablon satırı silme
    ×) görsel olarak küçük kalmalı ama parmakla ıskalanmamalı. Bu sınıf butonun

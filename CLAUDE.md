@@ -98,6 +98,24 @@ kategorilere (`clusters` tablosu) ayrılır. Her markanın ayrıca Instagram ara
   (bu sefer tablo doğru şekilde kurulmuş olduğu için hatasız geçer). Yeni bir migration eklerken
   bu deseni boz­ma — özellikle yeni sütun/CHECK içeren yeni bir index/constraint eklediğinde.
 
+## Marka sayfası: kaldırılan araştırma verileri
+
+Marka detayında eskiden "İlgili markalar" kartları, tam denetim raporunun markdown'ı, medyan
+Reel izlenmesi ve kapak testi rozeti vardı — günlük iş takibinde kullanılmadıkları için arayüzden
+kaldırıldı (2026-07-25). Kalan: takipçi + gönderi sayısı ve `key_finding` üzerinden gösterilen
+kısa bilgilendirme metni.
+
+**Veri silinmedi, sadece gösterilmiyor:** `brand_relations` / `brand_audits` tabloları ve
+`brands.median_reel_views` / `cover_test_verdict` / `cover_test_note` / `first_action` sütunları
+duruyor, `db/seed.mts` hâlâ vault'tan dolduruyor. `listBrandRelations()` ve `getBrandAudit()`
+okuma yolu da yerinde ama artık ÇAĞRILMIYOR — geri istenirse birkaç satırlık iş. Buna bağlı
+`react-markdown` ve `@tailwindcss/typography` şu an boşta; kaldırmadan önce raporun geri
+gelmeyeceğinden emin ol. `updateBrand()` bu sütunları artık YAZMIYOR.
+
+`brands.stats_updated_at`: takipçi/gönderi haftalık elle giriliyor; damga yalnızca sayılardan
+biri gerçekten değiştiğinde bugüne çekilir (yalnızca adı düzeltip kaydetmek tazelemez, yoksa
+"tazelenmeli" uyarısı yalan söyler). 7 günden eskiyse marka sayfasında uyarı çıkar.
+
 ## Tasarım kuralları (yeni ekran/bileşen yazarken)
 
 - **Aksan rengi `brand-*`**, asla `indigo-*` değil. Skala `globals.css`'teki `@theme inline`'da;
@@ -114,6 +132,11 @@ kategorilere (`clusters` tablosu) ayrılır. Her markanın ayrıca Instagram ara
   `truncate`lı (nowrap) metnin ya da bir `<select>`'in en uzun seçeneğinin TAM genişliğini alt
   sınır kabul eder; hücre taşar ve telefonda sayfa yatay kayar. Kart/panel bir grid çocuğuysa
   `min-w-0` ekle (bkz. `app/page.tsx` TaskPanel, `components/TaskGridCard.tsx`).
+- **Sidebar daraltması CSS'ten, React'ten değil.** Tercih `<html data-sidebar>` özniteliğinde ve
+  layout'taki no-FOUC script'i onu ilk boyamadan önce yazıyor; genişliği `globals.css`'teki
+  `.sidebar-panel` kuralı veriyor. React state'i olsaydı sayfa bir kare açık sidebar'la çizilirdi.
+  `SidebarContext` bu yüzden `useSyncExternalStore` ile özniteliği okuyor (`useEffect` + `setState`
+  fazladan render turu demek ve `react-hooks/set-state-in-effect` kuralına takılıyor).
 - **Üst menü `md`nin altında gizli.** 7 bölüm linki dar ekrana sığmıyor; liste tek yerde
   (`lib/nav.ts`), masaüstünde `NavLinks`, mobilde off-canvas panelde `SidebarNavLinks`.
   Yeni sayfa eklerken `MAIN_NAV`'a yaz, iki yer birden güncellenir.

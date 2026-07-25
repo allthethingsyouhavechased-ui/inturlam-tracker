@@ -24,7 +24,10 @@ CREATE TABLE IF NOT EXISTS brands (
   cover_test_note    TEXT,
   key_finding        TEXT,
   first_action       TEXT,
-  tier               TEXT
+  tier               TEXT,
+  -- Takipçi/gönderi sayılarının son tazelenme tarihi (YYYY-MM-DD). Sayılar
+  -- haftalık elle giriliyor; bu damga rakamın ne kadar bayat olduğunu gösterir.
+  stats_updated_at   TEXT
 );
 
 CREATE TABLE IF NOT EXISTS brand_relations (

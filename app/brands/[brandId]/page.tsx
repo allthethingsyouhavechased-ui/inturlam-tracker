@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import ReactMarkdown from "react-markdown";
 import ActivityFeed from "@/components/ActivityFeed";
 import ArchiveContentButton from "@/components/ArchiveContentButton";
 import AutoRefresh from "@/components/AutoRefresh";
@@ -11,19 +10,11 @@ import {
   CONTENT_STATUS_BADGE,
   CONTENT_STATUS_LABEL,
   CONTENT_TYPE_LABEL,
-  COVER_TEST_BADGE,
-  COVER_TEST_LABEL,
-  RELATION_RISK_BADGE,
-  RELATION_TYPE_LABEL,
   UNKNOWN_CLUSTER_LABEL,
 } from "@/lib/constants";
-import { formatDateShort } from "@/lib/date";
+import { daysAgoISO, formatDateShort } from "@/lib/date";
 import { getCurrentPerson } from "@/lib/identity";
-import {
-  getBrand,
-  getBrandAudit,
-  listBrandRelations,
-} from "@/lib/repositories/brands";
+import { getBrand } from "@/lib/repositories/brands";
 import { listActivityForBrand } from "@/lib/repositories/activity";
 import { clusterLabelMap, listClusters } from "@/lib/repositories/clusters";
 import { listArchivedContentByBrand, listContentByBrand } from "@/lib/repositories/content";
@@ -43,14 +34,17 @@ export default async function BrandPage({
 
   const items = listContentByBrand(brandId);
   const archivedItems = listArchivedContentByBrand(brandId);
-  const relations = listBrandRelations(brandId);
-  const audit = getBrandAudit(brandId);
   const people = listActivePeople();
   const activity = listActivityForBrand(brandId);
   const clusters = listClusters();
   const clusterLabels = clusterLabelMap();
   const templates = listTemplates();
   const me = await getCurrentPerson();
+
+  // Sayılar haftalık tazeleniyor; 7 günden eskiyse (ya da hiç girilmemişse)
+  // "tazelenmeli" uyarısı çıkar. Tarihler 'YYYY-MM-DD' olduğu için düz metin
+  // karşılaştırması kronolojik sıralamayı doğru verir.
+  const staleStats = (brand.stats_updated_at ?? "") < daysAgoISO(7);
 
   return (
     <div className="space-y-6">
@@ -93,88 +87,49 @@ export default async function BrandPage({
 
       <EditBrandForm brand={brand} clusters={clusters} />
 
+      {/* Marka künyesi. Eskiden burada "İlgili markalar" kartları, tam denetim
+          raporunun markdown'ı, medyan Reel izlenmesi ve kapak testi rozeti de
+          vardı — günlük iş takibinde kullanılmadıkları için kaldırıldı.
+          Kalanlar: haftalık tazelenen iki sayı ve kısa bir bilgilendirme. */}
       {(brand.follower_count != null ||
-        brand.cover_test_verdict ||
-        relations.length > 0 ||
-        audit) && (
+        brand.post_count != null ||
+        brand.key_finding) && (
         <section className="space-y-3 rounded-xl border border-black/10 bg-white p-4 dark:border-white/10 dark:bg-zinc-900">
-          {(brand.follower_count != null ||
-            brand.post_count != null ||
-            brand.median_reel_views ||
-            brand.cover_test_verdict) && (
-          <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
-            {brand.follower_count != null && (
-              <span>
-                <b className="tabular-nums">
-                  {brand.follower_count.toLocaleString("tr-TR")}
-                </b>{" "}
-                <span className="text-zinc-500 dark:text-zinc-400">takipçi</span>
+          {(brand.follower_count != null || brand.post_count != null) && (
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
+              {brand.follower_count != null && (
+                <span>
+                  <b className="tabular-nums">
+                    {brand.follower_count.toLocaleString("tr-TR")}
+                  </b>{" "}
+                  <span className="text-zinc-500 dark:text-zinc-400">takipçi</span>
+                </span>
+              )}
+              {brand.post_count != null && (
+                <span>
+                  <b className="tabular-nums">
+                    {brand.post_count.toLocaleString("tr-TR")}
+                  </b>{" "}
+                  <span className="text-zinc-500 dark:text-zinc-400">gönderi</span>
+                </span>
+              )}
+              <span className="text-xs text-zinc-500 dark:text-zinc-400">
+                {brand.stats_updated_at
+                  ? `Son güncelleme: ${formatDateShort(brand.stats_updated_at)}`
+                  : "Henüz güncellenmedi"}
+                {staleStats && (
+                  <span className="ml-1.5 rounded-full bg-amber-100 px-1.5 py-0.5 font-medium text-amber-800 dark:bg-amber-950 dark:text-amber-300">
+                    tazelenmeli
+                  </span>
+                )}
               </span>
-            )}
-            {brand.post_count != null && (
-              <span>
-                <b className="tabular-nums">
-                  {brand.post_count.toLocaleString("tr-TR")}
-                </b>{" "}
-                <span className="text-zinc-500 dark:text-zinc-400">gönderi</span>
-              </span>
-            )}
-            {brand.median_reel_views && (
-              <span>
-                <b>{brand.median_reel_views}</b>{" "}
-                <span className="text-zinc-500 dark:text-zinc-400">medyan Reel izlenmesi</span>
-              </span>
-            )}
-            {brand.cover_test_verdict && (
-              <span
-                className={`rounded-full px-2 py-0.5 text-xs font-medium ${COVER_TEST_BADGE[brand.cover_test_verdict]}`}
-              >
-                Kapak testi: {COVER_TEST_LABEL[brand.cover_test_verdict]}
-                {brand.cover_test_note && ` (${brand.cover_test_note})`}
-              </span>
-            )}
-          </div>
-          )}
-
-          {relations.length > 0 && (
-            <div className="space-y-2 border-t border-black/10 pt-3 dark:border-white/10">
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-                İlgili Markalar
-              </h3>
-              <div className="grid gap-1.5 sm:grid-cols-2">
-                {relations.map((r) => (
-                  <Link
-                    key={r.id}
-                    href={`/brands/${r.related_brand_id}`}
-                    className="flex flex-wrap items-center gap-1.5 rounded-lg border border-black/10 px-3 py-2 text-xs transition-colors hover:border-brand-300 dark:border-white/10 dark:hover:border-brand-800"
-                  >
-                    <BrandLogo
-                      name={r.related_brand_name}
-                      logoPath={r.related_brand_logo_path}
-                      size="sm"
-                    />
-                    <span className="font-medium">{r.related_brand_name}</span>
-                    <span
-                      className={`rounded-full px-1.5 py-0.5 ${r.risk_level ? RELATION_RISK_BADGE[r.risk_level] : "bg-black/5 dark:bg-white/10"}`}
-                    >
-                      {RELATION_TYPE_LABEL[r.relation_type]}
-                    </span>
-                    <span className="w-full text-zinc-500 dark:text-zinc-400">{r.note}</span>
-                  </Link>
-                ))}
-              </div>
             </div>
           )}
 
-          {audit && (
-            <details className="border-t border-black/10 pt-3 dark:border-white/10">
-              <summary className="cursor-pointer text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-                Tam Denetim Raporu
-              </summary>
-              <div className="prose prose-sm prose-zinc mt-3 max-w-none dark:prose-invert prose-headings:font-semibold prose-a:text-brand-600 dark:prose-a:text-brand-400">
-                <ReactMarkdown>{audit.body_markdown}</ReactMarkdown>
-              </div>
-            </details>
+          {brand.key_finding && (
+            <p className="whitespace-pre-line border-t border-black/10 pt-3 text-sm text-zinc-700 dark:border-white/10 dark:text-zinc-300">
+              {brand.key_finding}
+            </p>
           )}
         </section>
       )}

@@ -3,6 +3,7 @@ import Logo from "@/components/Logo";
 import MobileMenuButton from "@/components/MobileMenuButton";
 import NavLinks from "@/components/NavLinks";
 import QuickAddModal from "@/components/QuickAddModal";
+import SidebarToggle from "@/components/SidebarToggle";
 import ThemeToggle from "@/components/ThemeToggle";
 import { clearIdentity } from "@/lib/actions/identity";
 import { getCurrentPerson } from "@/lib/identity";
@@ -20,6 +21,7 @@ export default async function Header() {
       <div className="flex items-center justify-between gap-4 px-4 py-3">
         <nav className="flex items-center gap-1 text-sm">
           <MobileMenuButton />
+          <SidebarToggle />
           <Link
             href="/"
             className="flex items-center gap-2 rounded-md px-2.5 py-1.5 font-semibold tracking-tight hover:bg-black/5 dark:hover:bg-white/10"

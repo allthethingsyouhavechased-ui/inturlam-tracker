@@ -1,9 +1,9 @@
 "use client";
 
-import { useSidebarMobile } from "./SidebarMobileContext";
+import { useSidebar } from "./SidebarContext";
 
 export default function MobileMenuButton() {
-  const { toggle } = useSidebarMobile();
+  const { toggle } = useSidebar();
   return (
     <button
       type="button"

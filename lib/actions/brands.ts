@@ -3,14 +3,13 @@
 import { revalidatePath } from "next/cache";
 import { recordActivity } from "@/lib/activity";
 import { resolveClusterFromForm } from "@/lib/clusters";
-import { COVER_TEST_VERDICTS } from "@/lib/constants";
+import { todayISO } from "@/lib/date";
 import {
   createBrand,
   getBrand,
   setBrandArchived,
   updateBrand,
 } from "@/lib/repositories/brands";
-import type { CoverTestVerdict } from "@/lib/types";
 
 function cleanValue(value: FormDataEntryValue | null): string | null {
   const s = String(value ?? "").trim();
@@ -56,12 +55,6 @@ export async function updateBrandAction(formData: FormData) {
   if (!name) throw new Error("Marka adı zorunlu.");
   const cluster = await resolveClusterFromForm(formData);
 
-  const verdictRaw = cleanValue(formData.get("coverTestVerdict"));
-  const coverTestVerdict =
-    verdictRaw && (COVER_TEST_VERDICTS as string[]).includes(verdictRaw)
-      ? (verdictRaw as CoverTestVerdict)
-      : null;
-
   updateBrand({
     id,
     name,
@@ -69,12 +62,9 @@ export async function updateBrandAction(formData: FormData) {
     instagramHandle: cleanValue(formData.get("instagramHandle")),
     followerCount: cleanInt(formData.get("followerCount")),
     postCount: cleanInt(formData.get("postCount")),
-    medianReelViews: cleanValue(formData.get("medianReelViews")),
-    coverTestVerdict,
-    coverTestNote: cleanValue(formData.get("coverTestNote")),
     keyFinding: cleanValue(formData.get("keyFinding")),
-    firstAction: cleanValue(formData.get("firstAction")),
     tier: cleanValue(formData.get("tier")),
+    today: todayISO(),
   });
 
   await recordActivity({

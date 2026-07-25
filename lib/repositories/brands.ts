@@ -5,7 +5,6 @@ import type {
   BrandRelationView,
   BrandWithCount,
   Cluster,
-  CoverTestVerdict,
 } from "@/lib/types";
 
 export function listBrands(): Brand[] {
@@ -41,6 +40,13 @@ export function createBrand(input: {
   return id;
 }
 
+// `median_reel_views`, `cover_test_*` ve `first_action` bilinçli olarak burada
+// YOK: arayüzden kaldırıldılar. Sütunlar tabloda duruyor (eski araştırma verisi
+// silinmesin) ama artık yazılmıyor.
+//
+// `stats_updated_at`: takipçi/gönderi sayılarından biri gerçekten DEĞİŞTİYSE
+// bugüne çekilir. Kullanıcı yalnızca marka adını düzeltip kaydettiğinde damga
+// tazelenmemeli — yoksa "bu hafta güncellendi" bilgisi yalan söyler.
 export function updateBrand(input: {
   id: string;
   name: string;
@@ -48,36 +54,42 @@ export function updateBrand(input: {
   instagramHandle: string | null;
   followerCount: number | null;
   postCount: number | null;
-  medianReelViews: string | null;
-  coverTestVerdict: CoverTestVerdict | null;
-  coverTestNote: string | null;
   keyFinding: string | null;
-  firstAction: string | null;
   tier: string | null;
+  today: string;
 }): void {
-  getDb()
-    .prepare(
-      `UPDATE brands SET
-         name = ?, cluster = ?, instagram_handle = ?,
-         follower_count = ?, post_count = ?, median_reel_views = ?,
-         cover_test_verdict = ?, cover_test_note = ?,
-         key_finding = ?, first_action = ?, tier = ?
-       WHERE id = ?`,
-    )
-    .run(
-      input.name,
-      input.cluster,
-      input.instagramHandle,
-      input.followerCount,
-      input.postCount,
-      input.medianReelViews,
-      input.coverTestVerdict,
-      input.coverTestNote,
-      input.keyFinding,
-      input.firstAction,
-      input.tier,
-      input.id,
-    );
+  const db = getDb();
+  const current = plainOne<Pick<Brand, "follower_count" | "post_count" | "stats_updated_at">>(
+    db
+      .prepare(
+        "SELECT follower_count, post_count, stats_updated_at FROM brands WHERE id = ?",
+      )
+      .get(input.id),
+  );
+  const statsChanged =
+    current?.follower_count !== input.followerCount ||
+    current?.post_count !== input.postCount;
+  const statsUpdatedAt = statsChanged
+    ? input.today
+    : (current?.stats_updated_at ?? null);
+
+  db.prepare(
+    `UPDATE brands SET
+       name = ?, cluster = ?, instagram_handle = ?,
+       follower_count = ?, post_count = ?,
+       key_finding = ?, tier = ?, stats_updated_at = ?
+     WHERE id = ?`,
+  ).run(
+    input.name,
+    input.cluster,
+    input.instagramHandle,
+    input.followerCount,
+    input.postCount,
+    input.keyFinding,
+    input.tier,
+    statsUpdatedAt,
+    input.id,
+  );
 }
 
 export function setBrandArchived(id: string, archived: boolean): void {

@@ -3,7 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
-import { SidebarMobileProvider } from "@/components/SidebarMobileContext";
+import { SidebarProvider } from "@/components/SidebarContext";
 import SidebarMobileFrame from "@/components/SidebarMobileFrame";
 
 const geistSans = Geist({
@@ -33,15 +33,16 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full bg-zinc-50 font-sans text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100">
-        {/* Sayfa boyanmadan önce `.dark` class'ını uygula — tema seçimi
-            localStorage'da, yoksa OS tercihi. Böylece koyu modda beyaz
-            ekran parlaması (FOUC) olmaz. */}
+        {/* Sayfa boyanmadan önce iki tercihi uygula (FOUC yok):
+            - tema → `.dark` class'ı (localStorage, yoksa OS tercihi)
+            - sidebar daraltması → `data-sidebar` özniteliği; genişliği
+              globals.css bundan okuyor, React'i beklemez. */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `try{var t=localStorage.getItem('theme');if(t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme: dark)').matches)){document.documentElement.classList.add('dark')}}catch(e){}`,
+            __html: `try{var t=localStorage.getItem('theme');if(t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme: dark)').matches)){document.documentElement.classList.add('dark')}}catch(e){}try{if(localStorage.getItem('sidebar-collapsed')==='1'){document.documentElement.dataset.sidebar='collapsed'}}catch(e){}`,
           }}
         />
-        <SidebarMobileProvider>
+        <SidebarProvider>
           <Header />
           <div className="flex">
             <SidebarMobileFrame>
@@ -55,7 +56,7 @@ export default function RootLayout({
               <div className="mx-auto max-w-7xl px-4 py-6">{children}</div>
             </main>
           </div>
-        </SidebarMobileProvider>
+        </SidebarProvider>
       </body>
     </html>
   );

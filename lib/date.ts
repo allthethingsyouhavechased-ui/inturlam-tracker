@@ -1,4 +1,12 @@
-import { endOfMonth, endOfWeek, format, parseISO, startOfMonth, startOfWeek } from "date-fns";
+import {
+  endOfMonth,
+  endOfWeek,
+  format,
+  parseISO,
+  startOfMonth,
+  startOfWeek,
+  subDays,
+} from "date-fns";
 import { tr } from "date-fns/locale";
 
 function toISODate(d: Date): string {
@@ -7,6 +15,12 @@ function toISODate(d: Date): string {
 
 export function todayISO(): string {
   return toISODate(new Date());
+}
+
+// N gün öncesinin tarihi. "Bu veri bayatladı mı?" kontrolleri için:
+// `kayit.tarih < daysAgoISO(7)` → bir haftadan eski.
+export function daysAgoISO(days: number): string {
+  return toISODate(subDays(new Date(), days));
 }
 
 // Pazartesi–Pazar (dahil) aralığını 'YYYY-MM-DD' string olarak döner.

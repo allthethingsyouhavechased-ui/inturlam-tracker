@@ -54,9 +54,12 @@ export interface Brand {
   median_reel_views: string | null;
   cover_test_verdict: CoverTestVerdict | null;
   cover_test_note: string | null;
+  // Marka sayfasında gösterilen kısa bilgilendirme metni.
   key_finding: string | null;
   first_action: string | null;
   tier: string | null;
+  // Takipçi/gönderi sayılarının son güncellendiği gün (YYYY-MM-DD).
+  stats_updated_at: string | null;
 }
 
 export interface BrandAudit {

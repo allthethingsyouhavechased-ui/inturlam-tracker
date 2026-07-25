@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { updateBrandAction } from "@/lib/actions/brands";
-import { COVER_TEST_LABEL, COVER_TEST_VERDICTS } from "@/lib/constants";
 import { getActionErrorMessage } from "@/lib/errorMessage";
 import type { Brand } from "@/lib/types";
 import ClusterSelect from "./ClusterSelect";
@@ -81,10 +80,15 @@ export default function EditBrandForm({
         </label>
       </div>
 
-      {/* Araştırma / performans verileri */}
+      {/* Instagram sayıları — haftalık elle güncelleniyor. Kaydedince
+          "son güncelleme" damgası otomatik bugüne çekilir (yalnızca sayılardan
+          biri gerçekten değiştiyse; bkz. lib/repositories/brands.ts). */}
       <div className="space-y-3 border-t border-black/10 pt-3 dark:border-white/10">
         <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-          Araştırma verileri
+          Instagram sayıları{" "}
+          <span className="font-normal normal-case tracking-normal">
+            — haftalık güncelle
+          </span>
         </h3>
         <div className="grid gap-3 sm:grid-cols-3">
           <label className={labelClass}>
@@ -112,39 +116,6 @@ export default function EditBrandForm({
             />
           </label>
           <label className={labelClass}>
-            Medyan Reel izlenme
-            <input
-              name="medianReelViews"
-              defaultValue={brand.median_reel_views ?? ""}
-              placeholder="Örn. 8B"
-              className={inputClass}
-            />
-          </label>
-          <label className={labelClass}>
-            Kapak testi
-            <select
-              name="coverTestVerdict"
-              defaultValue={brand.cover_test_verdict ?? ""}
-              className={inputClass}
-            >
-              <option value="">— seçilmedi —</option>
-              {COVER_TEST_VERDICTS.map((v) => (
-                <option key={v} value={v}>
-                  {COVER_TEST_LABEL[v]}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className={labelClass}>
-            Kapak testi notu
-            <input
-              name="coverTestNote"
-              defaultValue={brand.cover_test_note ?? ""}
-              placeholder="Kısa açıklama"
-              className={inputClass}
-            />
-          </label>
-          <label className={labelClass}>
             Tier
             <input
               name="tier"
@@ -154,28 +125,16 @@ export default function EditBrandForm({
             />
           </label>
         </div>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <label className={labelClass}>
-            Öne çıkan bulgu
-            <textarea
-              name="keyFinding"
-              rows={2}
-              defaultValue={brand.key_finding ?? ""}
-              placeholder="En önemli tespit"
-              className={inputClass}
-            />
-          </label>
-          <label className={labelClass}>
-            İlk aksiyon
-            <textarea
-              name="firstAction"
-              rows={2}
-              defaultValue={brand.first_action ?? ""}
-              placeholder="Önerilen ilk adım"
-              className={inputClass}
-            />
-          </label>
-        </div>
+        <label className={labelClass}>
+          Kısa bilgi
+          <textarea
+            name="keyFinding"
+            rows={3}
+            defaultValue={brand.key_finding ?? ""}
+            placeholder="Marka hakkında bilinmesi gereken birkaç cümle: ne satıyor, tonu ne, nelere dikkat edilmeli…"
+            className={inputClass}
+          />
+        </label>
       </div>
 
       <div className="flex items-center gap-3">
