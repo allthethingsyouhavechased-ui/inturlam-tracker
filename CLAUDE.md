@@ -27,6 +27,10 @@ kategorilere (`clusters` tablosu) ayrılır. Her markanın ayrıca Instagram ara
   tam denetim metinleri (`brand_audits`). Kişileri/marka adlarını buradan düzenle. `getDb()`'yi
   `lib/db/client.ts`'den import ediyor (bkz. "Node native TS import" tuzağı aşağıda) — kendi
   bağlantısını açmıyor, tek bootstrap noktası.
+- Demo veri: `db/seed-demo.mts` (`npm run db:seed:demo`) — uygulamayı elle gezerek test etmek için
+  14 içerik + 41 görev + yorum + aktivite yazar. Tüm id'ler `demo-` ön ekli; script her çalıştığında
+  önce bu kayıtları silip yeniden yazar (idempotent), `-- --clean` ile sadece siler. Gerçek veriye
+  dokunmaz. Tarihler bugüne göre göreli üretilir, böylece "gecikmiş"/"bu hafta" panoları hep dolu.
 
 ## Kritik tuzaklar (bunlara dikkat)
 
