@@ -155,7 +155,10 @@ export default function TaskExplorer({
             <span className="text-zinc-400"> · sıralama: {SORT_LABEL[sortKey]}</span>
           )}
           {view === "liste" && (
-            <span className="text-zinc-400"> · satırları seçip toplu işlem yap</span>
+            <span className="text-zinc-400">
+              {" "}
+              · sütun başlığına tıklayıp sırala, satırları seçip toplu işlem yap
+            </span>
           )}
         </p>
         <div className="inline-flex overflow-hidden rounded-md border border-black/10 text-xs dark:border-white/15">

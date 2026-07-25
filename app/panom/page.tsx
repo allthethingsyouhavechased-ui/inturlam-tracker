@@ -1,10 +1,10 @@
 import Link from "next/link";
 import AutoRefresh from "@/components/AutoRefresh";
-import TaskBoard from "@/components/TaskBoard";
-import TaskGridCard from "@/components/TaskGridCard";
+import PanomViews from "@/components/PanomViews";
 import { currentWeekRange, todayISO } from "@/lib/date";
 import { getCurrentPerson } from "@/lib/identity";
 import { listBrandsWithOpenCounts } from "@/lib/repositories/brands";
+import { listActivePeople } from "@/lib/repositories/people";
 import {
   listOpenTasksByAssignee,
   listOverdueTasks,
@@ -32,6 +32,7 @@ export default async function PanomPage() {
   const overdue = listOverdueTasks(today);
   const thisWeek = listTasksDueThisWeek(today, weekEnd);
   const brands = listBrandsWithOpenCounts();
+  const people = listActivePeople();
 
   const myIds = new Set(myTasks.map((t) => t.id));
   const overdueIds = new Set(overdue.map((t) => t.id));
@@ -85,35 +86,12 @@ export default async function PanomPage() {
         </section>
       )}
 
-      {me && (
-        <section className="space-y-2">
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
-            Bana atanmış açık görevler{" "}
-            {myBoardTasks.length > 0 && <span>({myBoardTasks.length})</span>}
-          </h2>
-          {myBoardTasks.length === 0 ? (
-            <p className="text-sm text-zinc-500">Sana atanmış açık görev yok. 🎉</p>
-          ) : (
-            <TaskBoard tasks={myBoardTasks} boardId="panom" />
-          )}
-        </section>
-      )}
-
-      {otherTasks.length > 0 && (
-        <section className="space-y-2">
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
-            Ekipte gecikmiş / bu hafta teslim ({otherTasks.length})
-          </h2>
-          <p className="text-xs text-zinc-500">
-            Bu görevler başkalarına atanmış ya da hiç atanmamış — takip için burada.
-          </p>
-          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-            {otherTasks.map((t) => (
-              <TaskGridCard key={t.id} task={t} badges={t.badges} />
-            ))}
-          </div>
-        </section>
-      )}
+      <PanomViews
+        myTasks={myBoardTasks}
+        otherTasks={otherTasks}
+        people={people}
+        hasIdentity={Boolean(me)}
+      />
 
       <section className="space-y-2">
         <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-400">

@@ -21,12 +21,61 @@ import {
 } from "@/lib/constants";
 import { formatDateShort, isOverdue } from "@/lib/date";
 import { getActionErrorMessage } from "@/lib/errorMessage";
+import {
+  LIST_SORT_HINT,
+  nextSort,
+  sortTasksForList,
+  type ListSort,
+  type ListSortKey,
+} from "@/lib/taskSort";
 import type { Person, TaskPriority, TaskStatus, TaskWithContext } from "@/lib/types";
 
 const UNASSIGN = "__none__";
 
 const barSelectClass =
   "rounded-md border border-black/10 bg-white px-2 py-1 text-xs outline-none focus:border-indigo-500 disabled:opacity-50 dark:border-white/15 dark:bg-zinc-900";
+
+// Tıklanabilir sütun başlığı. Bileşen olarak DIŞARIDA tanımlı: içeride
+// tanımlansaydı her render'da yeni bir tip olacağı için React başlığı yeniden
+// mount eder, klavyeyle sıralayan kullanıcı odağı kaybederdi.
+function SortableTh({
+  column,
+  label,
+  sort,
+  onToggle,
+}: {
+  column: ListSortKey;
+  label: string;
+  sort: ListSort | null;
+  onToggle: (key: ListSortKey) => void;
+}) {
+  const active = sort?.key === column;
+  return (
+    <th
+      className="px-3 py-2 font-medium"
+      aria-sort={active ? (sort.dir === "asc" ? "ascending" : "descending") : "none"}
+    >
+      <button
+        type="button"
+        onClick={() => onToggle(column)}
+        title={LIST_SORT_HINT[column]}
+        className={`group inline-flex items-center gap-1 uppercase tracking-wider transition-colors hover:text-zinc-700 dark:hover:text-zinc-200 ${
+          active ? "text-indigo-600 dark:text-indigo-400" : ""
+        }`}
+      >
+        {label}
+        <span
+          className={`text-[9px] leading-none ${
+            active ? "" : "opacity-0 transition-opacity group-hover:opacity-40"
+          }`}
+          aria-hidden
+        >
+          {active && sort.dir === "desc" ? "▼" : "▲"}
+        </span>
+      </button>
+    </th>
+  );
+}
 
 export default function TaskListView({
   tasks,
@@ -39,6 +88,8 @@ export default function TaskListView({
   const [prevTasks, setPrevTasks] = useState(tasks);
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  // null = sunucudan gelen varsayılan sıra (öncelik → teslim tarihi → marka).
+  const [sort, setSort] = useState<ListSort | null>(null);
 
   // tasks prop değişince (filtre değişimi ya da AutoRefresh) seçimi hâlâ var
   // olan görevlere buda — silinmiş/filtrelenmiş id'ler seçili kalmasın.
@@ -55,6 +106,10 @@ export default function TaskListView({
   const someSelected = selected.size > 0;
   const ids = useMemo(() => [...selected], [selected]);
 
+  // Sıralama yalnızca görüntüleme sırasını değiştirir; seçim id bazlı olduğu
+  // için sütun değiştirmek seçimi bozmaz.
+  const rows = useMemo(() => (sort ? sortTasksForList(tasks, sort) : tasks), [tasks, sort]);
+
   function toggle(id: string) {
     setSelected((prev) => {
       const next = new Set(prev);
@@ -66,6 +121,10 @@ export default function TaskListView({
 
   function toggleAll() {
     setSelected(allSelected ? new Set() : new Set(tasks.map((t) => t.id)));
+  }
+
+  function toggleSort(key: ListSortKey) {
+    setSort((prev) => nextSort(prev, key));
   }
 
   function run(fn: () => Promise<void>) {
@@ -199,16 +258,16 @@ export default function TaskListView({
                   className="cursor-pointer accent-indigo-600"
                 />
               </th>
-              <th className="px-3 py-2 font-medium">Görev</th>
-              <th className="px-3 py-2 font-medium">Marka</th>
-              <th className="px-3 py-2 font-medium">Öncelik</th>
-              <th className="px-3 py-2 font-medium">Durum</th>
-              <th className="px-3 py-2 font-medium">Atanan</th>
-              <th className="px-3 py-2 font-medium">Teslim</th>
+              <SortableTh column="gorev" label="Görev" sort={sort} onToggle={toggleSort} />
+              <SortableTh column="marka" label="Marka" sort={sort} onToggle={toggleSort} />
+              <SortableTh column="oncelik" label="Öncelik" sort={sort} onToggle={toggleSort} />
+              <SortableTh column="durum" label="Durum" sort={sort} onToggle={toggleSort} />
+              <SortableTh column="atanan" label="Atanan" sort={sort} onToggle={toggleSort} />
+              <SortableTh column="teslim" label="Teslim" sort={sort} onToggle={toggleSort} />
             </tr>
           </thead>
           <tbody>
-            {tasks.map((t) => {
+            {rows.map((t) => {
               const isSel = selected.has(t.id);
               return (
                 <tr
