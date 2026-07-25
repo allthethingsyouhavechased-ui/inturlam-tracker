@@ -16,39 +16,48 @@ export interface SearchResults {
 
 const RESULT_LIMIT = 20;
 
-// Basit LIKE araması (COLLATE NOCASE yalnızca ASCII a-z/A-Z için case-insensitive
-// eşleşir, SQLite'ta ICU eklentisi olmadan Türkçe İ/ı gibi harfler tam
-// katlanmaz) — markalar/içerikler/görevler için "yeterince iyi" bir MVP.
+// SQLite'ın `LIKE ... COLLATE NOCASE`'i yalnızca ASCII a-z/A-Z'yi katlar — "İ"/"ı"
+// gibi Türkçe harfler eşleşmiyordu (küçük harfle "şantiye" aratan kişi hiç sonuç
+// bulamıyordu). Veri hacmi küçük olduğu için (portföy genelinde onlarca satır)
+// SQL'de filtrelemek yerine ilgili sütunları çekip `toLocaleLowerCase("tr-TR")`
+// ile JS tarafında karşılaştırıyoruz — /tasks'taki client-side arama zaten aynı
+// deseni kullanıyor (components/TaskExplorer.tsx).
+function turkishIncludes(haystack: string, needleLower: string): boolean {
+  return haystack.toLocaleLowerCase("tr-TR").includes(needleLower);
+}
+
 export function searchAll(query: string): SearchResults {
   const q = query.trim();
   if (!q) return { brands: [], content: [], tasks: [] };
-  const like = `%${q}%`;
+  const needle = q.toLocaleLowerCase("tr-TR");
   const db = getDb();
 
-  const brands = plainList<Brand>(
-    db
-      .prepare(
-        `SELECT * FROM brands
-         WHERE archived = 0
-           AND (name LIKE ? COLLATE NOCASE OR instagram_handle LIKE ? COLLATE NOCASE)
-         ORDER BY name LIMIT ?`,
-      )
-      .all(like, like, RESULT_LIMIT),
+  const allBrands = plainList<Brand>(
+    db.prepare(`SELECT * FROM brands WHERE archived = 0 ORDER BY name`).all(),
   );
+  const brands = allBrands
+    .filter(
+      (b) =>
+        turkishIncludes(b.name, needle) ||
+        (b.instagram_handle && turkishIncludes(b.instagram_handle, needle)),
+    )
+    .slice(0, RESULT_LIMIT);
 
-  const content = plainList<ContentSearchResult>(
+  const allContent = plainList<ContentSearchResult>(
     db
       .prepare(
         `SELECT ci.id, ci.brand_id, b.name AS brand_name, ci.title
          FROM content_items ci
          JOIN brands b ON b.id = ci.brand_id
-         WHERE ci.title LIKE ? COLLATE NOCASE
-         ORDER BY ci.title LIMIT ?`,
+         ORDER BY ci.title`,
       )
-      .all(like, RESULT_LIMIT),
+      .all(),
   );
+  const content = allContent
+    .filter((c) => turkishIncludes(c.title, needle))
+    .slice(0, RESULT_LIMIT);
 
-  const tasks = plainList<TaskWithContext>(
+  const allTasks = plainList<TaskWithContext>(
     db
       .prepare(
         `SELECT t.*, p.name AS assignee_name, ci.title AS content_title,
@@ -57,11 +66,17 @@ export function searchAll(query: string): SearchResults {
          JOIN content_items ci ON ci.id = t.content_item_id
          JOIN brands b ON b.id = ci.brand_id
          LEFT JOIN people p ON p.id = t.assignee_id
-         WHERE t.title LIKE ? COLLATE NOCASE OR t.notes LIKE ? COLLATE NOCASE
-         ORDER BY t.title LIMIT ?`,
+         ORDER BY t.title`,
       )
-      .all(like, like, RESULT_LIMIT),
+      .all(),
   );
+  const tasks = allTasks
+    .filter(
+      (t) =>
+        turkishIncludes(t.title, needle) ||
+        (t.notes && turkishIncludes(t.notes, needle)),
+    )
+    .slice(0, RESULT_LIMIT);
 
   return { brands, content, tasks };
 }
