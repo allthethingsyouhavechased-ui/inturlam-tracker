@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState, useTransition } from "react";
+import CommentIcon from "@/components/CommentIcon";
 import PersonAvatar from "@/components/PersonAvatar";
 import {
   bulkDeleteTasksAction,
@@ -264,6 +265,7 @@ export default function TaskListView({
               <SortableTh column="durum" label="Durum" sort={sort} onToggle={toggleSort} />
               <SortableTh column="atanan" label="Atanan" sort={sort} onToggle={toggleSort} />
               <SortableTh column="teslim" label="Teslim" sort={sort} onToggle={toggleSort} />
+              <SortableTh column="yorum" label="Yorum" sort={sort} onToggle={toggleSort} />
             </tr>
           </thead>
           <tbody>
@@ -335,6 +337,27 @@ export default function TaskListView({
                       >
                         {formatDateShort(t.due_date)}
                       </span>
+                    ) : (
+                      <span className="text-zinc-500 dark:text-zinc-400">—</span>
+                    )}
+                  </td>
+                  {/* Yorum sütunu: sayı + son yorumun metni `title` içinde,
+                      üstüne gelince tam metin okunur. Satırı şişirmemek için
+                      hücrede yalnızca sayaç var — tamamı görev detayında. */}
+                  <td className="px-3 py-2">
+                    {t.comment_count > 0 ? (
+                      <Link
+                        href={`/tasks/${t.id}`}
+                        title={
+                          t.last_comment_body
+                            ? `${t.last_comment_author ?? "?"}: ${t.last_comment_body}`
+                            : undefined
+                        }
+                        className="inline-flex items-center gap-1 text-xs text-zinc-600 hover:text-brand-600 dark:text-zinc-300 dark:hover:text-brand-400"
+                      >
+                        <CommentIcon />
+                        <span className="tabular-nums">{t.comment_count}</span>
+                      </Link>
                     ) : (
                       <span className="text-zinc-500 dark:text-zinc-400">—</span>
                     )}

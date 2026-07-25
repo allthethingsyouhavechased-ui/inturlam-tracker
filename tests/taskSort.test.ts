@@ -26,6 +26,9 @@ function task(over: Partial<TaskWithContext> = {}): TaskWithContext {
     content_title: "Ağustos Reel Serisi",
     brand_id: "b1",
     brand_name: "Sihirli Olta",
+    comment_count: 0,
+    last_comment_body: null,
+    last_comment_author: null,
     ...over,
   };
 }
@@ -78,6 +81,24 @@ describe("sortTasksForList", () => {
     assert.deepEqual(
       sortTasksForList(rows, desc("teslim")).map((t) => t.due_date),
       ["2026-08-01", "2026-07-20", null],
+    );
+  });
+
+  it("yorum: artan = en çok konuşulan önce, yorumsuzlar İKİ yönde de sonda", () => {
+    const rows = [
+      task({ comment_count: 0 }),
+      task({ comment_count: 2 }),
+      task({ comment_count: 7 }),
+    ];
+    // "asc" burada sayısal artan DEĞİL: kullanıcı bu sütuna tıklarken
+    // "hangi görevde trafik var" diye bakıyor, en boş olana değil.
+    assert.deepEqual(
+      sortTasksForList(rows, asc("yorum")).map((t) => t.comment_count),
+      [7, 2, 0],
+    );
+    assert.deepEqual(
+      sortTasksForList(rows, desc("yorum")).map((t) => t.comment_count),
+      [2, 7, 0],
     );
   });
 

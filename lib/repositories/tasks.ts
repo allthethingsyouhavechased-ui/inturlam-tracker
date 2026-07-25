@@ -5,10 +5,25 @@ import type { Task, TaskPriority, TaskStatus, TaskWithContext } from "@/lib/type
 const PRIORITY_ORDER_SQL = `CASE t.priority
   WHEN 'Acil' THEN 0 WHEN 'Yuksek' THEN 1 WHEN 'Normal' THEN 2 ELSE 3 END`;
 
+// Yorum özeti korelasyonlu alt sorgularla geliyor (JOIN + GROUP BY yerine):
+// `t.*` seçildiği için GROUP BY tüm sütunları listelemeyi gerektirirdi ve yeni
+// bir sütun eklendiğinde sessizce bozulurdu. `idx_comments_task` sayesinde her
+// alt sorgu indeks üzerinden çalışıyor.
+//
+// created_at saniye hassasiyetinde (datetime('now')); aynı saniyede yazılan iki
+// yorumda sıralama belirsiz kalmasın diye `rowid` ikinci anahtar.
+const LAST_COMMENT_ORDER = "ORDER BY c.created_at DESC, c.rowid DESC LIMIT 1";
+
 const WITH_CONTEXT_SELECT = `
   SELECT t.*, p.name AS assignee_name,
          ci.title AS content_title,
-         b.id AS brand_id, b.name AS brand_name
+         b.id AS brand_id, b.name AS brand_name,
+         (SELECT COUNT(*) FROM comments c WHERE c.task_id = t.id) AS comment_count,
+         (SELECT c.body FROM comments c
+           WHERE c.task_id = t.id ${LAST_COMMENT_ORDER}) AS last_comment_body,
+         (SELECT cp.name FROM comments c
+            JOIN people cp ON cp.id = c.author_id
+           WHERE c.task_id = t.id ${LAST_COMMENT_ORDER}) AS last_comment_author
   FROM tasks t
   JOIN content_items ci ON ci.id = t.content_item_id
   JOIN brands b ON b.id = ci.brand_id

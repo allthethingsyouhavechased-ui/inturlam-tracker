@@ -152,6 +152,11 @@ export interface TaskWithContext extends Task {
   content_title: string;
   brand_id: string;
   brand_name: string;
+  // Yorum özeti: kartın altında ve liste görünümünün "Yorum" sütununda,
+  // görevi açmadan "burada bir konuşma var mı" sorusunu cevaplar.
+  comment_count: number;
+  last_comment_body: string | null;
+  last_comment_author: string | null;
   // Panom'un birleşik board'unda bir görevin "neden burada" olduğunu gösteren
   // rozetler (Benim/Gecikmiş/Bu hafta gibi) — sunucuda hesaplanıp düz veri
   // olarak taşınır (Server→Client Component sınırında fonksiyon geçirilemez).

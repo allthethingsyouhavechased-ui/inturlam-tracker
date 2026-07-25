@@ -1,4 +1,5 @@
 import Link from "next/link";
+import CommentIcon from "@/components/CommentIcon";
 import PersonAvatar from "@/components/PersonAvatar";
 import TaskStatusSelect from "@/components/TaskStatusSelect";
 import { hashColor } from "@/lib/colorHash";
@@ -83,6 +84,29 @@ export default function TaskGridCard({
         )}
         {task.assignee_name && <PersonAvatar name={task.assignee_name} size="xs" />}
       </div>
+
+      {/* Son yorum. Kartı açmadan "burada bir konuşma dönüyor mu, ne konuşuldu"
+          sorusuna cevap verir; tamamı görev detayında. Yorum yoksa hiç yer
+          kaplamaz — kartların yüksekliği gereksiz yere şişmesin. */}
+      {task.comment_count > 0 && (
+        <Link
+          href={`/tasks/${task.id}`}
+          className="-mx-1 -mb-1 block rounded-md border-t border-black/10 px-1 pt-2 transition-colors hover:bg-black/[0.03] dark:border-white/10 dark:hover:bg-white/5"
+        >
+          <span className="flex items-center gap-1 text-[11px] font-medium text-zinc-500 dark:text-zinc-400">
+            <CommentIcon />
+            {task.comment_count}
+            {task.last_comment_author && (
+              <span className="truncate font-normal">· {task.last_comment_author}</span>
+            )}
+          </span>
+          {task.last_comment_body && (
+            <span className="mt-0.5 line-clamp-2 block text-xs text-zinc-600 dark:text-zinc-300">
+              {task.last_comment_body}
+            </span>
+          )}
+        </Link>
+      )}
     </div>
   );
 }

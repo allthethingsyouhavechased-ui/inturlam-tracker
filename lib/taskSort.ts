@@ -4,7 +4,14 @@ import type { TaskPriority, TaskStatus, TaskWithContext } from "@/lib/types";
 // Liste görünümündeki tıklanabilir sütun sıralaması. Hem /tasks hem /panom
 // aynı davranışı kullansın diye burada — saf fonksiyonlar, DB'ye dokunmaz.
 
-export type ListSortKey = "gorev" | "marka" | "oncelik" | "durum" | "atanan" | "teslim";
+export type ListSortKey =
+  | "gorev"
+  | "marka"
+  | "oncelik"
+  | "durum"
+  | "atanan"
+  | "teslim"
+  | "yorum";
 export type SortDir = "asc" | "desc";
 export interface ListSort {
   key: ListSortKey;
@@ -19,6 +26,7 @@ export const LIST_SORT_HINT: Record<ListSortKey, string> = {
   durum: "Duruma göre sırala (Beklemede → Yayınlandı)",
   atanan: "Atanana göre sırala — atanmamışlar en sonda",
   teslim: "Teslim tarihine göre sırala — tarihsizler en sonda",
+  yorum: "Yorum sayısına göre sırala — yorumsuzlar en sonda",
 };
 
 const collator = new Intl.Collator("tr");
@@ -38,6 +46,7 @@ function statusRank(s: TaskStatus): number {
 function isEmpty(t: TaskWithContext, key: ListSortKey): boolean {
   if (key === "atanan") return !t.assignee_name;
   if (key === "teslim") return !t.due_date;
+  if (key === "yorum") return t.comment_count === 0;
   return false;
 }
 
@@ -61,6 +70,10 @@ function compare(a: TaskWithContext, b: TaskWithContext, key: ListSortKey): numb
       return collator.compare(a.assignee_name ?? "", b.assignee_name ?? "");
     case "teslim":
       return (a.due_date ?? "").localeCompare(b.due_date ?? "");
+    case "yorum":
+      // "asc" = en çok konuşulan önce. Sayıca sıralamada kullanıcının aradığı
+      // şey "hangi görevde trafik var", en boş olan değil.
+      return b.comment_count - a.comment_count;
   }
 }
 
