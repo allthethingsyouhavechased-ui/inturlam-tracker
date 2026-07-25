@@ -4,6 +4,10 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { TASK_PRIORITIES, TASK_STATUSES } from "@/lib/constants";
 import {
+  bulkDeleteTasks,
+  bulkUpdateTaskAssignee,
+  bulkUpdateTaskPriority,
+  bulkUpdateTaskStatus,
   createTask,
   deleteTask,
   getTask,
@@ -82,4 +86,43 @@ export async function deleteTaskAction(taskId: string) {
     redirect(`/brands/${task.brand_id}/content/${task.content_item_id}`);
   }
   redirect("/");
+}
+
+// ---- Toplu görev işlemleri (Görevler > Liste görünümü) ----
+
+function cleanIds(ids: string[]): string[] {
+  return Array.from(
+    new Set(ids.map((id) => String(id ?? "").trim()).filter(Boolean)),
+  );
+}
+
+export async function bulkSetTaskStatusAction(ids: string[], status: TaskStatus) {
+  if (!TASK_STATUSES.includes(status)) throw new Error("Geçersiz durum.");
+  bulkUpdateTaskStatus(cleanIds(ids), status);
+  revalidatePath("/", "layout");
+}
+
+export async function bulkSetTaskPriorityAction(
+  ids: string[],
+  priority: TaskPriority,
+) {
+  if (!TASK_PRIORITIES.includes(priority)) throw new Error("Geçersiz öncelik.");
+  bulkUpdateTaskPriority(cleanIds(ids), priority);
+  revalidatePath("/", "layout");
+}
+
+export async function bulkSetTaskAssigneeAction(
+  ids: string[],
+  assigneeId: string | null,
+) {
+  bulkUpdateTaskAssignee(
+    cleanIds(ids),
+    assigneeId && assigneeId.length > 0 ? assigneeId : null,
+  );
+  revalidatePath("/", "layout");
+}
+
+export async function bulkDeleteTasksAction(ids: string[]) {
+  bulkDeleteTasks(cleanIds(ids));
+  revalidatePath("/", "layout");
 }

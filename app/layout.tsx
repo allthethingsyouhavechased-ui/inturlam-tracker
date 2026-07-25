@@ -29,9 +29,18 @@ export default function RootLayout({
   return (
     <html
       lang="tr"
+      suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100">
+        {/* Sayfa boyanmadan önce `.dark` class'ını uygula — tema seçimi
+            localStorage'da, yoksa OS tercihi. Böylece koyu modda beyaz
+            ekran parlaması (FOUC) olmaz. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{var t=localStorage.getItem('theme');if(t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme: dark)').matches)){document.documentElement.classList.add('dark')}}catch(e){}`,
+          }}
+        />
         <SidebarMobileProvider>
           <Header />
           <div className="flex">

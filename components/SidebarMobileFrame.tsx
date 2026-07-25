@@ -1,5 +1,7 @@
 "use client";
 
+import { usePathname } from "next/navigation";
+import { useEffect } from "react";
 import { useSidebarMobile } from "./SidebarMobileContext";
 
 // Sidebar sunucu component'i (marka verisi çeker); bu client sarmalayıcı
@@ -7,6 +9,14 @@ import { useSidebarMobile } from "./SidebarMobileContext";
 // dönüyor (md: class'ları ile), mobilde tam ekran off-canvas panel olur.
 export default function SidebarMobileFrame({ children }: { children: React.ReactNode }) {
   const { open, close } = useSidebarMobile();
+  const pathname = usePathname();
+
+  // Mobilde bir markaya/içeriğe tıklayıp gezinince off-canvas menü açık
+  // kalmasın — rota değişiminde otomatik kapat.
+  useEffect(() => {
+    close();
+  }, [pathname, close]);
+
   return (
     <>
       {open && (

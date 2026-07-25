@@ -2,6 +2,7 @@ import Link from "next/link";
 import MobileMenuButton from "@/components/MobileMenuButton";
 import NavLinks from "@/components/NavLinks";
 import QuickAddModal from "@/components/QuickAddModal";
+import ThemeToggle from "@/components/ThemeToggle";
 import { clearIdentity } from "@/lib/actions/identity";
 import { getCurrentPerson } from "@/lib/identity";
 import { listBrands } from "@/lib/repositories/brands";
@@ -70,6 +71,7 @@ export default async function Header() {
               Sen kimsin?
             </Link>
           )}
+          <ThemeToggle />
         </div>
       </div>
     </header>

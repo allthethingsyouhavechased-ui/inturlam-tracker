@@ -151,3 +151,43 @@ export function deleteTask(id: string): Task | undefined {
   db.prepare("DELETE FROM tasks WHERE id = ?").run(id);
   return task;
 }
+
+// ---- Toplu işlemler ----
+// Tek UPDATE/DELETE ile `WHERE id IN (?, ?, …)` — hepsi tek statement'ta atomik
+// çalışır. Boş liste no-op. Placeholder sayısı id sayısına göre üretiliyor.
+
+export function bulkUpdateTaskStatus(ids: string[], status: TaskStatus): void {
+  if (ids.length === 0) return;
+  const placeholders = ids.map(() => "?").join(", ");
+  getDb()
+    .prepare(
+      `UPDATE tasks SET status = ?, updated_at = datetime('now') WHERE id IN (${placeholders})`,
+    )
+    .run(status, ...ids);
+}
+
+export function bulkUpdateTaskPriority(ids: string[], priority: TaskPriority): void {
+  if (ids.length === 0) return;
+  const placeholders = ids.map(() => "?").join(", ");
+  getDb()
+    .prepare(
+      `UPDATE tasks SET priority = ?, updated_at = datetime('now') WHERE id IN (${placeholders})`,
+    )
+    .run(priority, ...ids);
+}
+
+export function bulkUpdateTaskAssignee(ids: string[], assigneeId: string | null): void {
+  if (ids.length === 0) return;
+  const placeholders = ids.map(() => "?").join(", ");
+  getDb()
+    .prepare(
+      `UPDATE tasks SET assignee_id = ?, updated_at = datetime('now') WHERE id IN (${placeholders})`,
+    )
+    .run(assigneeId, ...ids);
+}
+
+export function bulkDeleteTasks(ids: string[]): void {
+  if (ids.length === 0) return;
+  const placeholders = ids.map(() => "?").join(", ");
+  getDb().prepare(`DELETE FROM tasks WHERE id IN (${placeholders})`).run(...ids);
+}

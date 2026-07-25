@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
+import { createPortal } from "react-dom";
 import { createContentItemAction } from "@/lib/actions/content";
 import { createTaskAction } from "@/lib/actions/tasks";
 import {
@@ -62,6 +63,21 @@ export default function QuickAddModal({
       ? contentId
       : (contentsForBrand[0]?.id ?? NEW_CONTENT);
 
+  // Modal açıkken Escape ile kapat + arka planın scroll'unu kilitle.
+  useEffect(() => {
+    if (!open) return;
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape" && !pending) setOpen(false);
+    }
+    document.addEventListener("keydown", onKey);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [open, pending]);
+
   function reset() {
     setContentId("");
     setNewContentTitle("");
@@ -121,8 +137,9 @@ export default function QuickAddModal({
         + Yeni
       </button>
 
-      {open && (
-        <div className="fixed inset-0 z-40 flex items-start justify-center overflow-y-auto bg-black/40 p-4 pt-16 sm:pt-24">
+      {open &&
+        createPortal(
+          <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/40 p-4 pt-16 sm:pt-24">
           <div
             className="absolute inset-0"
             onClick={() => !pending && setOpen(false)}
@@ -276,8 +293,9 @@ export default function QuickAddModal({
               </div>
             </form>
           </div>
-        </div>
-      )}
+          </div>,
+          document.body,
+        )}
     </>
   );
 }

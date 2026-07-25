@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import TaskBoard, { type SortKey } from "@/components/TaskBoard";
+import TaskListView from "@/components/TaskListView";
 import {
   TASK_PRIORITIES,
   TASK_PRIORITY_LABEL,
@@ -38,6 +39,7 @@ export default function TaskExplorer({
   const [assigneeId, setAssigneeId] = useState("");
   const [q, setQ] = useState("");
   const [sortKey, setSortKey] = useState<SortKey>("varsayilan");
+  const [view, setView] = useState<"pano" | "liste">("pano");
 
   const filtered = useMemo(() => {
     const needle = q.trim().toLocaleLowerCase("tr-TR");
@@ -146,17 +148,40 @@ export default function TaskExplorer({
         )}
       </div>
 
-      <p className="text-xs text-zinc-500">
-        {filtered.length} / {tasks.length} görev
-        {sortKey !== "varsayilan" && (
-          <span className="text-zinc-400"> · sıralama: {SORT_LABEL[sortKey]}</span>
-        )}
-      </p>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="text-xs text-zinc-500">
+          {filtered.length} / {tasks.length} görev
+          {view === "pano" && sortKey !== "varsayilan" && (
+            <span className="text-zinc-400"> · sıralama: {SORT_LABEL[sortKey]}</span>
+          )}
+          {view === "liste" && (
+            <span className="text-zinc-400"> · satırları seçip toplu işlem yap</span>
+          )}
+        </p>
+        <div className="inline-flex overflow-hidden rounded-md border border-black/10 text-xs dark:border-white/15">
+          {(["pano", "liste"] as const).map((v) => (
+            <button
+              key={v}
+              type="button"
+              onClick={() => setView(v)}
+              className={`px-3 py-1 font-medium transition-colors ${
+                view === v
+                  ? "bg-indigo-600 text-white"
+                  : "bg-white text-zinc-600 hover:bg-black/5 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-white/10"
+              }`}
+            >
+              {v === "pano" ? "Pano" : "Liste"}
+            </button>
+          ))}
+        </div>
+      </div>
 
       {filtered.length === 0 ? (
         <p className="text-sm text-zinc-500">Bu filtrelerle eşleşen görev yok.</p>
-      ) : (
+      ) : view === "pano" ? (
         <TaskBoard tasks={filtered} sortKey={sortKey} boardId="gorevler" />
+      ) : (
+        <TaskListView tasks={filtered} people={people} />
       )}
     </div>
   );
