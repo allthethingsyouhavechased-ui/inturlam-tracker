@@ -44,7 +44,7 @@ export default function BrandsPage() {
         if (inCluster.length === 0) return null;
         return (
           <section key={group.id} className="space-y-3">
-            <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
               {group.label}
             </h2>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -66,7 +66,7 @@ export default function BrandsPage() {
                         {brand.open_count}
                       </span>
                     ) : (
-                      <span className="text-xs text-zinc-400">boş</span>
+                      <span className="text-xs text-zinc-500 dark:text-zinc-400">boş</span>
                     )}
                     <ArchiveBrandButton brandId={brand.id} />
                   </div>
@@ -78,21 +78,21 @@ export default function BrandsPage() {
       })}
 
       {brands.length === 0 && (
-        <p className="text-sm text-zinc-500">
+        <p className="text-sm text-zinc-500 dark:text-zinc-400">
           Henüz marka yok. Yukarıdan yeni bir marka ekleyebilirsin.
         </p>
       )}
 
       {archived.length > 0 && (
         <section className="space-y-2">
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
             Arşivlenenler ({archived.length})
           </h2>
           <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
             {archived.map((brand) => (
               <div
                 key={brand.id}
-                className="flex items-center justify-between gap-2 rounded-xl border border-dashed border-black/10 bg-white/60 px-4 py-3 text-sm text-zinc-500 dark:border-white/10 dark:bg-zinc-900/60"
+                className="flex items-center justify-between gap-2 rounded-xl border border-dashed border-black/10 bg-white/60 px-4 py-3 text-sm text-zinc-500 dark:text-zinc-400 dark:border-white/10 dark:bg-zinc-900/60"
               >
                 <span className="flex items-center gap-2.5">
                   <BrandLogo name={brand.name} logoPath={brand.logo_path} size="sm" />

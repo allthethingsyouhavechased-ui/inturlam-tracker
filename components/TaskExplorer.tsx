@@ -141,7 +141,7 @@ export default function TaskExplorer({
               setQ("");
               setSortKey("varsayilan");
             }}
-            className="text-xs font-medium text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"
+            className="text-xs font-medium text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200"
           >
             Filtreleri temizle
           </button>
@@ -149,13 +149,13 @@ export default function TaskExplorer({
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-xs text-zinc-500">
+        <p className="text-xs text-zinc-500 dark:text-zinc-400">
           {filtered.length} / {tasks.length} görev
           {view === "pano" && sortKey !== "varsayilan" && (
-            <span className="text-zinc-400"> · sıralama: {SORT_LABEL[sortKey]}</span>
+            <span className="text-zinc-500 dark:text-zinc-400"> · sıralama: {SORT_LABEL[sortKey]}</span>
           )}
           {view === "liste" && (
-            <span className="text-zinc-400">
+            <span className="text-zinc-500 dark:text-zinc-400">
               {" "}
               · sütun başlığına tıklayıp sırala, satırları seçip toplu işlem yap
             </span>
@@ -180,7 +180,7 @@ export default function TaskExplorer({
       </div>
 
       {filtered.length === 0 ? (
-        <p className="text-sm text-zinc-500">Bu filtrelerle eşleşen görev yok.</p>
+        <p className="text-sm text-zinc-500 dark:text-zinc-400">Bu filtrelerle eşleşen görev yok.</p>
       ) : view === "pano" ? (
         <TaskBoard tasks={filtered} sortKey={sortKey} boardId="gorevler" />
       ) : (

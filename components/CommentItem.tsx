@@ -48,7 +48,7 @@ export default function CommentItem({
 
   return (
     <li className="rounded-lg border border-black/10 bg-white p-3 text-sm dark:border-white/10 dark:bg-zinc-900">
-      <div className="mb-1 flex items-baseline gap-2 text-xs text-zinc-500">
+      <div className="mb-1 flex items-baseline gap-2 text-xs text-zinc-500 dark:text-zinc-400">
         <span className="font-medium text-zinc-700 dark:text-zinc-200">
           {comment.author_name}
         </span>
@@ -58,7 +58,7 @@ export default function CommentItem({
             <button
               type="button"
               onClick={() => setEditing(true)}
-              className="hover:text-brand-600 dark:hover:text-brand-400"
+              className="hover:text-brand-600 dark:hover:text-brand-400 dark:hover:text-brand-400"
             >
               Düzenle
             </button>
@@ -66,7 +66,7 @@ export default function CommentItem({
               type="button"
               onClick={handleDelete}
               disabled={pending}
-              className="hover:text-rose-600 disabled:opacity-50"
+              className="hover:text-rose-600 dark:hover:text-rose-400 disabled:opacity-50"
             >
               Sil
             </button>
@@ -97,7 +97,7 @@ export default function CommentItem({
                 setBody(comment.body);
                 setError(null);
               }}
-              className="text-xs text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"
+              className="text-xs text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200"
             >
               Vazgeç
             </button>
@@ -107,7 +107,7 @@ export default function CommentItem({
         comment.body && <p className="whitespace-pre-wrap">{comment.body}</p>
       )}
 
-      {error && <p className="mt-1 text-xs text-rose-600">{error}</p>}
+      {error && <p role="alert" className="mt-1 text-xs text-rose-600 dark:text-rose-400">{error}</p>}
 
       {comment.attachments.length > 0 && (
         <div className="mt-2 flex flex-wrap gap-2">

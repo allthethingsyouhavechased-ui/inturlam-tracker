@@ -20,7 +20,7 @@ export default function TaskRepeatSelect({
 
   return (
     <span className="inline-flex items-center gap-1.5">
-      <span className="text-xs text-zinc-500">Tekrar</span>
+      <span className="text-xs text-zinc-500 dark:text-zinc-400">Tekrar</span>
       <select
         aria-label="Tekrar aralığı"
         value={value}
@@ -47,7 +47,7 @@ export default function TaskRepeatSelect({
           </option>
         ))}
       </select>
-      {error && <span className="text-xs text-rose-600">{error}</span>}
+      {error && <span role="alert" className="text-xs text-rose-600 dark:text-rose-400">{error}</span>}
     </span>
   );
 }

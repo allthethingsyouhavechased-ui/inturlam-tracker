@@ -34,7 +34,7 @@ export default function SidebarClusterGroup({
         type="button"
         onClick={() => setManualOpen(!open)}
         aria-expanded={open}
-        className="flex w-full items-center gap-1 rounded-md px-1.5 py-1 text-xs font-semibold uppercase tracking-wider text-zinc-400 hover:bg-black/5 hover:text-zinc-600 dark:hover:bg-white/5 dark:hover:text-zinc-200"
+        className="flex w-full items-center gap-1 rounded-md px-1.5 py-1 text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 hover:bg-black/5 hover:text-zinc-600 dark:hover:bg-white/5 dark:hover:text-zinc-200"
       >
         <svg
           viewBox="0 0 16 16"
@@ -43,7 +43,7 @@ export default function SidebarClusterGroup({
           <path d="M4 2l8 6-8 6V2z" />
         </svg>
         <span className="truncate">{label}</span>
-        <span className="ml-auto shrink-0 font-normal normal-case tracking-normal text-zinc-400">
+        <span className="ml-auto shrink-0 font-normal normal-case tracking-normal text-zinc-500 dark:text-zinc-400">
           {brandIds.length}
         </span>
       </button>

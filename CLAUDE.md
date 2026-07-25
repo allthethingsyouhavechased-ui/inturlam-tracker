@@ -98,6 +98,32 @@ kategorilere (`clusters` tablosu) ayrılır. Her markanın ayrıca Instagram ara
   (bu sefer tablo doğru şekilde kurulmuş olduğu için hatasız geçer). Yeni bir migration eklerken
   bu deseni boz­ma — özellikle yeni sütun/CHECK içeren yeni bir index/constraint eklediğinde.
 
+## Tasarım kuralları (yeni ekran/bileşen yazarken)
+
+- **Aksan rengi `brand-*`**, asla `indigo-*` değil. Skala `globals.css`'teki `@theme inline`'da;
+  marka rengini değiştirmek 11 satır.
+- **Metin kontrastı iki temada da ≥ 4.5:1 olmalı.** Pratikte ikili kural:
+  soluk metin `text-zinc-500 dark:text-zinc-400`, kırmızı `text-rose-600 dark:text-rose-400`,
+  aksan `text-brand-600 dark:text-brand-400`. Tek başına `text-zinc-500` koyu temada 3.67,
+  tek başına `text-zinc-400` açık temada 2.8 — ikisi de kalır. `text-zinc-300` hiç kullanma.
+  Rozetin kendi zemini varsa (`bg-black/5`) bir ton koyulaştır (`text-zinc-600`).
+- **Odak halkası merkezi.** `globals.css`'te `:focus-visible` kuralı `@layer` dışında yazıldığı
+  için Tailwind'in `focus:outline-none` utility'sini ezer — bileşene ayrıca `focus:ring-*`
+  eklemeye gerek yok, `outline-none` yazmak da zararsız.
+- **Grid çocuklarına `min-w-0`.** Grid hücrelerinin varsayılan `min-width: auto` değeri,
+  `truncate`lı (nowrap) metnin ya da bir `<select>`'in en uzun seçeneğinin TAM genişliğini alt
+  sınır kabul eder; hücre taşar ve telefonda sayfa yatay kayar. Kart/panel bir grid çocuğuysa
+  `min-w-0` ekle (bkz. `app/page.tsx` TaskPanel, `components/TaskGridCard.tsx`).
+- **Üst menü `md`nin altında gizli.** 7 bölüm linki dar ekrana sığmıyor; liste tek yerde
+  (`lib/nav.ts`), masaüstünde `NavLinks`, mobilde off-canvas panelde `SidebarNavLinks`.
+  Yeni sayfa eklerken `MAIN_NAV`'a yaz, iki yer birden güncellenir.
+- **Küçük ikon butonlarına `touch-target`.** Görünümü değiştirmeden tıklama alanını mobilde
+  44×44'e çıkarır (`globals.css`); `min-h-11` vermek satır yüksekliğini şişirirdi.
+- **Hata mesajlarına `role="alert"`**, ikon-only butonlara `aria-label`, form gönderim
+  butonları için `SubmitButton` (useFormStatus ile çift gönderimi engeller).
+- Yarıçap hiyerarşisi: dış panel `rounded-xl`, iç kart `rounded-lg`, form/buton `rounded-md`,
+  rozet/avatar `rounded-full`.
+
 ## Genişletirken
 
 Yeni alan/özellik: `schema.sql` (CREATE TABLE IF NOT EXISTS) → `types.ts` → repo → action → sayfa.

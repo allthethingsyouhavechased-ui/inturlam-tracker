@@ -6,6 +6,7 @@ import AutoRefresh from "@/components/AutoRefresh";
 import CommentForm from "@/components/CommentForm";
 import CommentItem from "@/components/CommentItem";
 import DeleteTaskButton from "@/components/DeleteTaskButton";
+import SubmitButton from "@/components/SubmitButton";
 import TaskPrioritySelect from "@/components/TaskPrioritySelect";
 import TaskRepeatSelect from "@/components/TaskRepeatSelect";
 import TaskStatusSelect from "@/components/TaskStatusSelect";
@@ -38,7 +39,7 @@ export default async function TaskPage({
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       <AutoRefresh />
-      <div className="text-sm text-zinc-500">
+      <div className="text-sm text-zinc-500 dark:text-zinc-400">
         <Link href="/brands" className="hover:text-zinc-800 dark:hover:text-zinc-200">
           Markalar
         </Link>{" "}
@@ -61,11 +62,11 @@ export default async function TaskPage({
       <h1 className="text-2xl font-semibold tracking-tight">{task.title}</h1>
 
       <div className="flex flex-wrap items-center gap-x-6 gap-y-3 rounded-xl border border-black/10 bg-white p-4 dark:border-white/10 dark:bg-zinc-900">
-        <label className="flex items-center gap-2 text-sm text-zinc-500">
+        <label className="flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400">
           Durum
           <TaskStatusSelect taskId={task.id} status={task.status} />
         </label>
-        <label className="flex items-center gap-2 text-sm text-zinc-500">
+        <label className="flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400">
           Atanan
           <AssigneeSelect
             taskId={task.id}
@@ -73,7 +74,7 @@ export default async function TaskPage({
             people={people}
           />
         </label>
-        <label className="flex items-center gap-2 text-sm text-zinc-500">
+        <label className="flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400">
           Öncelik
           <TaskPrioritySelect taskId={task.id} priority={task.priority} />
         </label>
@@ -81,7 +82,7 @@ export default async function TaskPage({
       </div>
 
       {(task.repeat_days ?? 0) > 0 && (
-        <p className="text-xs text-zinc-500">
+        <p className="text-xs text-zinc-500 dark:text-zinc-400">
           Bu görev tekrar ediyor: “Yayınlandı” yapıldığında bir sonraki örneği
           otomatik açılır (teslim tarihi {task.repeat_days} gün ileri kayar).
         </p>
@@ -92,7 +93,7 @@ export default async function TaskPage({
         className="space-y-3 rounded-xl border border-black/10 bg-white p-4 dark:border-white/10 dark:bg-zinc-900"
       >
         <input type="hidden" name="taskId" value={task.id} />
-        <label className="grid gap-1 text-xs font-medium text-zinc-500">
+        <label className="grid gap-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">
           Teslim tarihi
           <input
             type="date"
@@ -101,7 +102,7 @@ export default async function TaskPage({
             className={`${inputClass} max-w-xs`}
           />
         </label>
-        <label className="grid gap-1 text-xs font-medium text-zinc-500">
+        <label className="grid gap-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">
           Notlar
           <textarea
             name="notes"
@@ -112,12 +113,9 @@ export default async function TaskPage({
           />
         </label>
         <div className="flex items-center justify-between">
-          <button
-            type="submit"
-            className="inline-flex items-center rounded-md bg-brand-600 px-3 py-2 text-sm font-medium text-white hover:bg-brand-500"
-          >
-            Kaydet
-          </button>
+          {/* Ham <button type="submit"> yerine SubmitButton: useFormStatus ile
+              gönderim sırasında kendini devre dışı bırakır (çift kayıt olmaz). */}
+          <SubmitButton>Kaydet</SubmitButton>
           <DeleteTaskButton taskId={task.id} />
         </div>
       </form>
@@ -129,16 +127,16 @@ export default async function TaskPage({
             <CommentItem key={c.id} comment={c} canEdit={me?.id === c.author_id} />
           ))}
           {comments.length === 0 && (
-            <li className="text-sm text-zinc-500">Henüz yorum yok.</li>
+            <li className="text-sm text-zinc-500 dark:text-zinc-400">Henüz yorum yok.</li>
           )}
         </ul>
 
         {me ? (
           <CommentForm taskId={task.id} />
         ) : (
-          <p className="text-sm text-zinc-500">
+          <p className="text-sm text-zinc-500 dark:text-zinc-400">
             Yorum yazmak için{" "}
-            <Link href="/whoami" className="font-medium text-brand-600">
+            <Link href="/whoami" className="font-medium text-brand-600 dark:text-brand-400">
               kim olduğunu seç
             </Link>
             .

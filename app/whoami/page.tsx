@@ -12,7 +12,7 @@ export default async function WhoAmIPage() {
     <div className="mx-auto max-w-md space-y-6 py-8">
       <div className="space-y-1 text-center">
         <h1 className="text-2xl font-semibold tracking-tight">Sen kimsin?</h1>
-        <p className="text-sm text-zinc-500">
+        <p className="text-sm text-zinc-500 dark:text-zinc-400">
           Görevleri ve yorumları senin adına kaydedebilmem için seç.
         </p>
       </div>
@@ -31,7 +31,7 @@ export default async function WhoAmIPage() {
             >
               {p.name}
               {current?.id === p.id && (
-                <span className="ml-2 text-xs font-normal text-brand-500">
+                <span className="ml-2 text-xs font-normal text-brand-600 dark:text-brand-400">
                   (şu an bu)
                 </span>
               )}
@@ -41,7 +41,7 @@ export default async function WhoAmIPage() {
       </div>
 
       {people.length === 0 && (
-        <p className="text-center text-sm text-zinc-500">
+        <p className="text-center text-sm text-zinc-500 dark:text-zinc-400">
           Kişi listesi boş. <code>db/seed.mts</code> içinde kişileri düzenleyip{" "}
           <code className="rounded bg-black/5 px-1 dark:bg-white/10">
             npm run db:seed

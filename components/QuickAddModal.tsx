@@ -132,7 +132,7 @@ export default function QuickAddModal({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-1 rounded-md bg-brand-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-brand-500"
+        className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-md bg-brand-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-brand-500"
       >
         + Yeni
       </button>
@@ -158,7 +158,7 @@ export default function QuickAddModal({
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200"
+                className="text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200"
                 aria-label="Kapat"
               >
                 ✕
@@ -166,7 +166,7 @@ export default function QuickAddModal({
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-3">
-              <label className="grid gap-1 text-xs font-medium text-zinc-500">
+              <label className="grid gap-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">
                 Marka
                 <select
                   value={brandId}
@@ -184,7 +184,7 @@ export default function QuickAddModal({
                 </select>
               </label>
 
-              <label className="grid gap-1 text-xs font-medium text-zinc-500">
+              <label className="grid gap-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">
                 İçerik / proje
                 <select
                   value={effectiveContentId}
@@ -202,7 +202,7 @@ export default function QuickAddModal({
 
               {effectiveContentId === NEW_CONTENT && (
                 <div className="grid gap-3 rounded-lg border border-dashed border-black/10 p-3 sm:grid-cols-[1fr_auto] dark:border-white/15">
-                  <label className="grid gap-1 text-xs font-medium text-zinc-500">
+                  <label className="grid gap-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">
                     Yeni içerik başlığı
                     <input
                       value={newContentTitle}
@@ -211,7 +211,7 @@ export default function QuickAddModal({
                       className={inputClass}
                     />
                   </label>
-                  <label className="grid gap-1 text-xs font-medium text-zinc-500">
+                  <label className="grid gap-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">
                     Tür
                     <select
                       value={newContentType}
@@ -228,7 +228,7 @@ export default function QuickAddModal({
                 </div>
               )}
 
-              <label className="grid gap-1 text-xs font-medium text-zinc-500">
+              <label className="grid gap-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">
                 Görev başlığı
                 <input
                   value={taskTitle}
@@ -240,7 +240,7 @@ export default function QuickAddModal({
               </label>
 
               <div className="grid gap-3 sm:grid-cols-3">
-                <label className="grid gap-1 text-xs font-medium text-zinc-500">
+                <label className="grid gap-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">
                   Öncelik
                   <select
                     value={priority}
@@ -254,7 +254,7 @@ export default function QuickAddModal({
                     ))}
                   </select>
                 </label>
-                <label className="grid gap-1 text-xs font-medium text-zinc-500">
+                <label className="grid gap-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">
                   Atanan
                   <select
                     value={assigneeId}
@@ -269,7 +269,7 @@ export default function QuickAddModal({
                     ))}
                   </select>
                 </label>
-                <label className="grid gap-1 text-xs font-medium text-zinc-500">
+                <label className="grid gap-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">
                   Teslim tarihi
                   <input
                     type="date"
@@ -280,13 +280,13 @@ export default function QuickAddModal({
                 </label>
               </div>
 
-              {error && <p className="text-xs text-rose-600">{error}</p>}
+              {error && <p role="alert" className="text-xs text-rose-600 dark:text-rose-400">{error}</p>}
 
               <div className="flex justify-end gap-2 pt-1">
                 <button
                   type="button"
                   onClick={() => setOpen(false)}
-                  className="rounded-md px-3 py-2 text-sm text-zinc-500 hover:bg-black/5 dark:hover:bg-white/10"
+                  className="rounded-md px-3 py-2 text-sm text-zinc-500 dark:text-zinc-400 hover:bg-black/5 dark:hover:bg-white/10"
                 >
                   Vazgeç
                 </button>

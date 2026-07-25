@@ -75,7 +75,7 @@ export default function ApplyTemplateForm({
       </button>
 
       {message && <span className="text-xs text-emerald-600">{message}</span>}
-      {error && <span className="text-xs text-rose-600">{error}</span>}
+      {error && <span role="alert" className="text-xs text-rose-600 dark:text-rose-400">{error}</span>}
     </div>
   );
 }

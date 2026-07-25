@@ -25,7 +25,9 @@ export default async function Header() {
             className="flex items-center gap-2 rounded-md px-2.5 py-1.5 font-semibold tracking-tight hover:bg-black/5 dark:hover:bg-white/10"
           >
             <Logo className="h-6 w-6 shrink-0" />
-            <span>İNTURLAM</span>
+            {/* Telefonda logo tek başına yeter; kelime marka sağdaki kimlik
+                bloğunu (isim + değiştir + tema) ekran dışına itiyordu. */}
+            <span className="hidden sm:inline">İNTURLAM</span>
           </Link>
           <NavLinks />
         </nav>
@@ -38,7 +40,7 @@ export default async function Header() {
             type="search"
             name="q"
             placeholder="Marka, içerik, görev ara…"
-            className="w-full rounded-md border border-black/10 bg-white px-3 py-1.5 text-sm placeholder:text-zinc-400 focus:border-brand-400 focus:outline-none dark:border-white/10 dark:bg-zinc-900"
+            className="w-full rounded-md border border-black/10 bg-white px-3 py-1.5 text-sm placeholder:text-zinc-500 focus:border-brand-400 focus:outline-none dark:border-white/10 dark:bg-zinc-900 dark:placeholder:text-zinc-400"
           />
         </form>
         <div className="flex items-center gap-2 text-sm">
@@ -50,7 +52,9 @@ export default async function Header() {
           />
           {person ? (
             <>
-              <span className="text-zinc-500">
+              {/* Dar ekranda ismin ortadan bölünmemesi için: iki kelimelik
+                  isimler (Yunus Emre) alt satıra kaçıp header'ı yükseltiyordu. */}
+              <span className="max-w-20 truncate whitespace-nowrap text-zinc-500 dark:text-zinc-400 sm:max-w-none">
                 <span className="hidden sm:inline">Giriş: </span>
                 <span className="font-medium text-zinc-800 dark:text-zinc-100">
                   {person.name}
@@ -59,7 +63,7 @@ export default async function Header() {
               <form action={clearIdentity}>
                 <button
                   type="submit"
-                  className="rounded-md px-2 py-1 text-xs text-zinc-500 hover:bg-black/5 hover:text-zinc-800 dark:hover:bg-white/10"
+                  className="rounded-md px-2 py-1 text-xs text-zinc-500 dark:text-zinc-400 hover:bg-black/5 hover:text-zinc-800 dark:hover:bg-white/10"
                 >
                   değiştir
                 </button>

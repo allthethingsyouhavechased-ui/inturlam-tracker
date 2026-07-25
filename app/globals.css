@@ -54,3 +54,64 @@ body {
      yüklediği Geist'i eziyordu ve uygulama uzun süre Arial ile render edildi.
      Font artık <body class="font-sans"> üzerinden `--font-sans` → Geist. */
 }
+
+/* --- Klavye odağı ---------------------------------------------------------
+   Form elemanlarında `outline-none focus:border-brand-500` deseni 22 dosyada
+   kullanılıyor; bu sadece kenarlık rengini değiştiriyor (bazı temalarda fark
+   edilmiyor) ve buton/link gibi kenarlığı olmayan öğelerde HİÇBİR odak
+   göstergesi bırakmıyordu — klavyeyle gezen kullanıcı nerede olduğunu göremez.
+
+   Çözüm tek yerden: aşağıdaki kural `@layer` DIŞINDA olduğu için Tailwind'in
+   `outline-none` utility'sini (o `@layer utilities` içinde) her zaman ezer —
+   22 dosyaya tek tek `focus-visible:ring-2` yazmaya gerek kalmaz.
+
+   `:focus-visible` (`:focus` değil): fareyle tıklamada halka çıkmaz, yalnızca
+   klavye/erişilebilirlik odağında çıkar. */
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--color-brand-500);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Koyu temada brand-500 arka planla yeterince ayrışmıyor; bir ton açığı. */
+.dark :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline-color: var(--color-brand-400);
+}
+
+/* --- Dokunma hedefi -------------------------------------------------------
+   Yoğun listelerdeki minik butonlar (sidebar aç/kapa oku, şablon satırı silme
+   ×) görsel olarak küçük kalmalı ama parmakla ıskalanmamalı. Bu sınıf butonun
+   GÖRÜNÜMÜNÜ hiç değiştirmeden, ortalanmış görünmez bir ::after ile tıklama
+   alanını 44×44'e çıkarır — `min-h-11` vermek satır yüksekliğini şişirirdi.
+
+   Yalnızca dokunmatik/dar ekranda devrede; masaüstünde fare zaten isabetli ve
+   44px'lik görünmez alanlar komşu öğelerin üstüne taşabilir. */
+@media (max-width: 768px) {
+  .touch-target {
+    position: relative;
+  }
+  .touch-target::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 44px;
+    height: 44px;
+    transform: translate(-50%, -50%);
+  }
+}
+
+/* --- Hareket duyarlılığı --------------------------------------------------
+   İşletim sisteminde "hareketi azalt" seçili kullanıcılar için animasyonları
+   pratikte kapatır (tamamen 0 yapmak yerine 1ms — bazı tarayıcılarda
+   `transitionend`/`animationend` beklenen kodu kırmamak için). */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    scroll-behavior: auto !important;
+  }
+}

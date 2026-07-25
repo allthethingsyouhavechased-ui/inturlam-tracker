@@ -54,7 +54,7 @@ export default function SidebarBrandGroup({
         <button
           type="button"
           onClick={() => setManualOpen(!open)}
-          className="shrink-0 rounded p-0.5 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200"
+          className="touch-target shrink-0 rounded p-0.5 text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200"
           aria-label={open ? "Daralt" : "Genişlet"}
         >
           <svg
@@ -81,7 +81,7 @@ export default function SidebarBrandGroup({
       {open && (
         <div className="ml-6 space-y-0.5 border-l border-black/10 py-1 pl-2 dark:border-white/10">
           {contents.length === 0 ? (
-            <p className="px-1 py-1 text-xs text-zinc-400">İçerik yok</p>
+            <p className="px-1 py-1 text-xs text-zinc-500 dark:text-zinc-400">İçerik yok</p>
           ) : (
             contents.map((c) => {
               const href = `/brands/${brand.id}/content/${c.id}`;

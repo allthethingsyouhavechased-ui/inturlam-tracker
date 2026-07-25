@@ -25,12 +25,12 @@ export default function NewPersonForm() {
       }}
       className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end"
     >
-      <label className="grid gap-1 text-xs font-medium text-zinc-500">
+      <label className="grid gap-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">
         İsim
         <input name="name" required placeholder="Örn. Ada Yılmaz" className={inputClass} />
       </label>
       <SubmitButton>Ekip üyesi ekle</SubmitButton>
-      {error && <p className="text-xs text-rose-600 sm:col-span-2">{error}</p>}
+      {error && <p role="alert" className="text-xs text-rose-600 dark:text-rose-400 sm:col-span-2">{error}</p>}
     </form>
   );
 }

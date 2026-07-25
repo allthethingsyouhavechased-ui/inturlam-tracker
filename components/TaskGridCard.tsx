@@ -28,9 +28,13 @@ export default function TaskGridCard({
   // küçük rozetler (Benim/Gecikmiş/Bu hafta gibi) — başka bağlamlarda kullanılmaz.
   badges?: TaskCardBadge[];
 }) {
+  // `min-w-0`: kart bir grid hücresinde duruyor ve grid çocuklarının varsayılan
+  // `min-width: auto` değeri, içindeki <select>'in en uzun seçeneği
+  // ("Devam Ediyor") kadar genişlemesine yol açıyor — telefonda sayfa yatay
+  // kayıyordu.
   return (
     <div
-      className={`flex flex-col gap-2 rounded-lg border border-l-4 border-black/10 bg-white p-3 shadow-sm transition-shadow hover:shadow-md dark:border-white/10 dark:bg-zinc-900 ${TASK_PRIORITY_BORDER[task.priority]}`}
+      className={`flex min-w-0 flex-col gap-2 rounded-lg border border-l-4 border-black/10 bg-white p-3 shadow-sm transition-shadow hover:shadow-md dark:border-white/10 dark:bg-zinc-900 ${TASK_PRIORITY_BORDER[task.priority]}`}
     >
       <div className="flex items-start justify-between gap-2">
         <span
@@ -57,7 +61,7 @@ export default function TaskGridCard({
 
       <Link
         href={`/tasks/${task.id}`}
-        className="text-sm font-medium leading-snug hover:text-brand-600 dark:hover:text-brand-400"
+        className="text-sm font-medium leading-snug hover:text-brand-600 dark:hover:text-brand-400 dark:hover:text-brand-400"
       >
         {TASK_PRIORITY_FLAG_THRESHOLD.includes(task.priority) && (
           <span className="mr-1">{TASK_PRIORITY_ICON[task.priority]}</span>
@@ -65,12 +69,12 @@ export default function TaskGridCard({
         {task.title}
       </Link>
 
-      <div className="text-xs text-zinc-500">{task.brand_name}</div>
+      <div className="text-xs text-zinc-500 dark:text-zinc-400">{task.brand_name}</div>
 
       <div className="mt-auto flex items-center justify-between gap-2 pt-1">
         {task.due_date ? (
           <span
-            className={`text-xs ${isOverdue(task.due_date) ? "font-medium text-rose-600" : "text-zinc-500"}`}
+            className={`text-xs ${isOverdue(task.due_date) ? "font-medium text-rose-600 dark:text-rose-400" : "text-zinc-500 dark:text-zinc-400"}`}
           >
             📅 {formatDateShort(task.due_date)}
           </span>

@@ -73,13 +73,13 @@ export default async function PanomPage() {
       <AutoRefresh />
       <h1 className="text-2xl font-semibold tracking-tight">
         Panom{" "}
-        {me && <span className="text-sm font-normal text-zinc-500">· {me.name}</span>}
+        {me && <span className="text-sm font-normal text-zinc-500 dark:text-zinc-400">· {me.name}</span>}
       </h1>
 
       {!me && (
         <section className="rounded-xl border border-black/10 bg-white p-4 text-sm text-zinc-600 dark:border-white/10 dark:bg-zinc-900 dark:text-zinc-300">
           Panom sana atanmış görevleri gösterir — önce{" "}
-          <Link href="/whoami" className="font-medium text-brand-600">
+          <Link href="/whoami" className="font-medium text-brand-600 dark:text-brand-400">
             kim olduğunu seç
           </Link>
           . Ekipte gecikmiş ve bu hafta teslim olacak görevler zaten aşağıda.
@@ -94,7 +94,7 @@ export default async function PanomPage() {
       />
 
       <section className="space-y-2">
-        <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+        <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
           Markalara göre açık görevler
         </h2>
         <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
@@ -114,7 +114,7 @@ export default async function PanomPage() {
             ))}
         </div>
         {brands.every((b) => b.open_count === 0) && (
-          <p className="text-sm text-zinc-500">Hiç açık görev yok.</p>
+          <p className="text-sm text-zinc-500 dark:text-zinc-400">Hiç açık görev yok.</p>
         )}
       </section>
     </div>

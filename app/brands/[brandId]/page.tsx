@@ -55,7 +55,7 @@ export default async function BrandPage({
   return (
     <div className="space-y-6">
       <AutoRefresh />
-      <div className="text-sm text-zinc-500">
+      <div className="text-sm text-zinc-500 dark:text-zinc-400">
         <Link href="/brands" className="hover:text-zinc-800 dark:hover:text-zinc-200">
           Markalar
         </Link>{" "}
@@ -66,7 +66,7 @@ export default async function BrandPage({
         <BrandLogo name={brand.name} logoPath={brand.logo_path} size="lg" />
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">{brand.name}</h1>
-          <div className="flex flex-wrap items-center gap-2 text-xs text-zinc-500">
+          <div className="flex flex-wrap items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400">
             <span>{clusterLabels[brand.cluster] ?? UNKNOWN_CLUSTER_LABEL}</span>
             {brand.instagram_handle && (
               <>
@@ -108,7 +108,7 @@ export default async function BrandPage({
                 <b className="tabular-nums">
                   {brand.follower_count.toLocaleString("tr-TR")}
                 </b>{" "}
-                <span className="text-zinc-500">takipçi</span>
+                <span className="text-zinc-500 dark:text-zinc-400">takipçi</span>
               </span>
             )}
             {brand.post_count != null && (
@@ -116,13 +116,13 @@ export default async function BrandPage({
                 <b className="tabular-nums">
                   {brand.post_count.toLocaleString("tr-TR")}
                 </b>{" "}
-                <span className="text-zinc-500">gönderi</span>
+                <span className="text-zinc-500 dark:text-zinc-400">gönderi</span>
               </span>
             )}
             {brand.median_reel_views && (
               <span>
                 <b>{brand.median_reel_views}</b>{" "}
-                <span className="text-zinc-500">medyan Reel izlenmesi</span>
+                <span className="text-zinc-500 dark:text-zinc-400">medyan Reel izlenmesi</span>
               </span>
             )}
             {brand.cover_test_verdict && (
@@ -138,7 +138,7 @@ export default async function BrandPage({
 
           {relations.length > 0 && (
             <div className="space-y-2 border-t border-black/10 pt-3 dark:border-white/10">
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
                 İlgili Markalar
               </h3>
               <div className="grid gap-1.5 sm:grid-cols-2">
@@ -159,7 +159,7 @@ export default async function BrandPage({
                     >
                       {RELATION_TYPE_LABEL[r.relation_type]}
                     </span>
-                    <span className="w-full text-zinc-500">{r.note}</span>
+                    <span className="w-full text-zinc-500 dark:text-zinc-400">{r.note}</span>
                   </Link>
                 ))}
               </div>
@@ -168,7 +168,7 @@ export default async function BrandPage({
 
           {audit && (
             <details className="border-t border-black/10 pt-3 dark:border-white/10">
-              <summary className="cursor-pointer text-xs font-semibold uppercase tracking-wider text-zinc-400">
+              <summary className="cursor-pointer text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
                 Tam Denetim Raporu
               </summary>
               <div className="prose prose-sm prose-zinc mt-3 max-w-none dark:prose-invert prose-headings:font-semibold prose-a:text-brand-600 dark:prose-a:text-brand-400">
@@ -190,11 +190,11 @@ export default async function BrandPage({
       </section>
 
       <section className="space-y-2">
-        <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+        <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
           İçerikler ({items.length})
         </h2>
         {items.length === 0 ? (
-          <p className="text-sm text-zinc-500">
+          <p className="text-sm text-zinc-500 dark:text-zinc-400">
             Bu markada henüz içerik yok. Yukarıdan ekle.
           </p>
         ) : (
@@ -217,7 +217,7 @@ export default async function BrandPage({
                   >
                     {CONTENT_STATUS_LABEL[item.status]}
                   </span>
-                  <span className="ml-auto flex items-center gap-3 text-xs text-zinc-500">
+                  <span className="ml-auto flex items-center gap-3 text-xs text-zinc-500 dark:text-zinc-400">
                     {item.assignee_name && <span>{item.assignee_name}</span>}
                     {item.task_total > 0 && (
                       <span>
@@ -240,14 +240,14 @@ export default async function BrandPage({
 
       {archivedItems.length > 0 && (
         <section className="space-y-2">
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
             Arşivlenenler ({archivedItems.length})
           </h2>
           <ul className="grid gap-2">
             {archivedItems.map((item) => (
               <li
                 key={item.id}
-                className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border border-dashed border-black/10 bg-white/60 px-4 py-3 text-sm text-zinc-500 dark:border-white/10 dark:bg-zinc-900/60"
+                className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border border-dashed border-black/10 bg-white/60 px-4 py-3 text-sm text-zinc-500 dark:text-zinc-400 dark:border-white/10 dark:bg-zinc-900/60"
               >
                 <Link
                   href={`/brands/${brand.id}/content/${item.id}`}
@@ -263,7 +263,7 @@ export default async function BrandPage({
       )}
 
       <section className="space-y-2">
-        <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+        <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
           Marka hareketleri
         </h2>
         <div className="rounded-xl border border-black/10 bg-white p-2 dark:border-white/10 dark:bg-zinc-900">

@@ -25,7 +25,7 @@ export default function ActivityFeed({
   emptyText?: string;
 }) {
   if (entries.length === 0) {
-    return <p className="text-sm text-zinc-500">{emptyText}</p>;
+    return <p className="text-sm text-zinc-500 dark:text-zinc-400">{emptyText}</p>;
   }
 
   return (
@@ -40,7 +40,7 @@ export default function ActivityFeed({
             {e.actor_name ? (
               <PersonAvatar name={e.actor_name} size="xs" />
             ) : (
-              <span className="mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-[10px] text-zinc-500 dark:bg-zinc-700">
+              <span className="mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-[10px] text-zinc-500 dark:text-zinc-400 dark:bg-zinc-700">
                 ?
               </span>
             )}
@@ -52,7 +52,7 @@ export default function ActivityFeed({
                 {href ? (
                   <Link
                     href={href}
-                    className="decoration-zinc-300 underline-offset-2 hover:text-brand-600 hover:underline dark:decoration-zinc-600 dark:hover:text-brand-400"
+                    className="decoration-zinc-300 underline-offset-2 hover:text-brand-600 dark:hover:text-brand-400 hover:underline dark:decoration-zinc-600 dark:hover:text-brand-400"
                   >
                     {e.summary}
                   </Link>
@@ -60,7 +60,7 @@ export default function ActivityFeed({
                   e.summary
                 )}
               </span>
-              <span className="ml-2 whitespace-nowrap text-xs tabular-nums text-zinc-400">
+              <span className="ml-2 whitespace-nowrap text-xs tabular-nums text-zinc-500 dark:text-zinc-400">
                 {formatDateTime(e.created_at)}
               </span>
             </div>

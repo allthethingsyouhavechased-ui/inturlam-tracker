@@ -3,6 +3,7 @@ import { groupBrandsByCluster, listClusters } from "@/lib/repositories/clusters"
 import { listAllContentSummaries } from "@/lib/repositories/content";
 import SidebarBrandGroup from "./SidebarBrandGroup";
 import SidebarClusterGroup from "./SidebarClusterGroup";
+import SidebarNavLinks from "./SidebarNavLinks";
 
 export default function Sidebar() {
   const brands = listBrandsWithOpenCounts();
@@ -24,6 +25,7 @@ export default function Sidebar() {
   return (
     <aside className="h-full w-64 overflow-y-auto border-r border-black/10 bg-zinc-50 md:w-60 md:overflow-visible md:bg-transparent dark:border-white/10 dark:bg-zinc-950 dark:md:bg-transparent">
       <nav className="space-y-3 p-3 md:sticky md:top-[var(--header-h)] md:max-h-[calc(100vh-var(--header-h))] md:overflow-y-auto">
+        <SidebarNavLinks />
         {groups.map((group) => {
           if (group.items.length === 0) return null;
           return (

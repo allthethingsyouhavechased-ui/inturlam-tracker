@@ -56,7 +56,7 @@ export default function NewContentForm({
       className="grid gap-3 sm:grid-cols-[1fr_auto_auto_auto_auto_auto] sm:items-end"
     >
       <input type="hidden" name="brandId" value={brandId} />
-      <label className="grid gap-1 text-xs font-medium text-zinc-500">
+      <label className="grid gap-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">
         Başlık
         <input
           name="title"
@@ -65,7 +65,7 @@ export default function NewContentForm({
           className={inputClass}
         />
       </label>
-      <label className="grid gap-1 text-xs font-medium text-zinc-500">
+      <label className="grid gap-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">
         Tür
         <select
           name="type"
@@ -80,7 +80,7 @@ export default function NewContentForm({
           ))}
         </select>
       </label>
-      <label className="grid gap-1 text-xs font-medium text-zinc-500">
+      <label className="grid gap-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">
         Şablon
         <select name="templateId" className={inputClass} defaultValue="">
           <option value="">— görev açma —</option>
@@ -91,7 +91,7 @@ export default function NewContentForm({
           ))}
         </select>
       </label>
-      <label className="grid gap-1 text-xs font-medium text-zinc-500">
+      <label className="grid gap-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">
         Atanan
         <select
           name="assigneeId"
@@ -106,12 +106,12 @@ export default function NewContentForm({
           ))}
         </select>
       </label>
-      <label className="grid gap-1 text-xs font-medium text-zinc-500">
+      <label className="grid gap-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">
         Hedef tarih
         <input type="date" name="targetDate" className={inputClass} />
       </label>
       <SubmitButton>Ekle</SubmitButton>
-      {error && <p className="text-xs text-rose-600 sm:col-span-6">{error}</p>}
+      {error && <p role="alert" className="text-xs text-rose-600 dark:text-rose-400 sm:col-span-6">{error}</p>}
     </form>
   );
 }

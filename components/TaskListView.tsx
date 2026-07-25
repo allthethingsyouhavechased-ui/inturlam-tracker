@@ -223,29 +223,29 @@ export default function TaskListView({
                 run(() => bulkDeleteTasksAction(ids));
               }
             }}
-            className="rounded-md px-2 py-1 text-xs font-medium text-rose-600 hover:bg-rose-100 disabled:opacity-50 dark:hover:bg-rose-950/40"
+            className="rounded-md px-2 py-1 text-xs font-medium text-rose-600 dark:text-rose-400 hover:bg-rose-100 disabled:opacity-50 dark:hover:bg-rose-950/40"
           >
             Sil
           </button>
 
-          {pending && <span className="text-xs text-brand-500">İşleniyor…</span>}
+          {pending && <span className="text-xs text-brand-600 dark:text-brand-400">İşleniyor…</span>}
 
           <button
             type="button"
             onClick={() => setSelected(new Set())}
-            className="ml-auto text-xs font-medium text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"
+            className="ml-auto text-xs font-medium text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200"
           >
             Seçimi temizle
           </button>
         </div>
       )}
 
-      {error && <p className="text-xs text-rose-600">{error}</p>}
+      {error && <p role="alert" className="text-xs text-rose-600 dark:text-rose-400">{error}</p>}
 
       <div className="overflow-x-auto rounded-xl border border-black/10 bg-white dark:border-white/10 dark:bg-zinc-900">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-black/10 text-left text-xs uppercase tracking-wider text-zinc-400 dark:border-white/10">
+            <tr className="border-b border-black/10 text-left text-xs uppercase tracking-wider text-zinc-500 dark:text-zinc-400 dark:border-white/10">
               <th className="w-10 px-3 py-2">
                 <input
                   type="checkbox"
@@ -288,16 +288,16 @@ export default function TaskListView({
                   <td className="px-3 py-2">
                     <Link
                       href={`/tasks/${t.id}`}
-                      className="font-medium hover:text-brand-600 dark:hover:text-brand-400"
+                      className="font-medium hover:text-brand-600 dark:hover:text-brand-400 dark:hover:text-brand-400"
                     >
                       {TASK_PRIORITY_FLAG_THRESHOLD.includes(t.priority) && (
                         <span className="mr-1">{TASK_PRIORITY_ICON[t.priority]}</span>
                       )}
                       {t.title}
                     </Link>
-                    <div className="text-xs text-zinc-400">{t.content_title}</div>
+                    <div className="text-xs text-zinc-500 dark:text-zinc-400">{t.content_title}</div>
                   </td>
-                  <td className="px-3 py-2 text-zinc-500">{t.brand_name}</td>
+                  <td className="px-3 py-2 text-zinc-500 dark:text-zinc-400">{t.brand_name}</td>
                   <td className="px-3 py-2">
                     <span
                       className={`rounded-full px-2 py-0.5 text-xs font-medium ${TASK_PRIORITY_BADGE[t.priority]}`}
@@ -321,7 +321,7 @@ export default function TaskListView({
                         </span>
                       </span>
                     ) : (
-                      <span className="text-zinc-400">—</span>
+                      <span className="text-zinc-500 dark:text-zinc-400">—</span>
                     )}
                   </td>
                   <td className="px-3 py-2">
@@ -329,14 +329,14 @@ export default function TaskListView({
                       <span
                         className={`tabular-nums text-xs ${
                           isOverdue(t.due_date)
-                            ? "font-medium text-rose-600"
-                            : "text-zinc-500"
+                            ? "font-medium text-rose-600 dark:text-rose-400"
+                            : "text-zinc-500 dark:text-zinc-400"
                         }`}
                       >
                         {formatDateShort(t.due_date)}
                       </span>
                     ) : (
-                      <span className="text-zinc-400">—</span>
+                      <span className="text-zinc-500 dark:text-zinc-400">—</span>
                     )}
                   </td>
                 </tr>

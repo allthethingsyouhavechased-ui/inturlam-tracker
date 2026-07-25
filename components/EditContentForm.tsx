@@ -25,7 +25,7 @@ export default function EditContentForm({
       <button
         type="button"
         onClick={() => setEditing(true)}
-        className="text-xs font-medium text-zinc-500 hover:text-brand-600 dark:hover:text-brand-400"
+        className="text-xs font-medium text-zinc-500 dark:text-zinc-400 hover:text-brand-600 dark:hover:text-brand-400 dark:hover:text-brand-400"
       >
         Düzenle
       </button>
@@ -46,7 +46,7 @@ export default function EditContentForm({
       className="grid w-full gap-3 rounded-xl border border-black/10 bg-white p-4 dark:border-white/10 dark:bg-zinc-900 sm:grid-cols-[1fr_auto_auto_auto]"
     >
       <input type="hidden" name="contentId" value={content.id} />
-      <label className="grid gap-1 text-xs font-medium text-zinc-500">
+      <label className="grid gap-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">
         Başlık
         <input
           name="title"
@@ -55,7 +55,7 @@ export default function EditContentForm({
           className={inputClass}
         />
       </label>
-      <label className="grid gap-1 text-xs font-medium text-zinc-500">
+      <label className="grid gap-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">
         Tür
         <select name="type" defaultValue={content.type} className={inputClass}>
           {CONTENT_TYPES.map((t) => (
@@ -65,7 +65,7 @@ export default function EditContentForm({
           ))}
         </select>
       </label>
-      <label className="grid gap-1 text-xs font-medium text-zinc-500">
+      <label className="grid gap-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">
         Atanan
         <select
           name="assigneeId"
@@ -80,7 +80,7 @@ export default function EditContentForm({
           ))}
         </select>
       </label>
-      <label className="grid gap-1 text-xs font-medium text-zinc-500">
+      <label className="grid gap-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">
         Hedef tarih
         <input
           type="date"
@@ -94,11 +94,11 @@ export default function EditContentForm({
         <button
           type="button"
           onClick={() => setEditing(false)}
-          className="text-xs font-medium text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"
+          className="text-xs font-medium text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200"
         >
           Vazgeç
         </button>
-        {error && <p className="text-xs text-rose-600">{error}</p>}
+        {error && <p role="alert" className="text-xs text-rose-600 dark:text-rose-400">{error}</p>}
       </div>
     </form>
   );

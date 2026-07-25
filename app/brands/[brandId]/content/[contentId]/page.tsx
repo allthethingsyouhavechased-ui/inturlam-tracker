@@ -40,7 +40,7 @@ export default async function ContentPage({
   return (
     <div className="space-y-6">
       <AutoRefresh />
-      <div className="text-sm text-zinc-500">
+      <div className="text-sm text-zinc-500 dark:text-zinc-400">
         <Link href="/brands" className="hover:text-zinc-800 dark:hover:text-zinc-200">
           Markalar
         </Link>{" "}
@@ -62,12 +62,12 @@ export default async function ContentPage({
         </span>
         <ContentStatusSelect contentId={content.id} status={content.status} />
         {content.assignee_name && (
-          <span className="text-xs text-zinc-500">
+          <span className="text-xs text-zinc-500 dark:text-zinc-400">
             👤 {content.assignee_name}
           </span>
         )}
         {content.target_date && (
-          <span className="text-xs text-zinc-500">
+          <span className="text-xs text-zinc-500 dark:text-zinc-400">
             📅 Hedef: {formatDateShort(content.target_date)}
           </span>
         )}
@@ -96,7 +96,7 @@ export default async function ContentPage({
       </section>
 
       <section>
-        <p className="mb-2 text-xs text-zinc-400">
+        <p className="mb-2 text-xs text-zinc-500 dark:text-zinc-400">
           Bir kartı tutup başka bir sütuna sürükleyerek durumunu değiştirebilirsin.
         </p>
         <KanbanBoard tasks={tasks} people={people} />

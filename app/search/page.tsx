@@ -30,18 +30,18 @@ export default async function SearchPage({
       </h1>
 
       {!query && (
-        <p className="text-sm text-zinc-500">
+        <p className="text-sm text-zinc-500 dark:text-zinc-400">
           Yukarıdaki arama kutusuna marka, içerik veya görev adı yaz.
         </p>
       )}
 
       {query && totalCount === 0 && (
-        <p className="text-sm text-zinc-500">Eşleşen bir sonuç bulunamadı.</p>
+        <p className="text-sm text-zinc-500 dark:text-zinc-400">Eşleşen bir sonuç bulunamadı.</p>
       )}
 
       {results.brands.length > 0 && (
         <section className="space-y-2">
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
             Markalar ({results.brands.length})
           </h2>
           <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
@@ -54,7 +54,7 @@ export default async function SearchPage({
                 <BrandLogo name={brand.name} logoPath={brand.logo_path} size="sm" />
                 <span>
                   <span className="font-medium">{brand.name}</span>
-                  <span className="ml-2 text-xs text-zinc-500">
+                  <span className="ml-2 text-xs text-zinc-500 dark:text-zinc-400">
                     {clusterLabels[brand.cluster] ?? UNKNOWN_CLUSTER_LABEL}
                   </span>
                 </span>
@@ -66,7 +66,7 @@ export default async function SearchPage({
 
       {results.content.length > 0 && (
         <section className="space-y-2">
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
             İçerikler ({results.content.length})
           </h2>
           <ul className="grid gap-2">
@@ -77,7 +77,7 @@ export default async function SearchPage({
                   className="flex flex-wrap items-center gap-2 rounded-xl border border-black/10 bg-white px-4 py-3 transition-colors hover:border-brand-300 hover:bg-brand-50/50 dark:border-white/10 dark:bg-zinc-900 dark:hover:border-brand-800 dark:hover:bg-brand-950/30"
                 >
                   <span className="font-medium">{item.title}</span>
-                  <span className="text-xs text-zinc-500">{item.brand_name}</span>
+                  <span className="text-xs text-zinc-500 dark:text-zinc-400">{item.brand_name}</span>
                 </Link>
               </li>
             ))}
@@ -87,7 +87,7 @@ export default async function SearchPage({
 
       {results.tasks.length > 0 && (
         <section className="space-y-2">
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
             Görevler ({results.tasks.length})
           </h2>
           <ul className="grid gap-2">
@@ -108,7 +108,7 @@ export default async function SearchPage({
                   >
                     {TASK_PRIORITY_LABEL[task.priority]}
                   </span>
-                  <span className="ml-auto text-xs text-zinc-500">
+                  <span className="ml-auto text-xs text-zinc-500 dark:text-zinc-400">
                     {task.brand_name} · {task.content_title}
                   </span>
                 </Link>

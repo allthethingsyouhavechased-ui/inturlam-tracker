@@ -11,7 +11,7 @@ import SubmitButton from "./SubmitButton";
 const inputClass =
   "w-full rounded-md border border-black/10 bg-white px-3 py-2 text-sm outline-none focus:border-brand-500 dark:border-white/15 dark:bg-zinc-900";
 
-const labelClass = "grid gap-1 text-xs font-medium text-zinc-500";
+const labelClass = "grid gap-1 text-xs font-medium text-zinc-500 dark:text-zinc-400";
 
 export default function EditBrandForm({
   brand,
@@ -28,7 +28,7 @@ export default function EditBrandForm({
       <button
         type="button"
         onClick={() => setEditing(true)}
-        className="text-xs font-medium text-zinc-500 hover:text-brand-600 dark:hover:text-brand-400"
+        className="text-xs font-medium text-zinc-500 dark:text-zinc-400 hover:text-brand-600 dark:hover:text-brand-400 dark:hover:text-brand-400"
       >
         Düzenle
       </button>
@@ -83,7 +83,7 @@ export default function EditBrandForm({
 
       {/* Araştırma / performans verileri */}
       <div className="space-y-3 border-t border-black/10 pt-3 dark:border-white/10">
-        <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+        <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
           Araştırma verileri
         </h3>
         <div className="grid gap-3 sm:grid-cols-3">
@@ -183,11 +183,11 @@ export default function EditBrandForm({
         <button
           type="button"
           onClick={() => setEditing(false)}
-          className="text-xs font-medium text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"
+          className="text-xs font-medium text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200"
         >
           Vazgeç
         </button>
-        {error && <p className="text-xs text-rose-600">{error}</p>}
+        {error && <p role="alert" className="text-xs text-rose-600 dark:text-rose-400">{error}</p>}
       </div>
     </form>
   );

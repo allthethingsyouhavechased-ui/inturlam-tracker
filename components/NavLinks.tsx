@@ -2,28 +2,23 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { MAIN_NAV } from "@/lib/nav";
 
-const LINKS = [
-  { href: "/brands", label: "Markalar" },
-  { href: "/tasks", label: "Görevler" },
-  { href: "/reports", label: "Raporlar" },
-  { href: "/activity", label: "Aktivite" },
-  { href: "/team", label: "Ekip" },
-  { href: "/templates", label: "Şablonlar" },
-  { href: "/panom", label: "Panom" },
-];
-
+// Masaüstü bölüm menüsü. 7 link dar ekranda header'ı taşırıp sayfaya yatay
+// kaydırma ekliyordu; `md`nin altında gizleniyor ve aynı linkler mobilde
+// off-canvas panelin üstünde çıkıyor (components/Sidebar.tsx).
 export default function NavLinks() {
   const pathname = usePathname();
 
   return (
-    <>
-      {LINKS.map((link) => {
+    <span className="hidden items-center gap-1 md:flex">
+      {MAIN_NAV.map((link) => {
         const active = pathname.startsWith(link.href);
         return (
           <Link
             key={link.href}
             href={link.href}
+            aria-current={active ? "page" : undefined}
             className={`border-b-2 px-2.5 py-1.5 text-sm transition-colors ${
               active
                 ? "border-brand-600 font-medium text-zinc-900 dark:border-brand-400 dark:text-white"
@@ -34,6 +29,6 @@ export default function NavLinks() {
           </Link>
         );
       })}
-    </>
+    </span>
   );
 }

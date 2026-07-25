@@ -18,7 +18,7 @@ export default function TeamPage() {
       </section>
 
       <section className="space-y-2">
-        <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+        <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
           Aktif ({people.length})
         </h2>
         <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
@@ -32,21 +32,21 @@ export default function TeamPage() {
             </div>
           ))}
           {people.length === 0 && (
-            <p className="text-sm text-zinc-500">Henüz ekip üyesi yok.</p>
+            <p className="text-sm text-zinc-500 dark:text-zinc-400">Henüz ekip üyesi yok.</p>
           )}
         </div>
       </section>
 
       {inactive.length > 0 && (
         <section className="space-y-2">
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
             Ekipten çıkarılanlar ({inactive.length})
           </h2>
           <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
             {inactive.map((p) => (
               <div
                 key={p.id}
-                className="flex items-center justify-between rounded-xl border border-dashed border-black/10 bg-white/60 px-4 py-3 text-sm text-zinc-500 dark:border-white/10 dark:bg-zinc-900/60"
+                className="flex items-center justify-between rounded-xl border border-dashed border-black/10 bg-white/60 px-4 py-3 text-sm text-zinc-500 dark:text-zinc-400 dark:border-white/10 dark:bg-zinc-900/60"
               >
                 <span>{p.name}</span>
                 <DeactivatePersonButton personId={p.id} active={false} />

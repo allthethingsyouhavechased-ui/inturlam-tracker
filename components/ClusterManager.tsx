@@ -54,7 +54,7 @@ function ClusterRow({
         <button
           type="button"
           onClick={() => setEditing(false)}
-          className="text-xs text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"
+          className="text-xs text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200"
         >
           Vazgeç
         </button>
@@ -65,11 +65,11 @@ function ClusterRow({
   return (
     <div className="flex items-center gap-2 rounded-md px-2 py-1.5 hover:bg-black/[0.03] dark:hover:bg-white/[0.04]">
       <span className="flex-1 truncate text-sm">{cluster.label}</span>
-      <span className="text-xs text-zinc-400">{cluster.brandCount} marka</span>
+      <span className="text-xs text-zinc-500 dark:text-zinc-400">{cluster.brandCount} marka</span>
       <button
         type="button"
         onClick={() => setEditing(true)}
-        className="text-xs font-medium text-zinc-500 hover:text-brand-600 dark:hover:text-brand-400"
+        className="text-xs font-medium text-zinc-500 dark:text-zinc-400 hover:text-brand-600 dark:hover:text-brand-400 dark:hover:text-brand-400"
       >
         Yeniden adlandır
       </button>
@@ -87,7 +87,7 @@ function ClusterRow({
             }
           });
         }}
-        className="text-xs font-medium text-zinc-400 hover:text-rose-600 disabled:opacity-50"
+        className="text-xs font-medium text-zinc-500 dark:text-zinc-400 hover:text-rose-600 dark:hover:text-rose-400 disabled:opacity-50"
       >
         {pending ? "…" : "Sil"}
       </button>
@@ -110,12 +110,12 @@ export default function ClusterManager({ clusters }: { clusters: ClusterItem[] }
       >
         <svg
           viewBox="0 0 16 16"
-          className={`h-3 w-3 fill-current text-zinc-400 transition-transform ${open ? "rotate-90" : ""}`}
+          className={`h-3 w-3 fill-current text-zinc-500 dark:text-zinc-400 transition-transform ${open ? "rotate-90" : ""}`}
         >
           <path d="M4 2l8 6-8 6V2z" />
         </svg>
         Kategoriler
-        <span className="ml-auto text-xs font-normal text-zinc-400">
+        <span className="ml-auto text-xs font-normal text-zinc-500 dark:text-zinc-400">
           {clusters.length}
         </span>
       </button>
@@ -151,7 +151,7 @@ export default function ClusterManager({ clusters }: { clusters: ClusterItem[] }
             <SubmitButton>Ekle</SubmitButton>
           </form>
 
-          {error && <p className="text-xs text-rose-600">{error}</p>}
+          {error && <p role="alert" className="text-xs text-rose-600 dark:text-rose-400">{error}</p>}
         </div>
       )}
     </div>

@@ -35,7 +35,7 @@ export default function NewBrandForm({
       }}
       className="grid gap-3 sm:grid-cols-[1fr_auto_auto_auto] sm:items-end"
     >
-      <label className="grid gap-1 text-xs font-medium text-zinc-500">
+      <label className="grid gap-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">
         Marka adı
         <input
           name="name"
@@ -44,11 +44,11 @@ export default function NewBrandForm({
           className={inputClass}
         />
       </label>
-      <label className="grid gap-1 text-xs font-medium text-zinc-500">
+      <label className="grid gap-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">
         Kategori
         <ClusterSelect key={resetKey} clusters={clusters} className={inputClass} />
       </label>
-      <label className="grid gap-1 text-xs font-medium text-zinc-500">
+      <label className="grid gap-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">
         Instagram (opsiyonel)
         <input
           name="instagramHandle"
@@ -57,7 +57,7 @@ export default function NewBrandForm({
         />
       </label>
       <SubmitButton>Marka ekle</SubmitButton>
-      {error && <p className="text-xs text-rose-600 sm:col-span-4">{error}</p>}
+      {error && <p role="alert" className="text-xs text-rose-600 dark:text-rose-400 sm:col-span-4">{error}</p>}
     </form>
   );
 }

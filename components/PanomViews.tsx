@@ -25,7 +25,7 @@ export default function PanomViews({
   return (
     <div className="space-y-8">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-xs text-zinc-500">
+        <p className="text-xs text-zinc-500 dark:text-zinc-400">
           {view === "liste"
             ? "Sütun başlığına tıklayıp sırala, satırları seçip toplu işlem yap"
             : "Kartları sürükleyerek durumunu değiştir"}
@@ -50,12 +50,12 @@ export default function PanomViews({
 
       {hasIdentity && (
         <section className="space-y-2">
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
             Bana atanmış açık görevler{" "}
             {myTasks.length > 0 && <span>({myTasks.length})</span>}
           </h2>
           {myTasks.length === 0 ? (
-            <p className="text-sm text-zinc-500">Sana atanmış açık görev yok. 🎉</p>
+            <p className="text-sm text-zinc-500 dark:text-zinc-400">Sana atanmış açık görev yok. 🎉</p>
           ) : view === "pano" ? (
             <TaskBoard tasks={myTasks} boardId="panom" />
           ) : (
@@ -66,10 +66,10 @@ export default function PanomViews({
 
       {otherTasks.length > 0 && (
         <section className="space-y-2">
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
             Ekipte gecikmiş / bu hafta teslim ({otherTasks.length})
           </h2>
-          <p className="text-xs text-zinc-500">
+          <p className="text-xs text-zinc-500 dark:text-zinc-400">
             Bu görevler başkalarına atanmış ya da hiç atanmamış — takip için burada.
           </p>
           {view === "pano" ? (

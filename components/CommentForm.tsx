@@ -93,9 +93,9 @@ export default function CommentForm({ taskId }: { taskId: string }) {
           ))}
         </div>
       )}
-      {error && <p className="text-xs text-rose-600">{error}</p>}
+      {error && <p role="alert" className="text-xs text-rose-600 dark:text-rose-400">{error}</p>}
       <div className="flex items-center justify-between gap-2">
-        <label className="cursor-pointer text-xs font-medium text-zinc-500 hover:text-brand-600 dark:hover:text-brand-400">
+        <label className="cursor-pointer text-xs font-medium text-zinc-500 dark:text-zinc-400 hover:text-brand-600 dark:hover:text-brand-400 dark:hover:text-brand-400">
           📎 Görsel ekle
           <input
             ref={fileInputRef}

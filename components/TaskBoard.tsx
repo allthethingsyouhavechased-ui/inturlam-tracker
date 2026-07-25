@@ -83,17 +83,17 @@ function Column({
       ref={setNodeRef}
       className={`space-y-2 rounded-xl border-t-2 bg-slate-50/60 p-2 transition-colors dark:bg-white/[0.02] ${TASK_STATUS_BORDER_TOP[status]} ${isOver ? "bg-brand-50/60 dark:bg-brand-950/20" : ""}`}
     >
-      <div className="flex items-center gap-2 px-1 text-xs font-semibold uppercase tracking-wider text-zinc-400">
+      <div className="flex items-center gap-2 px-1 text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
         <span className={`h-2 w-2 rounded-full ${TASK_STATUS_DOT[status]}`} />
         {TASK_STATUS_LABEL[status]}
-        <span className="text-zinc-300 dark:text-zinc-600">{tasks.length}</span>
+        <span className="text-zinc-500 dark:text-zinc-400">{tasks.length}</span>
       </div>
       <div className="min-h-16 space-y-2">
         {tasks.map((t) => (
           <DraggableCard key={t.id} task={t} />
         ))}
         {tasks.length === 0 && (
-          <div className="rounded-lg border border-dashed border-black/10 py-3 text-center text-xs text-zinc-300 dark:border-white/10 dark:text-zinc-600">
+          <div className="rounded-lg border border-dashed border-black/10 py-3 text-center text-xs text-zinc-500 dark:border-white/10 dark:text-zinc-400">
             —
           </div>
         )}
@@ -164,7 +164,7 @@ export default function TaskBoard({
     <div className="space-y-2">
       {!isControlled && (
         <div className="flex flex-wrap items-center gap-1.5 text-xs">
-          <span className="text-zinc-400">Sırala:</span>
+          <span className="text-zinc-500 dark:text-zinc-400">Sırala:</span>
           {SORT_OPTIONS.map((opt) => (
             <button
               key={opt.key}

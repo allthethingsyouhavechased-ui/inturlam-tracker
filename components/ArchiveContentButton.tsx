@@ -21,7 +21,7 @@ export default function ArchiveContentButton({
           e.preventDefault();
           startTransition(() => unarchiveContentItemAction(contentId));
         }}
-        className="text-xs font-medium text-brand-600 hover:text-brand-500 disabled:opacity-50"
+        className="text-xs font-medium text-brand-600 dark:text-brand-400 hover:text-brand-500 disabled:opacity-50"
       >
         {pending ? "…" : "Arşivden çıkar"}
       </button>
@@ -42,7 +42,7 @@ export default function ArchiveContentButton({
           startTransition(() => archiveContentItemAction(contentId));
         }
       }}
-      className="text-xs font-medium text-zinc-400 hover:text-rose-600 disabled:opacity-50"
+      className="text-xs font-medium text-zinc-500 dark:text-zinc-400 hover:text-rose-600 dark:hover:text-rose-400 disabled:opacity-50"
     >
       {pending ? "…" : "Arşivle"}
     </button>
