@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import ReactMarkdown from "react-markdown";
+import ActivityFeed from "@/components/ActivityFeed";
 import ArchiveContentButton from "@/components/ArchiveContentButton";
 import AutoRefresh from "@/components/AutoRefresh";
 import BrandLogo from "@/components/BrandLogo";
@@ -23,6 +24,7 @@ import {
   getBrandAudit,
   listBrandRelations,
 } from "@/lib/repositories/brands";
+import { listActivityForBrand } from "@/lib/repositories/activity";
 import { listArchivedContentByBrand, listContentByBrand } from "@/lib/repositories/content";
 import { listActivePeople } from "@/lib/repositories/people";
 
@@ -42,6 +44,7 @@ export default async function BrandPage({
   const relations = listBrandRelations(brandId);
   const audit = getBrandAudit(brandId);
   const people = listActivePeople();
+  const activity = listActivityForBrand(brandId);
   const me = await getCurrentPerson();
 
   return (
@@ -252,6 +255,18 @@ export default async function BrandPage({
           </ul>
         </section>
       )}
+
+      <section className="space-y-2">
+        <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+          Marka hareketleri
+        </h2>
+        <div className="rounded-xl border border-black/10 bg-white p-2 dark:border-white/10 dark:bg-zinc-900">
+          <ActivityFeed
+            entries={activity}
+            emptyText="Bu markada henüz kayıtlı hareket yok."
+          />
+        </div>
+      </section>
     </div>
   );
 }

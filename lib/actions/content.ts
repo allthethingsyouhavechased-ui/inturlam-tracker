@@ -2,7 +2,12 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { CONTENT_STATUSES, CONTENT_TYPES } from "@/lib/constants";
+import { recordActivity } from "@/lib/activity";
+import {
+  CONTENT_STATUS_LABEL,
+  CONTENT_STATUSES,
+  CONTENT_TYPES,
+} from "@/lib/constants";
 import {
   createContentItem,
   deleteContentItem,
@@ -35,6 +40,14 @@ export async function createContentItemAction(formData: FormData): Promise<strin
     assigneeId: cleanValue(formData.get("assigneeId")),
   });
 
+  await recordActivity({
+    action: "content.create",
+    entityType: "content",
+    entityId: id,
+    brandId,
+    summary: `“${title}” içeriğini oluşturdu`,
+  });
+
   revalidatePath("/", "layout");
   return id;
 }
@@ -46,7 +59,15 @@ export async function setContentStatusAction(
   if (!CONTENT_STATUSES.includes(status)) {
     throw new Error("Geçersiz durum.");
   }
+  const content = getContentItem(contentId);
   updateContentStatus(contentId, status);
+  await recordActivity({
+    action: "content.status",
+    entityType: "content",
+    entityId: contentId,
+    brandId: content?.brand_id ?? null,
+    summary: `“${content?.title ?? "İçerik"}” durumunu ${CONTENT_STATUS_LABEL[status]} yaptı`,
+  });
   revalidatePath("/", "layout");
 }
 
@@ -59,6 +80,7 @@ export async function updateContentItemAction(formData: FormData) {
   if (!title) throw new Error("Başlık zorunlu.");
   if (!CONTENT_TYPES.includes(type)) throw new Error("Geçersiz içerik türü.");
 
+  const before = getContentItem(id);
   updateContentItem({
     id,
     title,
@@ -67,22 +89,53 @@ export async function updateContentItemAction(formData: FormData) {
     assigneeId: cleanValue(formData.get("assigneeId")),
   });
 
+  await recordActivity({
+    action: "content.update",
+    entityType: "content",
+    entityId: id,
+    brandId: before?.brand_id ?? null,
+    summary: `“${title}” içeriğini güncelledi`,
+  });
+
   revalidatePath("/", "layout");
 }
 
 export async function archiveContentItemAction(contentId: string) {
+  const content = getContentItem(contentId);
   setContentArchived(contentId, true);
+  await recordActivity({
+    action: "content.archive",
+    entityType: "content",
+    entityId: contentId,
+    brandId: content?.brand_id ?? null,
+    summary: `“${content?.title ?? "İçerik"}” içeriğini arşivledi`,
+  });
   revalidatePath("/", "layout");
 }
 
 export async function unarchiveContentItemAction(contentId: string) {
+  const content = getContentItem(contentId);
   setContentArchived(contentId, false);
+  await recordActivity({
+    action: "content.unarchive",
+    entityType: "content",
+    entityId: contentId,
+    brandId: content?.brand_id ?? null,
+    summary: `“${content?.title ?? "İçerik"}” içeriğini arşivden çıkardı`,
+  });
   revalidatePath("/", "layout");
 }
 
 export async function deleteContentItemAction(contentId: string) {
   const content = getContentItem(contentId);
   deleteContentItem(contentId);
+  await recordActivity({
+    action: "content.delete",
+    entityType: "content",
+    entityId: null,
+    brandId: content?.brand_id ?? null,
+    summary: `“${content?.title ?? "İçerik"}” içeriğini sildi`,
+  });
   revalidatePath("/", "layout");
   if (content) {
     redirect(`/brands/${content.brand_id}`);

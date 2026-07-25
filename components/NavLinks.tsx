@@ -7,6 +7,7 @@ const LINKS = [
   { href: "/brands", label: "Markalar" },
   { href: "/tasks", label: "Görevler" },
   { href: "/reports", label: "Raporlar" },
+  { href: "/activity", label: "Aktivite" },
   { href: "/team", label: "Ekip" },
   { href: "/panom", label: "Panom" },
 ];

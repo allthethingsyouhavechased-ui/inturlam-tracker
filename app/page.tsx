@@ -14,6 +14,7 @@ const QUICK_LINKS = [
   { href: "/brands", label: "Markalar", desc: "Tüm markalar, içerikler ve denetim verileri" },
   { href: "/tasks", label: "Görevler", desc: "Portföydeki tüm görevler, filtrelenebilir" },
   { href: "/reports", label: "Raporlar", desc: "Kişi ve marka bazlı görev özetleri" },
+  { href: "/activity", label: "Aktivite", desc: "Kim, ne zaman, ne yaptı — tüm hareketler" },
   { href: "/team", label: "Ekip", desc: "Ekip üyelerini ekle/çıkar" },
   { href: "/panom", label: "Panom", desc: "Bana atanmış, gecikmiş ve bu hafta teslim görevler" },
 ];

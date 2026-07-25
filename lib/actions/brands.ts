@@ -1,8 +1,14 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { recordActivity } from "@/lib/activity";
 import { CLUSTERS, COVER_TEST_VERDICTS } from "@/lib/constants";
-import { createBrand, setBrandArchived, updateBrand } from "@/lib/repositories/brands";
+import {
+  createBrand,
+  getBrand,
+  setBrandArchived,
+  updateBrand,
+} from "@/lib/repositories/brands";
 import type { Cluster, CoverTestVerdict } from "@/lib/types";
 
 function cleanValue(value: FormDataEntryValue | null): string | null {
@@ -26,10 +32,18 @@ export async function createBrandAction(formData: FormData) {
   if (!name) throw new Error("Marka adı zorunlu.");
   if (!CLUSTERS.some((c) => c.id === cluster)) throw new Error("Geçersiz kategori.");
 
-  createBrand({
+  const id = createBrand({
     name,
     cluster,
     instagramHandle: cleanValue(formData.get("instagramHandle")),
+  });
+
+  await recordActivity({
+    action: "brand.create",
+    entityType: "brand",
+    entityId: id,
+    brandId: id,
+    summary: `“${name}” markasını oluşturdu`,
   });
 
   revalidatePath("/", "layout");
@@ -65,15 +79,39 @@ export async function updateBrandAction(formData: FormData) {
     tier: cleanValue(formData.get("tier")),
   });
 
+  await recordActivity({
+    action: "brand.update",
+    entityType: "brand",
+    entityId: id,
+    brandId: id,
+    summary: `“${name}” marka bilgilerini güncelledi`,
+  });
+
   revalidatePath("/", "layout");
 }
 
 export async function archiveBrandAction(brandId: string) {
+  const brand = getBrand(brandId);
   setBrandArchived(brandId, true);
+  await recordActivity({
+    action: "brand.archive",
+    entityType: "brand",
+    entityId: brandId,
+    brandId,
+    summary: `“${brand?.name ?? "Marka"}” markasını arşivledi`,
+  });
   revalidatePath("/", "layout");
 }
 
 export async function unarchiveBrandAction(brandId: string) {
+  const brand = getBrand(brandId);
   setBrandArchived(brandId, false);
+  await recordActivity({
+    action: "brand.unarchive",
+    entityType: "brand",
+    entityId: brandId,
+    brandId,
+    summary: `“${brand?.name ?? "Marka"}” markasını arşivden çıkardı`,
+  });
   revalidatePath("/", "layout");
 }

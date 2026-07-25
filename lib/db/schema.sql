@@ -83,6 +83,21 @@ CREATE TABLE IF NOT EXISTS comment_attachments (
   created_at    TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
+-- Aktivite geçmişi: kim, ne zaman, hangi varlıkta ne yaptı. Denetlenebilirlik
+-- için append-only. actor_name/entity bilgileri anlık (snapshot) tutulur ki
+-- kişi/varlık sonradan silinse bile kayıt okunabilir kalsın — bu yüzden FK yok.
+CREATE TABLE IF NOT EXISTS activity_log (
+  id          TEXT PRIMARY KEY,
+  actor_id    TEXT,
+  actor_name  TEXT,
+  action      TEXT NOT NULL,
+  entity_type TEXT NOT NULL,
+  entity_id   TEXT,
+  brand_id    TEXT,
+  summary     TEXT NOT NULL,
+  created_at  TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
 CREATE INDEX IF NOT EXISTS idx_brands_cluster      ON brands(cluster);
 CREATE INDEX IF NOT EXISTS idx_content_items_brand    ON content_items(brand_id);
 CREATE INDEX IF NOT EXISTS idx_content_items_assignee ON content_items(assignee_id);
@@ -93,3 +108,6 @@ CREATE INDEX IF NOT EXISTS idx_comments_task       ON comments(task_id);
 CREATE INDEX IF NOT EXISTS idx_comment_attachments_comment ON comment_attachments(comment_id);
 CREATE INDEX IF NOT EXISTS idx_brand_relations_brand   ON brand_relations(brand_id);
 CREATE INDEX IF NOT EXISTS idx_brand_relations_related ON brand_relations(related_brand_id);
+CREATE INDEX IF NOT EXISTS idx_activity_created ON activity_log(created_at);
+CREATE INDEX IF NOT EXISTS idx_activity_brand   ON activity_log(brand_id);
+CREATE INDEX IF NOT EXISTS idx_activity_entity  ON activity_log(entity_type, entity_id);

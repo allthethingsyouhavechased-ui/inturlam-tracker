@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import fs from "node:fs/promises";
 import path from "node:path";
+import { recordActivity } from "@/lib/activity";
 import { getCurrentPerson } from "@/lib/identity";
 import {
   addCommentAttachment,
@@ -12,6 +13,7 @@ import {
   listAttachmentPaths,
   updateCommentBody,
 } from "@/lib/repositories/comments";
+import { getTask } from "@/lib/repositories/tasks";
 
 const MAX_FILES = 6;
 const MAX_FILE_SIZE = 8 * 1024 * 1024; // 8MB
@@ -63,6 +65,15 @@ export async function addCommentAction(formData: FormData) {
       });
     }
   }
+
+  const task = getTask(taskId);
+  await recordActivity({
+    action: "comment.add",
+    entityType: "task",
+    entityId: taskId,
+    brandId: task?.brand_id ?? null,
+    summary: `“${task?.title ?? "Görev"}” görevine yorum yaptı`,
+  });
 
   revalidatePath("/", "layout");
 }

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import ActivityFeed from "@/components/ActivityFeed";
 import AssigneeSelect from "@/components/AssigneeSelect";
 import AutoRefresh from "@/components/AutoRefresh";
 import CommentForm from "@/components/CommentForm";
@@ -9,6 +10,7 @@ import TaskPrioritySelect from "@/components/TaskPrioritySelect";
 import TaskStatusSelect from "@/components/TaskStatusSelect";
 import { updateTaskDetailsAction } from "@/lib/actions/tasks";
 import { getCurrentPerson } from "@/lib/identity";
+import { listActivityForEntity } from "@/lib/repositories/activity";
 import { listCommentsByTask } from "@/lib/repositories/comments";
 import { listActivePeople } from "@/lib/repositories/people";
 import { getTask } from "@/lib/repositories/tasks";
@@ -29,6 +31,7 @@ export default async function TaskPage({
 
   const people = listActivePeople();
   const comments = listCommentsByTask(taskId);
+  const activity = listActivityForEntity("task", taskId);
   const me = await getCurrentPerson();
 
   return (
@@ -132,6 +135,17 @@ export default async function TaskPage({
             .
           </p>
         )}
+      </section>
+
+      <section className="space-y-2">
+        <h2 className="text-sm font-semibold">Hareketler</h2>
+        <div className="rounded-xl border border-black/10 bg-white p-2 dark:border-white/10 dark:bg-zinc-900">
+          <ActivityFeed
+            entries={activity}
+            showLink={false}
+            emptyText="Bu görevde henüz kayıtlı hareket yok."
+          />
+        </div>
       </section>
     </div>
   );

@@ -124,6 +124,20 @@ export interface Comment {
   created_at: string;
 }
 
+export type ActivityEntityType = "task" | "content" | "brand";
+
+export interface ActivityEntry {
+  id: string;
+  actor_id: string | null;
+  actor_name: string | null;
+  action: string;
+  entity_type: ActivityEntityType;
+  entity_id: string | null;
+  brand_id: string | null;
+  summary: string;
+  created_at: string;
+}
+
 export interface TaskCardBadge {
   label: string;
   className: string;
