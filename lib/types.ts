@@ -27,20 +27,6 @@ export type TaskStatus =
 
 export type TaskPriority = "Dusuk" | "Normal" | "Yuksek" | "Acil";
 
-export type CoverTestVerdict = "Gecti" | "Kismen" | "Basarisiz" | "Sinirda";
-
-export type RelationType =
-  | "rakip"
-  | "tedarikci"
-  | "ortaklik_muhtemel"
-  | "kismi_cakisma"
-  | "portfoy_ici"
-  | "marka_ailesi"
-  | "kardes_sube"
-  | "nuansli";
-
-export type RelationRisk = "yuksek" | "dusuk" | "yok";
-
 export interface Brand {
   id: string;
   name: string;
@@ -51,36 +37,16 @@ export interface Brand {
   instagram_handle: string | null;
   follower_count: number | null;
   post_count: number | null;
-  median_reel_views: string | null;
-  cover_test_verdict: CoverTestVerdict | null;
-  cover_test_note: string | null;
   // Marka sayfasında gösterilen kısa bilgilendirme metni.
   key_finding: string | null;
-  first_action: string | null;
   tier: string | null;
   // Takipçi/gönderi sayılarının son güncellendiği gün (YYYY-MM-DD).
   stats_updated_at: string | null;
-}
-
-export interface BrandAudit {
-  brand_id: string;
-  body_markdown: string;
-  source_file: string | null;
-  audit_date: string | null;
-  updated_at: string;
-}
-
-// listBrandRelations() satırı — hangi taraf eşleşirse eşleşsin "karşı marka"nın
-// bilgisini taşıyacak şekilde repo katmanında normalize edilir.
-export interface BrandRelationView {
-  id: string;
-  relation_type: RelationType;
-  risk_level: RelationRisk | null;
-  note: string;
-  related_brand_id: string;
-  related_brand_name: string;
-  related_brand_cluster: Cluster;
-  related_brand_logo_path: string | null;
+  // NOT: `brands` tablosunda ayrıca `median_reel_views`, `cover_test_verdict`,
+  // `cover_test_note` ve `first_action` sütunları da var. Eski marka denetimi
+  // verisi; arayüzden kaldırıldılar ve artık okunmuyorlar, bu yüzden bilerek
+  // tipe dahil edilmediler. `SELECT *` bu alanları yine de getirir — tipe
+  // eklemek isteyen önce neden gösterileceğine karar versin.
 }
 
 export interface Person {

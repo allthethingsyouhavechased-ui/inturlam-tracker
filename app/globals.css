@@ -1,5 +1,4 @@
 @import "tailwindcss";
-@plugin "@tailwindcss/typography";
 
 /* Karanlık mod artık OS tercihine değil, <html>'deki `.dark` class'ına bağlı.
    Class'ı layout'taki no-FOUC script'i (localStorage → yoksa OS tercihi) ve
