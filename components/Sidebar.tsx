@@ -1,11 +1,13 @@
-import { CLUSTERS } from "@/lib/constants";
 import { listBrandsWithOpenCounts } from "@/lib/repositories/brands";
+import { groupBrandsByCluster, listClusters } from "@/lib/repositories/clusters";
 import { listAllContentSummaries } from "@/lib/repositories/content";
 import SidebarBrandGroup from "./SidebarBrandGroup";
+import SidebarClusterGroup from "./SidebarClusterGroup";
 
 export default function Sidebar() {
   const brands = listBrandsWithOpenCounts();
   const contents = listAllContentSummaries();
+  const groups = groupBrandsByCluster(brands, listClusters());
 
   const contentsByBrand = new Map<string, typeof contents>();
   for (const c of contents) {
@@ -16,25 +18,23 @@ export default function Sidebar() {
 
   return (
     <aside className="h-full w-64 overflow-y-auto border-r border-black/10 bg-zinc-50 md:h-auto md:w-60 md:bg-transparent dark:border-white/10 dark:bg-zinc-950 dark:md:bg-transparent">
-      <nav className="sticky top-[57px] max-h-[calc(100vh-57px)] space-y-4 overflow-y-auto p-3">
-        {CLUSTERS.map((cluster) => {
-          const inCluster = brands.filter((b) => b.cluster === cluster.id);
-          if (inCluster.length === 0) return null;
+      <nav className="sticky top-[57px] max-h-[calc(100vh-57px)] space-y-3 overflow-y-auto p-3">
+        {groups.map((group) => {
+          if (group.items.length === 0) return null;
           return (
-            <div key={cluster.id} className="space-y-1">
-              <h3 className="px-2 text-xs font-semibold uppercase tracking-wider text-zinc-400">
-                {cluster.label}
-              </h3>
-              <div className="space-y-0.5">
-                {inCluster.map((brand) => (
-                  <SidebarBrandGroup
-                    key={brand.id}
-                    brand={brand}
-                    contents={contentsByBrand.get(brand.id) ?? []}
-                  />
-                ))}
-              </div>
-            </div>
+            <SidebarClusterGroup
+              key={group.id}
+              label={group.label}
+              brandIds={group.items.map((b) => b.id)}
+            >
+              {group.items.map((brand) => (
+                <SidebarBrandGroup
+                  key={brand.id}
+                  brand={brand}
+                  contents={contentsByBrand.get(brand.id) ?? []}
+                />
+              ))}
+            </SidebarClusterGroup>
           );
         })}
       </nav>

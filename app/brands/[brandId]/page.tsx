@@ -8,7 +8,6 @@ import BrandLogo from "@/components/BrandLogo";
 import EditBrandForm from "@/components/EditBrandForm";
 import NewContentForm from "@/components/NewContentForm";
 import {
-  CLUSTER_LABEL,
   CONTENT_STATUS_BADGE,
   CONTENT_STATUS_LABEL,
   CONTENT_TYPE_LABEL,
@@ -16,6 +15,7 @@ import {
   COVER_TEST_LABEL,
   RELATION_RISK_BADGE,
   RELATION_TYPE_LABEL,
+  UNKNOWN_CLUSTER_LABEL,
 } from "@/lib/constants";
 import { formatDateShort } from "@/lib/date";
 import { getCurrentPerson } from "@/lib/identity";
@@ -25,6 +25,7 @@ import {
   listBrandRelations,
 } from "@/lib/repositories/brands";
 import { listActivityForBrand } from "@/lib/repositories/activity";
+import { clusterLabelMap, listClusters } from "@/lib/repositories/clusters";
 import { listArchivedContentByBrand, listContentByBrand } from "@/lib/repositories/content";
 import { listActivePeople } from "@/lib/repositories/people";
 
@@ -45,6 +46,8 @@ export default async function BrandPage({
   const audit = getBrandAudit(brandId);
   const people = listActivePeople();
   const activity = listActivityForBrand(brandId);
+  const clusters = listClusters();
+  const clusterLabels = clusterLabelMap();
   const me = await getCurrentPerson();
 
   return (
@@ -62,7 +65,7 @@ export default async function BrandPage({
         <div>
           <h1 className="text-xl font-semibold tracking-tight">{brand.name}</h1>
           <div className="flex flex-wrap items-center gap-2 text-xs text-zinc-500">
-            <span>{CLUSTER_LABEL[brand.cluster]}</span>
+            <span>{clusterLabels[brand.cluster] ?? UNKNOWN_CLUSTER_LABEL}</span>
             {brand.instagram_handle && (
               <>
                 <span>·</span>
@@ -86,7 +89,7 @@ export default async function BrandPage({
         </div>
       </div>
 
-      <EditBrandForm brand={brand} />
+      <EditBrandForm brand={brand} clusters={clusters} />
 
       {(brand.follower_count != null ||
         brand.cover_test_verdict ||

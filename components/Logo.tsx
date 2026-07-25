@@ -1,41 +1,17 @@
-// İNTURLAM markası: çember içinde faceted (ikosahedron/geodezik) geometrik amblem.
-// `currentColor` ile çizildiği için bulunduğu yerin metin rengini alır → açık/koyu
-// temaya otomatik uyar. Boyutu className (ör. "h-6 w-6") ile verilir.
+// İNTURLAM amblemi — orijinal logo dosyası (`public/inturlam-logo.jpg`, 150×150,
+// beyaz zemin üzerinde koyu gri çember + ikosahedron). Boyut className ile verilir
+// (ör. "h-6 w-6").
+//
+// Neden `dark:invert`: kaynak dosya beyaz zeminli ve tek renk; koyu temada ters
+// çevirince koyu zemin üzerinde açık amblem oluyor. `rounded-full` de kare beyaz
+// köşeleri kırpıyor — amblem zaten daire, kayıp yok.
 export default function Logo({ className }: { className?: string }) {
   return (
-    <svg
-      viewBox="0 0 100 100"
-      fill="none"
-      stroke="currentColor"
-      strokeLinejoin="round"
-      strokeLinecap="round"
-      className={className}
-      role="img"
-      aria-label="İNTURLAM"
-    >
-      {/* dış çember */}
-      <circle cx="50" cy="50" r="46" strokeWidth="3" />
-
-      {/* dış beşgen (siluet) */}
-      <path
-        strokeWidth="2.4"
-        d="M50 16 L82.3 39.5 L70 77.5 L30 77.5 L17.7 39.5 Z"
-      />
-      {/* iç beşgen */}
-      <path
-        strokeWidth="2.4"
-        d="M58.8 37.9 L64.3 54.6 L50 65 L35.7 54.6 L41.2 37.9 Z"
-      />
-      {/* merkez ışınları (iç pinwheel) */}
-      <path
-        strokeWidth="2.4"
-        d="M50 50 L58.8 37.9 M50 50 L64.3 54.6 M50 50 L50 65 M50 50 L35.7 54.6 M50 50 L41.2 37.9"
-      />
-      {/* dış köşeleri iç beşgene bağlayan üçgen halka */}
-      <path
-        strokeWidth="2.4"
-        d="M50 16 L41.2 37.9 M50 16 L58.8 37.9 M82.3 39.5 L58.8 37.9 M82.3 39.5 L64.3 54.6 M70 77.5 L64.3 54.6 M70 77.5 L50 65 M30 77.5 L50 65 M30 77.5 L35.7 54.6 M17.7 39.5 L35.7 54.6 M17.7 39.5 L41.2 37.9"
-      />
-    </svg>
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src="/inturlam-logo.jpg"
+      alt="İNTURLAM"
+      className={`${className ?? ""} rounded-full object-cover dark:invert`}
+    />
   );
 }

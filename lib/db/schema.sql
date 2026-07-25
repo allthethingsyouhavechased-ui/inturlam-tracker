@@ -1,7 +1,18 @@
+-- Marka kategorileri (küme). Kullanıcı arayüzden yeni kategori ekleyebildiği
+-- için sabit listede değil, tabloda tutuluyor. brands.cluster bu tablonun id'sini
+-- taşır ama bilinçli olarak FK YOK: kategori silinse bile marka kaydı düşmesin,
+-- gruplanamayan markalar "Kategorisiz" başlığı altında görünsün istiyoruz.
+CREATE TABLE IF NOT EXISTS clusters (
+  id         TEXT PRIMARY KEY,
+  label      TEXT NOT NULL,
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
 CREATE TABLE IF NOT EXISTS brands (
   id         TEXT PRIMARY KEY,
   name       TEXT NOT NULL,
-  cluster    TEXT NOT NULL CHECK (cluster IN ('balik-deniz','kahve-gida','b2b-yapi','hamam','emlak','tek')),
+  cluster    TEXT NOT NULL,
   sort_order INTEGER NOT NULL DEFAULT 0,
   archived   INTEGER NOT NULL DEFAULT 0,
   logo_path          TEXT,
@@ -99,6 +110,7 @@ CREATE TABLE IF NOT EXISTS activity_log (
 );
 
 CREATE INDEX IF NOT EXISTS idx_brands_cluster      ON brands(cluster);
+CREATE INDEX IF NOT EXISTS idx_clusters_sort       ON clusters(sort_order);
 CREATE INDEX IF NOT EXISTS idx_content_items_brand    ON content_items(brand_id);
 CREATE INDEX IF NOT EXISTS idx_content_items_assignee ON content_items(assignee_id);
 CREATE INDEX IF NOT EXISTS idx_tasks_content_item  ON tasks(content_item_id);

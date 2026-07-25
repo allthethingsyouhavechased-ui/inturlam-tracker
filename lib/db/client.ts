@@ -26,11 +26,125 @@ function createConnection(): DatabaseSync {
     // kadar zaten no-op ya da başarılı şekilde uygulanmış olur.
   }
   migrateBrandsTableIfNeeded(db);
+  seedClustersIfNeeded(db);
+  migrateBrandsDropClusterCheckIfNeeded(db);
   migrateContentItemsTableIfNeeded(db);
   migrateContentItemsArchivedIfNeeded(db);
   migrateTasksTableIfNeeded(db);
   db.exec(schemaSql);
   return db;
+}
+
+// brands.cluster üzerindeki CHECK kısıtlamasının VAR olup olmadığını anlamak için.
+// sqlite_master tablonun CREATE metnini birebir sakladığı için boşluk/kalıp
+// değişimlerine dayanıklı olsun diye regex.
+const CLUSTER_CHECK_RE = /CHECK\s*\(\s*cluster\s+IN/i;
+
+// Kategoriler `clusters` tablosuna taşınmadan önceki sabit liste. Sadece
+// tohumlama için: mevcut DB'lerde marka→kategori eşleşmesi bozulmasın diye
+// aynı id'lerle bir kez eklenir, sonrası kullanıcının elinde.
+const DEFAULT_CLUSTERS: { id: string; label: string }[] = [
+  { id: "balik-deniz", label: "Balık & Deniz" },
+  { id: "kahve-gida", label: "Kahve & Gıda" },
+  { id: "b2b-yapi", label: "B2B / Yapı" },
+  { id: "hamam", label: "Hamam" },
+  { id: "emlak", label: "Gayrimenkul" },
+  { id: "tek", label: "Diğer" },
+];
+
+// clusters tablosunu kurar, varsayılan 6 kategoriyi ekler ve markalarda geçen
+// ama tabloda karşılığı olmayan kategori id'lerini de (etiketi = id) yakalar —
+// böylece elle düzenlenmiş bir DB'de hiçbir marka gruplanamadan kalmaz.
+// Idempotent: INSERT OR IGNORE, var olan etiketleri ezmez.
+function seedClustersIfNeeded(db: DatabaseSync): void {
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS clusters (
+      id         TEXT PRIMARY KEY,
+      label      TEXT NOT NULL,
+      sort_order INTEGER NOT NULL DEFAULT 0,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    )
+  `);
+
+  const insert = db.prepare(
+    "INSERT OR IGNORE INTO clusters (id, label, sort_order) VALUES (?, ?, ?)",
+  );
+  DEFAULT_CLUSTERS.forEach((c, i) => insert.run(c.id, c.label, (i + 1) * 10));
+
+  const brandsExists = db
+    .prepare(`SELECT 1 FROM sqlite_master WHERE type='table' AND name='brands'`)
+    .get();
+  if (!brandsExists) return;
+
+  const orphans = db
+    .prepare(
+      `SELECT DISTINCT cluster FROM brands
+        WHERE cluster IS NOT NULL AND cluster <> ''
+          AND cluster NOT IN (SELECT id FROM clusters)`,
+    )
+    .all() as { cluster: string }[];
+  const nextOrder =
+    ((db.prepare("SELECT MAX(sort_order) AS m FROM clusters").get() as
+      | { m: number | null }
+      | undefined)?.m ?? 0) + 10;
+  orphans.forEach((o, i) => insert.run(o.cluster, o.cluster, nextOrder + i * 10));
+}
+
+// Kategoriler kullanıcı tarafından eklenebilir hale gelince brands.cluster
+// üzerindeki sabit CHECK kısıtlaması kaldırılmalı. SQLite CHECK'i ALTER ile
+// düşüremediği için tablo yeniden kuruluyor — yine "YENİ tabloyu geçici isimle
+// kur, veriyi kopyala, eskiyi sil, yeniyi doğru isme çevir" deseniyle (bkz.
+// migrateBrandsTableIfNeeded'daki uzun açıklama). Bu sefer TÜM sütunlar
+// kopyalanıyor. Idempotent: CHECK yoksa no-op.
+function migrateBrandsDropClusterCheckIfNeeded(db: DatabaseSync): void {
+  const row = db
+    .prepare(`SELECT sql FROM sqlite_master WHERE type='table' AND name='brands'`)
+    .get() as { sql: string } | undefined;
+  if (!row || !CLUSTER_CHECK_RE.test(row.sql)) return;
+
+  db.exec("PRAGMA foreign_keys = OFF");
+  try {
+    db.exec("BEGIN");
+    db.exec(`
+      CREATE TABLE brands_new_migration (
+        id         TEXT PRIMARY KEY,
+        name       TEXT NOT NULL,
+        cluster    TEXT NOT NULL,
+        sort_order INTEGER NOT NULL DEFAULT 0,
+        archived   INTEGER NOT NULL DEFAULT 0,
+        logo_path          TEXT,
+        instagram_handle   TEXT,
+        follower_count     INTEGER,
+        post_count         INTEGER,
+        median_reel_views  TEXT,
+        cover_test_verdict TEXT CHECK (cover_test_verdict IN ('Gecti','Kismen','Basarisiz','Sinirda')),
+        cover_test_note    TEXT,
+        key_finding        TEXT,
+        first_action       TEXT,
+        tier               TEXT
+      )
+    `);
+    db.exec(`
+      INSERT INTO brands_new_migration
+        (id, name, cluster, sort_order, archived, logo_path, instagram_handle,
+         follower_count, post_count, median_reel_views, cover_test_verdict,
+         cover_test_note, key_finding, first_action, tier)
+      SELECT
+         id, name, cluster, sort_order, archived, logo_path, instagram_handle,
+         follower_count, post_count, median_reel_views, cover_test_verdict,
+         cover_test_note, key_finding, first_action, tier
+      FROM brands
+    `);
+    db.exec(`DROP TABLE brands`);
+    db.exec(`ALTER TABLE brands_new_migration RENAME TO brands`);
+    db.exec(`CREATE INDEX IF NOT EXISTS idx_brands_cluster ON brands(cluster)`);
+    db.exec("COMMIT");
+  } catch (e) {
+    db.exec("ROLLBACK");
+    throw e;
+  } finally {
+    db.exec("PRAGMA foreign_keys = ON");
+  }
 }
 
 // brands tablosu 19-marka/6-küme genişlemesinden önce kurulmuş olabilir — CHECK
@@ -46,7 +160,10 @@ function migrateBrandsTableIfNeeded(db: DatabaseSync): void {
   const row = db
     .prepare(`SELECT sql FROM sqlite_master WHERE type='table' AND name='brands'`)
     .get() as { sql: string } | undefined;
-  if (!row || row.sql.includes("'emlak'")) return;
+  // CHECK zaten tamamen kaldırılmışsa (dinamik kategorilere geçilmiş DB) bu
+  // migration'ın çalışmaması ŞART — yalnızca 5 sütun kopyaladığı için geri
+  // kalan marka verisini silerdi.
+  if (!row || !CLUSTER_CHECK_RE.test(row.sql) || row.sql.includes("'emlak'")) return;
 
   db.exec("PRAGMA foreign_keys = OFF");
   try {

@@ -1,12 +1,13 @@
 import Link from "next/link";
 import BrandLogo from "@/components/BrandLogo";
 import {
-  CLUSTER_LABEL,
   TASK_PRIORITY_BADGE,
   TASK_PRIORITY_LABEL,
   TASK_STATUS_BADGE,
   TASK_STATUS_LABEL,
+  UNKNOWN_CLUSTER_LABEL,
 } from "@/lib/constants";
+import { clusterLabelMap } from "@/lib/repositories/clusters";
 import { searchAll } from "@/lib/repositories/search";
 
 export const dynamic = "force-dynamic";
@@ -20,6 +21,7 @@ export default async function SearchPage({
   const query = (q ?? "").trim();
   const results = query ? searchAll(query) : { brands: [], content: [], tasks: [] };
   const totalCount = results.brands.length + results.content.length + results.tasks.length;
+  const clusterLabels = clusterLabelMap();
 
   return (
     <div className="space-y-6">
@@ -53,7 +55,7 @@ export default async function SearchPage({
                 <span>
                   <span className="font-medium">{brand.name}</span>
                   <span className="ml-2 text-xs text-zinc-500">
-                    {CLUSTER_LABEL[brand.cluster]}
+                    {clusterLabels[brand.cluster] ?? UNKNOWN_CLUSTER_LABEL}
                   </span>
                 </span>
               </Link>

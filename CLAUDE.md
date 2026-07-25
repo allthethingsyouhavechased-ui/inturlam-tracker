@@ -3,7 +3,8 @@
 # İNTURLAM İş Takip — proje notları
 
 İNTURLAM'ın 19 markası için içerik & görev takip aracı + marka araştırma verisi.
-Marka → İçerik → Görev (+yorum). Her markanın ayrıca Instagram araştırma verisi
+Marka → İçerik → Görev (+yorum). Markalar kullanıcı tarafından yönetilen
+kategorilere (`clusters` tablosu) ayrılır. Her markanın ayrıca Instagram araştırma verisi
 (takipçi, performans, bulgular, tam denetim metni, diğer markalarla ilişkisi) var.
 İç araç, LAN'da çalışır, kimlik doğrulama yok.
 
@@ -53,6 +54,18 @@ Marka → İçerik → Görev (+yorum). Her markanın ayrıca Instagram araştı
   (`migrateBrandsTableIfNeeded`, `migrateContentItemsTableIfNeeded`). Dev sunucusu (`npm run dev`)
   aynı `data/inturlam.db` dosyasını açık tutarken seed'i çalıştırmak kilit çakışmasına yol
   açabilir — önce dev sunucusunu durdur, seed'i çalıştır, sonra tekrar başlat.
+- **Kategoriler artık sabit değil:** `lib/constants.ts`'teki `CLUSTERS`/`CLUSTER_LABEL` kaldırıldı.
+  Kategoriler `clusters` tablosunda; sunucu tarafında `listClusters()` / `clusterLabelMap()` /
+  `groupBrandsByCluster()` (`lib/repositories/clusters.ts`) ile okunur, client component'lere prop
+  olarak taşınır. `brands.cluster` ile `clusters.id` arasında **bilinçli olarak FK yok** — kategori
+  silinince marka kaydı düşmesin diye. Bunun bedeli: "boş mu" kontrolü action'da elle yapılıyor
+  (`deleteClusterAction`) ve gruplama fonksiyonu sahipsiz markaları "Kategorisiz" başlığında
+  toplamak zorunda. Yeni bir yerde kategori etiketi gösterirken `?? UNKNOWN_CLUSTER_LABEL` yaz.
+- **`migrateBrandsTableIfNeeded` artık iki taraflı korunmalı:** `brands.cluster` üzerindeki CHECK
+  kısıtlaması `migrateBrandsDropClusterCheckIfNeeded` ile tamamen kaldırıldığı için, eski
+  migration'ın guard'ı sadece `'emlak'` içeriyor mu diye bakamaz — CHECK hiç yoksa da erken dönmesi
+  gerekir (`CLUSTER_CHECK_RE`), yoksa yalnızca 5 sütun kopyaladığı için geri kalan marka verisini
+  siler. Aynı desende yeni bir brands migration'ı yazarsan bu guard zincirini gözden geçir.
 - **`schema.sql`'in ilk uygulaması eski DB'de patlayabilir:** Yeni bir sütuna referans veren yeni
   bir `CREATE INDEX IF NOT EXISTS` eklersen (ör. `idx_content_items_assignee`), bu satır migration
   henüz çalışmadan, `schema.sql`'in İLK geçişinde (henüz eski yapıdaki tabloya karşı) çalışır ve

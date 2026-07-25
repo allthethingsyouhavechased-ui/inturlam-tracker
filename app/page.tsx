@@ -55,7 +55,7 @@ export default function HomePage() {
   return (
     <div className="space-y-8">
       <div className="flex items-center gap-3">
-        <Logo className="h-11 w-11 shrink-0 text-zinc-800 dark:text-zinc-100" />
+        <Logo className="h-11 w-11 shrink-0" />
         <div>
           <h1 className="text-xl font-semibold tracking-tight">İNTURLAM İş Takip</h1>
           <p className="mt-1 text-sm text-zinc-500">

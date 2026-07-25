@@ -1,10 +1,14 @@
-export type Cluster =
-  | "balik-deniz"
-  | "kahve-gida"
-  | "b2b-yapi"
-  | "hamam"
-  | "emlak"
-  | "tek";
+// Kategoriler artık `clusters` tablosunda tutuluyor (kullanıcı arayüzden yeni
+// kategori ekleyebiliyor), bu yüzden sabit union değil serbest id.
+export type Cluster = string;
+
+export interface ClusterRow {
+  id: string;
+  label: string;
+  sort_order: number;
+  created_at: string;
+}
+
 export type ContentType =
   | "Reel"
   | "Foto"
@@ -124,7 +128,7 @@ export interface Comment {
   created_at: string;
 }
 
-export type ActivityEntityType = "task" | "content" | "brand";
+export type ActivityEntityType = "task" | "content" | "brand" | "cluster";
 
 export interface ActivityEntry {
   id: string;

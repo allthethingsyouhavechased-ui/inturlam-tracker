@@ -2,14 +2,15 @@
 
 import { revalidatePath } from "next/cache";
 import { recordActivity } from "@/lib/activity";
-import { CLUSTERS, COVER_TEST_VERDICTS } from "@/lib/constants";
+import { resolveClusterFromForm } from "@/lib/clusters";
+import { COVER_TEST_VERDICTS } from "@/lib/constants";
 import {
   createBrand,
   getBrand,
   setBrandArchived,
   updateBrand,
 } from "@/lib/repositories/brands";
-import type { Cluster, CoverTestVerdict } from "@/lib/types";
+import type { CoverTestVerdict } from "@/lib/types";
 
 function cleanValue(value: FormDataEntryValue | null): string | null {
   const s = String(value ?? "").trim();
@@ -27,10 +28,8 @@ function cleanInt(value: FormDataEntryValue | null): number | null {
 
 export async function createBrandAction(formData: FormData) {
   const name = String(formData.get("name") ?? "").trim();
-  const cluster = String(formData.get("cluster") ?? "") as Cluster;
-
   if (!name) throw new Error("Marka adı zorunlu.");
-  if (!CLUSTERS.some((c) => c.id === cluster)) throw new Error("Geçersiz kategori.");
+  const cluster = await resolveClusterFromForm(formData);
 
   const id = createBrand({
     name,
@@ -52,11 +51,10 @@ export async function createBrandAction(formData: FormData) {
 export async function updateBrandAction(formData: FormData) {
   const id = String(formData.get("brandId") ?? "").trim();
   const name = String(formData.get("name") ?? "").trim();
-  const cluster = String(formData.get("cluster") ?? "") as Cluster;
 
   if (!id) throw new Error("Marka bulunamadı.");
   if (!name) throw new Error("Marka adı zorunlu.");
-  if (!CLUSTERS.some((c) => c.id === cluster)) throw new Error("Geçersiz kategori.");
+  const cluster = await resolveClusterFromForm(formData);
 
   const verdictRaw = cleanValue(formData.get("coverTestVerdict"));
   const coverTestVerdict =

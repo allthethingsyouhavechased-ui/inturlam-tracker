@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import { updateBrandAction } from "@/lib/actions/brands";
-import { CLUSTERS, COVER_TEST_LABEL, COVER_TEST_VERDICTS } from "@/lib/constants";
+import { COVER_TEST_LABEL, COVER_TEST_VERDICTS } from "@/lib/constants";
 import { getActionErrorMessage } from "@/lib/errorMessage";
 import type { Brand } from "@/lib/types";
+import ClusterSelect from "./ClusterSelect";
 import SubmitButton from "./SubmitButton";
 
 const inputClass =
@@ -12,7 +13,13 @@ const inputClass =
 
 const labelClass = "grid gap-1 text-xs font-medium text-zinc-500";
 
-export default function EditBrandForm({ brand }: { brand: Brand }) {
+export default function EditBrandForm({
+  brand,
+  clusters,
+}: {
+  brand: Brand;
+  clusters: { id: string; label: string }[];
+}) {
   const [editing, setEditing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -51,13 +58,17 @@ export default function EditBrandForm({ brand }: { brand: Brand }) {
         </label>
         <label className={labelClass}>
           Kategori
-          <select name="cluster" defaultValue={brand.cluster} className={inputClass}>
-            {CLUSTERS.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.label}
-              </option>
-            ))}
-          </select>
+          <ClusterSelect
+            clusters={clusters}
+            defaultValue={
+              // Markanın kategorisi silinmişse select'te karşılığı yok — o
+              // durumda ilk kategoriye düşmesin, seçim boş kalmasın diye
+              // listeye geçici bir seçenek eklemek yerine ilk sıradakine
+              // bırakıyoruz ve kullanıcı bilinçli seçim yapıyor.
+              clusters.some((c) => c.id === brand.cluster) ? brand.cluster : undefined
+            }
+            className={inputClass}
+          />
         </label>
         <label className={labelClass}>
           Instagram

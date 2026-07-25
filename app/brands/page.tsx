@@ -1,15 +1,26 @@
 import BrandLogo from "@/components/BrandLogo";
 import ArchiveBrandButton from "@/components/ArchiveBrandButton";
+import ClusterManager from "@/components/ClusterManager";
 import NewBrandForm from "@/components/NewBrandForm";
 import Link from "next/link";
-import { CLUSTERS } from "@/lib/constants";
 import { listArchivedBrands, listBrandsWithOpenCounts } from "@/lib/repositories/brands";
+import { groupBrandsByCluster, listClusters } from "@/lib/repositories/clusters";
 
 export const dynamic = "force-dynamic";
 
 export default function BrandsPage() {
   const brands = listBrandsWithOpenCounts();
   const archived = listArchivedBrands();
+  const clusters = listClusters();
+  const groups = groupBrandsByCluster(brands, clusters);
+
+  // Kategori silinebilirliği arşivdekiler dahil tüm markalara bakar (silme
+  // action'ı da öyle) — arşivdeki bir markanın kategorisi yanlışlıkla
+  // silinebilir görünmesin diye.
+  const brandCountByCluster = new Map<string, number>();
+  for (const b of [...brands, ...archived]) {
+    brandCountByCluster.set(b.cluster, (brandCountByCluster.get(b.cluster) ?? 0) + 1);
+  }
 
   return (
     <div className="space-y-8">
@@ -17,16 +28,24 @@ export default function BrandsPage() {
 
       <section className="rounded-xl border border-black/10 bg-white p-4 dark:border-white/10 dark:bg-zinc-900">
         <h2 className="mb-3 text-sm font-semibold">Yeni marka ekle</h2>
-        <NewBrandForm />
+        <NewBrandForm clusters={clusters} />
       </section>
 
-      {CLUSTERS.map((cluster) => {
-        const inCluster = brands.filter((b) => b.cluster === cluster.id);
+      <ClusterManager
+        clusters={clusters.map((c) => ({
+          id: c.id,
+          label: c.label,
+          brandCount: brandCountByCluster.get(c.id) ?? 0,
+        }))}
+      />
+
+      {groups.map((group) => {
+        const inCluster = group.items;
         if (inCluster.length === 0) return null;
         return (
-          <section key={cluster.id} className="space-y-3">
+          <section key={group.id} className="space-y-3">
             <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
-              {cluster.label}
+              {group.label}
             </h2>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {inCluster.map((brand) => (

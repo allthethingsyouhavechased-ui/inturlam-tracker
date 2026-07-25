@@ -2,16 +2,24 @@
 
 import { useRef, useState } from "react";
 import { createBrandAction } from "@/lib/actions/brands";
-import { CLUSTERS } from "@/lib/constants";
 import { getActionErrorMessage } from "@/lib/errorMessage";
+import ClusterSelect from "./ClusterSelect";
 import SubmitButton from "./SubmitButton";
 
 const inputClass =
   "w-full rounded-md border border-black/10 bg-white px-3 py-2 text-sm outline-none focus:border-indigo-500 dark:border-white/15 dark:bg-zinc-900";
 
-export default function NewBrandForm() {
+export default function NewBrandForm({
+  clusters,
+}: {
+  clusters: { id: string; label: string }[];
+}) {
   const ref = useRef<HTMLFormElement>(null);
   const [error, setError] = useState<string | null>(null);
+  // form.reset() kontrollü <select>'i eski haline döndürmez; ClusterSelect'i
+  // yeni bir key ile remount ederek iç state'ini de sıfırlıyoruz.
+  const [resetKey, setResetKey] = useState(0);
+
   return (
     <form
       ref={ref}
@@ -20,6 +28,7 @@ export default function NewBrandForm() {
         try {
           await createBrandAction(fd);
           ref.current?.reset();
+          setResetKey((k) => k + 1);
         } catch (e) {
           setError(getActionErrorMessage(e));
         }
@@ -37,13 +46,7 @@ export default function NewBrandForm() {
       </label>
       <label className="grid gap-1 text-xs font-medium text-zinc-500">
         Kategori
-        <select name="cluster" className={inputClass} defaultValue={CLUSTERS[0].id}>
-          {CLUSTERS.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.label}
-            </option>
-          ))}
-        </select>
+        <ClusterSelect key={resetKey} clusters={clusters} className={inputClass} />
       </label>
       <label className="grid gap-1 text-xs font-medium text-zinc-500">
         Instagram (opsiyonel)

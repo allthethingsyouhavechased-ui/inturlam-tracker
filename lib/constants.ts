@@ -1,5 +1,4 @@
 import type {
-  Cluster,
   ContentStatus,
   ContentType,
   CoverTestVerdict,
@@ -9,18 +8,16 @@ import type {
   TaskStatus,
 } from "./types";
 
-export const CLUSTERS: { id: Cluster; label: string }[] = [
-  { id: "balik-deniz", label: "Balık & Deniz" },
-  { id: "kahve-gida", label: "Kahve & Gıda" },
-  { id: "b2b-yapi", label: "B2B / Yapı" },
-  { id: "hamam", label: "Hamam" },
-  { id: "emlak", label: "Gayrimenkul" },
-  { id: "tek", label: "Diğer" },
-];
+// Kategoriler (küme) artık sabit değil — `clusters` tablosundan geliyor.
+// Sunucu tarafında `listClusters()` / `clusterLabelMap()`
+// (lib/repositories/clusters.ts), client component'lerde prop olarak taşınıyor.
+// Tabloda karşılığı olmayan bir kategori id'si için başlık:
+export const UNKNOWN_CLUSTER_LABEL = "Kategorisiz";
 
-export const CLUSTER_LABEL: Record<Cluster, string> = Object.fromEntries(
-  CLUSTERS.map((c) => [c.id, c.label]),
-) as Record<Cluster, string>;
+// Marka formlarındaki kategori select'inde "+ Yeni kategori" seçeneğinin
+// value'su. Gerçek bir kategori id'siyle çakışmasın diye slug'da üretilemeyecek
+// karakterler içeriyor (slugifyCluster yalnızca a-z0-9- üretir).
+export const NEW_CLUSTER_VALUE = "__new__";
 
 export const COVER_TEST_VERDICTS: CoverTestVerdict[] = [
   "Gecti",
