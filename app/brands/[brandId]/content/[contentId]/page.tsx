@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import ApplyTemplateForm from "@/components/ApplyTemplateForm";
 import ArchiveContentButton from "@/components/ArchiveContentButton";
 import AutoRefresh from "@/components/AutoRefresh";
 import ContentStatusSelect from "@/components/ContentStatusSelect";
@@ -14,6 +15,7 @@ import { getBrand } from "@/lib/repositories/brands";
 import { getContentItem } from "@/lib/repositories/content";
 import { listActivePeople } from "@/lib/repositories/people";
 import { listTasksByContent } from "@/lib/repositories/tasks";
+import { listTemplates } from "@/lib/repositories/templates";
 
 export const dynamic = "force-dynamic";
 
@@ -30,6 +32,10 @@ export default async function ContentPage({
   const tasks = listTasksByContent(contentId);
   const people = listActivePeople();
   const me = await getCurrentPerson();
+  // Bu içerik türüne uyan şablonlar + her türe uyanlar.
+  const templates = listTemplates().filter(
+    (t) => t.content_type === null || t.content_type === content.type,
+  );
 
   return (
     <div className="space-y-6">
@@ -73,13 +79,20 @@ export default async function ContentPage({
         <DeleteContentButton contentId={content.id} />
       </div>
 
-      <section className="rounded-xl border border-black/10 bg-white p-4 dark:border-white/10 dark:bg-zinc-900">
-        <h2 className="mb-3 text-sm font-semibold">Yeni görev</h2>
+      <section className="space-y-3 rounded-xl border border-black/10 bg-white p-4 dark:border-white/10 dark:bg-zinc-900">
+        <h2 className="text-sm font-semibold">Yeni görev</h2>
         <NewTaskForm
           contentItemId={content.id}
           people={people}
           defaultAssigneeId={me?.id ?? null}
         />
+        <div className="border-t border-black/10 pt-3 dark:border-white/10">
+          <ApplyTemplateForm
+            contentItemId={content.id}
+            templates={templates}
+            defaultAssigneeId={me?.id ?? null}
+          />
+        </div>
       </section>
 
       <section>

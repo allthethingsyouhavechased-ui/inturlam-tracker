@@ -28,6 +28,7 @@ import { listActivityForBrand } from "@/lib/repositories/activity";
 import { clusterLabelMap, listClusters } from "@/lib/repositories/clusters";
 import { listArchivedContentByBrand, listContentByBrand } from "@/lib/repositories/content";
 import { listActivePeople } from "@/lib/repositories/people";
+import { listTemplates } from "@/lib/repositories/templates";
 
 export const dynamic = "force-dynamic";
 
@@ -48,6 +49,7 @@ export default async function BrandPage({
   const activity = listActivityForBrand(brandId);
   const clusters = listClusters();
   const clusterLabels = clusterLabelMap();
+  const templates = listTemplates();
   const me = await getCurrentPerson();
 
   return (
@@ -182,6 +184,7 @@ export default async function BrandPage({
         <NewContentForm
           brandId={brand.id}
           people={people}
+          templates={templates}
           defaultAssigneeId={me?.id ?? null}
         />
       </section>

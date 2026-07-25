@@ -149,6 +149,32 @@ npm run start     # 0.0.0.0:3000 — ağdaki diğer bilgisayarlar erişebilir
 Bu ilk sürüm; yarın birlikte denerken neyin eksik/yanlış geldiğini not al,
 sonraki oturumda üzerine ekleriz.
 
+## Görev şablonları ve tekrar eden görevler
+
+**Şablonlar** (`/templates` — nav'daki "Şablonlar"): her içerikte tekrarlayan iş
+akışını bir kere tanımlarsın, her yeni içerikte elle 5 görev yazmazsın.
+
+- Her şablon satırı bir görev: başlık + öncelik + **gün kayması** + (isteğe bağlı)
+  sabit atanan.
+- **Gün kayması**, içeriğin *hedef tarihine* göre hesaplanır: `-6` → teslimden
+  6 gün önce, `0` → teslim günü, `+7` → teslimden bir hafta sonra. İçeriğin hedef
+  tarihi yoksa görevler tarihsiz açılır.
+- Bir şablonu tek bir içerik türüne bağlayabilirsin (ör. "Reel akışı" → Reel);
+  yeni içerik formundaki şablon listesi seçilen türe göre filtrelenir.
+- Kurulumda üç şablon hazır gelir: **Reel akışı**, **Foto çekimi**, **Kampanya**.
+  Silersen geri gelmez.
+- Uygulama iki yerden: marka sayfasındaki "yeni içerik" formunun **Şablon**
+  alanından (içerik açılır açılmaz görevler de açılır), ya da mevcut bir içeriğin
+  sayfasındaki **"Şablondan görev ekle…"** kutusundan.
+
+**Tekrar eden görevler:** görev detayında **Tekrar** seçimi (Yok / Haftalık /
+2 haftada bir / Aylık). Görevi *Yayınlandı* yaptığında bir sonraki örneği otomatik
+açılır — aynı başlık, atanan, öncelik ve not; durumu *Beklemede*.
+
+Yeni teslim tarihi **eski görevin teslim tarihine** göre kayar, bugüne göre değil:
+20 Temmuz teslimli haftalık bir işi 1 Ağustos'ta kapatırsan yenisi 27 Temmuz olur,
+takvim kaymaz. (Teslim tarihi hiç yoksa bugünden itibaren hesaplanır.)
+
 ## Yedekleme
 
 Tüm veri tek dosyada: `data/inturlam.db`, dosya ekleri `public/uploads/` altında.

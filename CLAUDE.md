@@ -31,6 +31,20 @@ kategorilere (`clusters` tablosu) ayrılır. Her markanın ayrıca Instagram ara
   `db/restore.mts` (`npm run db:restore`). Yedek `VACUUM INTO` ile alınır — sunucu DB'yi açık
   tutarken bile tutarlı; dosyayı elle kopyalamak `.db-wal`'daki son yazmaları kaçırır. İkisi de
   `getDb()` KULLANMAZ, kendi salt-okunur bağlantısını açar (yedek alırken migration çalışmasın).
+- Şablonlar: `task_templates` + `task_template_items` (`lib/repositories/templates.ts`).
+  `applyTemplateToContent()` tek transaction'da her satır için görev açar; tarih `shiftDate()` ile
+  içeriğin `target_date`'ine `due_offset_days` eklenerek bulunur (UTC, ay sınırı güvenli).
+  Varsayılan 3 şablon `seedTaskTemplatesIfNeeded()` ile **yalnızca tablo boşken** yazılır —
+  `DEFAULT_CLUSTERS`'ın `INSERT OR IGNORE` deseninden bilinçli olarak farklı: kullanıcı bir şablonu
+  silince her sunucu açılışında geri gelmesin diye.
+- Tekrar eden görev: `tasks.repeat_days`. `setTaskStatusAction` içinde durum `Yayinlandi` olunca
+  `createNextOccurrence()` çağrılır; yeni görev `Beklemede` başladığı için dal tekrar tetiklenmez
+  (sonsuz döngü yok). Yeni tarih **eski görevin `due_date`'ine** göre kayar, bugüne göre değil —
+  geç kapatılan haftalık iş takvimi kaydırmasın.
+- Migration'ı sunucuyu kapatmadan uygulama: `npm run db:migrate` (`db/migrate.mts`) sadece `getDb()`
+  çağırır. Dev sunucusu DB'yi açık tutarken yeni tablo/sütun eklendiğinde onun eski bağlantısı
+  tabloyu göremez ("no such table"); bu komut şemayı ayrı bir bağlantıdan uygular, SQLite değişikliği
+  diğer bağlantılara yansıtır — sunucuyu yeniden başlatmaya gerek kalmaz.
 - Demo veri: `db/seed-demo.mts` (`npm run db:seed:demo`) — uygulamayı elle gezerek test etmek için
   14 içerik + 41 görev + yorum + aktivite yazar. Tüm id'ler `demo-` ön ekli; script her çalıştığında
   önce bu kayıtları silip yeniden yazar (idempotent), `-- --clean` ile sadece siler. Gerçek veriye

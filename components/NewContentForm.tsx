@@ -2,9 +2,10 @@
 
 import { useRef, useState } from "react";
 import { createContentItemAction } from "@/lib/actions/content";
+import { applyTemplateAction } from "@/lib/actions/templates";
 import { CONTENT_TYPES, CONTENT_TYPE_LABEL } from "@/lib/constants";
 import { getActionErrorMessage } from "@/lib/errorMessage";
-import type { Person } from "@/lib/types";
+import type { ContentType, Person, TaskTemplate } from "@/lib/types";
 import SubmitButton from "./SubmitButton";
 
 const inputClass =
@@ -13,27 +14,46 @@ const inputClass =
 export default function NewContentForm({
   brandId,
   people,
+  templates,
   defaultAssigneeId,
 }: {
   brandId: string;
   people: Person[];
+  templates: TaskTemplate[];
   defaultAssigneeId?: string | null;
 }) {
   const ref = useRef<HTMLFormElement>(null);
   const [error, setError] = useState<string | null>(null);
+  // Şablon listesi seçilen türe göre daralsın: Reel açarken "Kampanya akışı"
+  // önerilmesin. Türü olmayan şablonlar (content_type NULL) hep görünür.
+  const [type, setType] = useState<ContentType>("Reel");
+  const visibleTemplates = templates.filter(
+    (t) => t.content_type === null || t.content_type === type,
+  );
+
   return (
     <form
       ref={ref}
       action={async (fd) => {
         setError(null);
         try {
-          await createContentItemAction(fd);
+          const contentId = await createContentItemAction(fd);
+          // Şablon ayrı bir adım değil: içerik oluşur oluşmaz görevleri de açılır.
+          const templateId = String(fd.get("templateId") ?? "");
+          if (templateId) {
+            await applyTemplateAction(
+              templateId,
+              contentId,
+              String(fd.get("assigneeId") ?? "") || null,
+            );
+          }
           ref.current?.reset();
+          setType("Reel");
         } catch (e) {
           setError(getActionErrorMessage(e));
         }
       }}
-      className="grid gap-3 sm:grid-cols-[1fr_auto_auto_auto_auto] sm:items-end"
+      className="grid gap-3 sm:grid-cols-[1fr_auto_auto_auto_auto_auto] sm:items-end"
     >
       <input type="hidden" name="brandId" value={brandId} />
       <label className="grid gap-1 text-xs font-medium text-zinc-500">
@@ -47,10 +67,26 @@ export default function NewContentForm({
       </label>
       <label className="grid gap-1 text-xs font-medium text-zinc-500">
         Tür
-        <select name="type" className={inputClass} defaultValue="Reel">
+        <select
+          name="type"
+          className={inputClass}
+          value={type}
+          onChange={(e) => setType(e.target.value as ContentType)}
+        >
           {CONTENT_TYPES.map((t) => (
             <option key={t} value={t}>
               {CONTENT_TYPE_LABEL[t]}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label className="grid gap-1 text-xs font-medium text-zinc-500">
+        Şablon
+        <select name="templateId" className={inputClass} defaultValue="">
+          <option value="">— görev açma —</option>
+          {visibleTemplates.map((t) => (
+            <option key={t.id} value={t.id}>
+              {t.name}
             </option>
           ))}
         </select>
@@ -75,7 +111,7 @@ export default function NewContentForm({
         <input type="date" name="targetDate" className={inputClass} />
       </label>
       <SubmitButton>Ekle</SubmitButton>
-      {error && <p className="text-xs text-rose-600 sm:col-span-5">{error}</p>}
+      {error && <p className="text-xs text-rose-600 sm:col-span-6">{error}</p>}
     </form>
   );
 }

@@ -107,6 +107,38 @@ export function createTask(input: {
   return id;
 }
 
+export function updateTaskRepeat(id: string, repeatDays: number | null): void {
+  getDb()
+    .prepare("UPDATE tasks SET repeat_days = ?, updated_at = datetime('now') WHERE id = ?")
+    .run(repeatDays, id);
+}
+
+// Tekrar eden görevin bir sonraki örneğini açar. Tarih, ESKİ görevin teslim
+// tarihine göre kayar (bugüne göre değil) — geç tamamlanan haftalık iş takvimi
+// kaydırmasın. Tarihi yoksa bugünden itibaren hesaplanır.
+export function createNextOccurrence(task: Task, today: string): string {
+  const base = task.due_date ?? today;
+  const d = new Date(`${base}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + (task.repeat_days ?? 0));
+  const id = crypto.randomUUID();
+  getDb()
+    .prepare(
+      `INSERT INTO tasks (id, content_item_id, title, priority, assignee_id, due_date, notes, repeat_days)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+    )
+    .run(
+      id,
+      task.content_item_id,
+      task.title,
+      task.priority,
+      task.assignee_id,
+      d.toISOString().slice(0, 10),
+      task.notes,
+      task.repeat_days,
+    );
+  return id;
+}
+
 export function updateTaskStatus(id: string, status: TaskStatus): void {
   getDb()
     .prepare(

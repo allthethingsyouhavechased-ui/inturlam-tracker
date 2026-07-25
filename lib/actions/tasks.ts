@@ -4,23 +4,27 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { recordActivity } from "@/lib/activity";
 import {
+  REPEAT_OPTIONS,
   TASK_PRIORITIES,
   TASK_PRIORITY_LABEL,
   TASK_STATUS_LABEL,
   TASK_STATUSES,
 } from "@/lib/constants";
+import { todayISO } from "@/lib/date";
 import { getPerson } from "@/lib/repositories/people";
 import {
   bulkDeleteTasks,
   bulkUpdateTaskAssignee,
   bulkUpdateTaskPriority,
   bulkUpdateTaskStatus,
+  createNextOccurrence,
   createTask,
   deleteTask,
   getTask,
   updateTaskAssignee,
   updateTaskDetails,
   updateTaskPriority,
+  updateTaskRepeat,
   updateTaskStatus,
 } from "@/lib/repositories/tasks";
 import type { TaskPriority, TaskStatus } from "@/lib/types";
@@ -70,6 +74,39 @@ export async function setTaskStatusAction(taskId: string, status: TaskStatus) {
     entityId: taskId,
     brandId: task?.brand_id ?? null,
     summary: `“${task?.title ?? "Görev"}” görevini ${TASK_STATUS_LABEL[status]} durumuna aldı`,
+  });
+
+  // Tekrar eden görev tamamlandıysa bir sonraki örneğini aç. Yeni görev
+  // "Beklemede" başladığı için bu dal tekrar tetiklenmez (sonsuz döngü yok).
+  if (status === "Yayinlandi" && task && (task.repeat_days ?? 0) > 0) {
+    createNextOccurrence(task, todayISO());
+    await recordActivity({
+      action: "task.repeat",
+      entityType: "task",
+      entityId: taskId,
+      brandId: task.brand_id,
+      summary: `“${task.title}” tekrar eden görevinin bir sonraki örneği açıldı`,
+    });
+  }
+
+  revalidatePath("/", "layout");
+}
+
+export async function setTaskRepeatAction(taskId: string, repeatDays: number) {
+  if (!REPEAT_OPTIONS.some((o) => o.days === repeatDays)) {
+    throw new Error("Geçersiz tekrar aralığı.");
+  }
+  const task = getTask(taskId);
+  if (!task) throw new Error("Görev bulunamadı.");
+
+  updateTaskRepeat(taskId, repeatDays > 0 ? repeatDays : null);
+  const label = REPEAT_OPTIONS.find((o) => o.days === repeatDays)!.label;
+  await recordActivity({
+    action: "task.repeat.set",
+    entityType: "task",
+    entityId: taskId,
+    brandId: task.brand_id,
+    summary: `“${task.title}” görevinin tekrarını “${label}” yaptı`,
   });
   revalidatePath("/", "layout");
 }

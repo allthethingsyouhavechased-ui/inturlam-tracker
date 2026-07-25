@@ -9,6 +9,7 @@ const LINKS = [
   { href: "/reports", label: "Raporlar" },
   { href: "/activity", label: "Aktivite" },
   { href: "/team", label: "Ekip" },
+  { href: "/templates", label: "Şablonlar" },
   { href: "/panom", label: "Panom" },
 ];
 

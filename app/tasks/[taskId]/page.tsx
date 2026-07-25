@@ -7,6 +7,7 @@ import CommentForm from "@/components/CommentForm";
 import CommentItem from "@/components/CommentItem";
 import DeleteTaskButton from "@/components/DeleteTaskButton";
 import TaskPrioritySelect from "@/components/TaskPrioritySelect";
+import TaskRepeatSelect from "@/components/TaskRepeatSelect";
 import TaskStatusSelect from "@/components/TaskStatusSelect";
 import { updateTaskDetailsAction } from "@/lib/actions/tasks";
 import { getCurrentPerson } from "@/lib/identity";
@@ -76,7 +77,15 @@ export default async function TaskPage({
           Öncelik
           <TaskPrioritySelect taskId={task.id} priority={task.priority} />
         </label>
+        <TaskRepeatSelect taskId={task.id} repeatDays={task.repeat_days} />
       </div>
+
+      {(task.repeat_days ?? 0) > 0 && (
+        <p className="text-xs text-zinc-500">
+          Bu görev tekrar ediyor: “Yayınlandı” yapıldığında bir sonraki örneği
+          otomatik açılır (teslim tarihi {task.repeat_days} gün ileri kayar).
+        </p>
+      )}
 
       <form
         action={updateTaskDetailsAction}
