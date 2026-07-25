@@ -27,6 +27,7 @@ function createConnection(): DatabaseSync {
   }
   migrateBrandsTableIfNeeded(db);
   migrateContentItemsTableIfNeeded(db);
+  migrateContentItemsArchivedIfNeeded(db);
   migrateTasksTableIfNeeded(db);
   db.exec(schemaSql);
   return db;
@@ -129,6 +130,18 @@ function migrateContentItemsTableIfNeeded(db: DatabaseSync): void {
   } finally {
     db.exec("PRAGMA foreign_keys = ON");
   }
+}
+
+// content_items tablosu, marka arşivleme desenine paralel bir "arşivle" alanından
+// önce kurulmuş olabilir. Bu sütunun CHECK kısıtlaması yok, bu yüzden (yukarıdaki
+// tabloları yeniden kuran migration'ların aksine) doğrudan ALTER TABLE ADD COLUMN
+// yeterli — SQLite bunu CHECK'siz sütunlarda destekliyor.
+function migrateContentItemsArchivedIfNeeded(db: DatabaseSync): void {
+  const row = db
+    .prepare(`SELECT sql FROM sqlite_master WHERE type='table' AND name='content_items'`)
+    .get() as { sql: string } | undefined;
+  if (!row || row.sql.includes("archived")) return;
+  db.exec(`ALTER TABLE content_items ADD COLUMN archived INTEGER NOT NULL DEFAULT 0`);
 }
 
 // tasks tablosu priority sütunundan önce kurulmuş olabilir — aynı "yeni tabloyu

@@ -7,6 +7,7 @@ import {
   createContentItem,
   deleteContentItem,
   getContentItem,
+  setContentArchived,
   updateContentItem,
   updateContentStatus,
 } from "@/lib/repositories/content";
@@ -66,6 +67,16 @@ export async function updateContentItemAction(formData: FormData) {
     assigneeId: cleanValue(formData.get("assigneeId")),
   });
 
+  revalidatePath("/", "layout");
+}
+
+export async function archiveContentItemAction(contentId: string) {
+  setContentArchived(contentId, true);
+  revalidatePath("/", "layout");
+}
+
+export async function unarchiveContentItemAction(contentId: string) {
+  setContentArchived(contentId, false);
   revalidatePath("/", "layout");
 }
 

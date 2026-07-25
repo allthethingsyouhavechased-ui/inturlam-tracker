@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import ArchiveContentButton from "@/components/ArchiveContentButton";
 import AutoRefresh from "@/components/AutoRefresh";
 import ContentStatusSelect from "@/components/ContentStatusSelect";
 import DeleteContentButton from "@/components/DeleteContentButton";
@@ -68,6 +69,7 @@ export default async function ContentPage({
 
       <div className="flex flex-wrap items-center gap-4">
         <EditContentForm content={content} people={people} />
+        <ArchiveContentButton contentId={content.id} archived={content.archived === 1} />
         <DeleteContentButton contentId={content.id} />
       </div>
 

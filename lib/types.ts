@@ -90,6 +90,7 @@ export interface ContentItem {
   target_date: string | null;
   status: ContentStatus;
   assignee_id: string | null;
+  archived: number;
   created_at: string;
   updated_at: string;
 }

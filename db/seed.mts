@@ -221,10 +221,10 @@ const BRAND_RELATIONS: {
 // (ör. bu makine dışında bir yerde çalıştırılırsa) sessizce boş liste döner — seed'in
 // geri kalanı yine de çalışır, sadece "Tam Denetim" bölümü boş kalır.
 function findVaultDir(): string | null {
-  const known = `G:\\Drive'ım\\Obsidian Vault (Ofis PC)\\İNTURLAM\\Marka Denetimleri`;
+  const known = `G:\\Drive'ım\\Obsidian Vault (Ofis PC)\\Kariyer\\INTURLAM\\Marka Denetimleri`;
   if (fs.existsSync(known)) return known;
   for (const letter of "DEFHIJKLMNOPQRSTUVWXYZ") {
-    const p = `${letter}:\\Drive'ım\\Obsidian Vault (Ofis PC)\\İNTURLAM\\Marka Denetimleri`;
+    const p = `${letter}:\\Drive'ım\\Obsidian Vault (Ofis PC)\\Kariyer\\INTURLAM\\Marka Denetimleri`;
     if (fs.existsSync(p)) return p;
   }
   return null;

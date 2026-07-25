@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import ReactMarkdown from "react-markdown";
+import ArchiveContentButton from "@/components/ArchiveContentButton";
 import AutoRefresh from "@/components/AutoRefresh";
 import BrandLogo from "@/components/BrandLogo";
 import EditBrandForm from "@/components/EditBrandForm";
@@ -22,7 +23,7 @@ import {
   getBrandAudit,
   listBrandRelations,
 } from "@/lib/repositories/brands";
-import { listContentByBrand } from "@/lib/repositories/content";
+import { listArchivedContentByBrand, listContentByBrand } from "@/lib/repositories/content";
 import { listActivePeople } from "@/lib/repositories/people";
 
 export const dynamic = "force-dynamic";
@@ -37,6 +38,7 @@ export default async function BrandPage({
   if (!brand) notFound();
 
   const items = listContentByBrand(brandId);
+  const archivedItems = listArchivedContentByBrand(brandId);
   const relations = listBrandRelations(brandId);
   const audit = getBrandAudit(brandId);
   const people = listActivePeople();
@@ -189,10 +191,13 @@ export default async function BrandPage({
         ) : (
           <ul className="grid gap-2">
             {items.map((item) => (
-              <li key={item.id}>
+              <li
+                key={item.id}
+                className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border border-black/10 bg-white px-4 py-3 transition-colors hover:border-indigo-300 hover:bg-indigo-50/50 dark:border-white/10 dark:bg-zinc-900 dark:hover:border-indigo-800 dark:hover:bg-indigo-950/30"
+              >
                 <Link
                   href={`/brands/${brand.id}/content/${item.id}`}
-                  className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border border-black/10 bg-white px-4 py-3 transition-colors hover:border-indigo-300 hover:bg-indigo-50/50 dark:border-white/10 dark:bg-zinc-900 dark:hover:border-indigo-800 dark:hover:bg-indigo-950/30"
+                  className="flex flex-1 flex-wrap items-center gap-x-3 gap-y-1"
                 >
                   <span className="font-medium">{item.title}</span>
                   <span className="rounded-full bg-black/5 px-2 py-0.5 text-xs text-zinc-600 dark:bg-white/10 dark:text-zinc-300">
@@ -217,11 +222,36 @@ export default async function BrandPage({
                     )}
                   </span>
                 </Link>
+                <ArchiveContentButton contentId={item.id} />
               </li>
             ))}
           </ul>
         )}
       </section>
+
+      {archivedItems.length > 0 && (
+        <section className="space-y-2">
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+            Arşivlenenler ({archivedItems.length})
+          </h2>
+          <ul className="grid gap-2">
+            {archivedItems.map((item) => (
+              <li
+                key={item.id}
+                className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border border-dashed border-black/10 bg-white/60 px-4 py-3 text-sm text-zinc-500 dark:border-white/10 dark:bg-zinc-900/60"
+              >
+                <Link
+                  href={`/brands/${brand.id}/content/${item.id}`}
+                  className="flex-1"
+                >
+                  {item.title}
+                </Link>
+                <ArchiveContentButton contentId={item.id} archived />
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
     </div>
   );
 }

@@ -17,12 +17,36 @@ export function listContentByBrand(brandId: string): ContentItemWithCounts[] {
          FROM content_items ci
          LEFT JOIN people p ON p.id = ci.assignee_id
          LEFT JOIN tasks t ON t.content_item_id = ci.id
-         WHERE ci.brand_id = ?
+         WHERE ci.brand_id = ? AND ci.archived = 0
          GROUP BY ci.id
          ORDER BY (ci.target_date IS NULL), ci.target_date, ci.created_at DESC`,
       )
       .all(brandId),
   );
+}
+
+export function listArchivedContentByBrand(brandId: string): ContentItemWithCounts[] {
+  return plainList<ContentItemWithCounts>(
+    getDb()
+      .prepare(
+        `SELECT ci.*, p.name AS assignee_name,
+                COUNT(t.id) AS task_total,
+                COALESCE(SUM(CASE WHEN t.status != 'Yayinlandi' THEN 1 ELSE 0 END), 0) AS task_open
+         FROM content_items ci
+         LEFT JOIN people p ON p.id = ci.assignee_id
+         LEFT JOIN tasks t ON t.content_item_id = ci.id
+         WHERE ci.brand_id = ? AND ci.archived = 1
+         GROUP BY ci.id
+         ORDER BY ci.title`,
+      )
+      .all(brandId),
+  );
+}
+
+export function setContentArchived(id: string, archived: boolean): void {
+  getDb()
+    .prepare("UPDATE content_items SET archived = ?, updated_at = datetime('now') WHERE id = ?")
+    .run(archived ? 1 : 0, id);
 }
 
 export interface ContentSummary {
@@ -38,7 +62,7 @@ export function listAllContentSummaries(): ContentSummary[] {
   return plainList<ContentSummary>(
     getDb()
       .prepare(
-        "SELECT id, brand_id, title, status FROM content_items ORDER BY created_at DESC",
+        "SELECT id, brand_id, title, status FROM content_items WHERE archived = 0 ORDER BY created_at DESC",
       )
       .all(),
   );

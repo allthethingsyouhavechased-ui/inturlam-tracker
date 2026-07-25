@@ -26,6 +26,18 @@ export default async function Header() {
           </Link>
           <NavLinks />
         </nav>
+        <form
+          action="/search"
+          method="GET"
+          className="hidden flex-1 max-w-xs sm:block"
+        >
+          <input
+            type="search"
+            name="q"
+            placeholder="Marka, içerik, görev ara…"
+            className="w-full rounded-md border border-black/10 bg-white px-3 py-1.5 text-sm placeholder:text-zinc-400 focus:border-indigo-400 focus:outline-none dark:border-white/10 dark:bg-zinc-900"
+          />
+        </form>
         <div className="flex items-center gap-2 text-sm">
           <QuickAddModal
             brands={brands}
