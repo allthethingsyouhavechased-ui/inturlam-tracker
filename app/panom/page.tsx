@@ -1,6 +1,7 @@
 import Link from "next/link";
 import AutoRefresh from "@/components/AutoRefresh";
 import TaskBoard from "@/components/TaskBoard";
+import TaskGridCard from "@/components/TaskGridCard";
 import { currentWeekRange, todayISO } from "@/lib/date";
 import { getCurrentPerson } from "@/lib/identity";
 import { listBrandsWithOpenCounts } from "@/lib/repositories/brands";
@@ -13,10 +14,6 @@ import type { TaskCardBadge, TaskWithContext } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
-const BADGE_MINE: TaskCardBadge = {
-  label: "Benim",
-  className: "bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300",
-};
 const BADGE_OVERDUE: TaskCardBadge = {
   label: "Gecikmiş",
   className: "bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300",
@@ -40,54 +37,83 @@ export default async function PanomPage() {
   const overdueIds = new Set(overdue.map((t) => t.id));
   const thisWeekIds = new Set(thisWeek.map((t) => t.id));
 
-  // Panom, Görevler'in aksine "her şeyi" değil, kişiye özel ("bana atanmış /
-  // gecikmiş / bu hafta teslim") tek bir kürate edilmiş board gösterir — her
-  // kart hangi nedenle/nedenlerle burada olduğunu rozetle taşır. Rozetler
-  // sunucuda düz veri olarak her task'a iliştirilir — Server Component'ten
-  // Client Component'e fonksiyon geçirilemediği için (RSC kısıtı) bir
-  // callback yerine bunu tercih ediyoruz.
+  // Panom = "benim board'um": ANA board YALNIZCA bana atanmış açık görevleri
+  // gösterir. Rozetler bu yüzden "neden buradayım"ı değil aciliyeti anlatır
+  // (Gecikmiş / Bu hafta) — hepsi zaten benim olduğu için "Benim" rozeti yok.
+  // Rozetler sunucuda düz veri olarak task'a iliştirilir: Server Component'ten
+  // Client Component'e fonksiyon geçirilemediği için (RSC kısıtı) callback
+  // yerine bunu tercih ediyoruz.
   function badgesFor(taskId: string): TaskCardBadge[] {
     const badges: TaskCardBadge[] = [];
-    if (myIds.has(taskId)) badges.push(BADGE_MINE);
     if (overdueIds.has(taskId)) badges.push(BADGE_OVERDUE);
     if (thisWeekIds.has(taskId)) badges.push(BADGE_THIS_WEEK);
     return badges;
   }
 
-  const merged = new Map<string, TaskWithContext>();
-  for (const t of [...myTasks, ...overdue, ...thisWeek]) {
-    merged.set(t.id, { ...t, badges: badgesFor(t.id) });
+  const myBoardTasks: TaskWithContext[] = myTasks.map((t) => ({
+    ...t,
+    badges: badgesFor(t.id),
+  }));
+
+  // İkinci bölüm: bana atanmamış ama portföyde gecikmiş / bu hafta teslim olan
+  // görevler. Ayrı ve açıkça etiketli duruyor ki üstteki board'un "bana
+  // atanmış" vaadini bulandırmasın — sürüklenebilir değil, sadece görünürlük.
+  const othersMap = new Map<string, TaskWithContext>();
+  for (const t of [...overdue, ...thisWeek]) {
+    if (myIds.has(t.id)) continue;
+    othersMap.set(t.id, { ...t, badges: badgesFor(t.id) });
   }
-  const relevantTasks = [...merged.values()];
+  const otherTasks = [...othersMap.values()].sort((a, b) =>
+    (a.due_date ?? "").localeCompare(b.due_date ?? ""),
+  );
 
   return (
     <div className="space-y-8">
       <AutoRefresh />
-      <h1 className="text-xl font-semibold tracking-tight">Panom</h1>
+      <h1 className="text-xl font-semibold tracking-tight">
+        Panom{" "}
+        {me && <span className="text-sm font-normal text-zinc-500">· {me.name}</span>}
+      </h1>
 
       {!me && (
         <section className="rounded-xl border border-black/10 bg-white p-4 text-sm text-zinc-600 dark:border-white/10 dark:bg-zinc-900 dark:text-zinc-300">
-          Kendi görevlerin (“Benim” rozetiyle) burada da görünsün istersen{" "}
+          Panom sana atanmış görevleri gösterir — önce{" "}
           <Link href="/whoami" className="font-medium text-indigo-600">
             kim olduğunu seç
           </Link>
-          . Gecikmiş ve bu hafta teslim olacak görevler zaten aşağıda.
+          . Ekipte gecikmiş ve bu hafta teslim olacak görevler zaten aşağıda.
         </section>
       )}
 
-      <section className="space-y-2">
-        <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
-          İlgilenmen gereken görevler{" "}
-          {relevantTasks.length > 0 && <span>({relevantTasks.length})</span>}
-        </h2>
-        {relevantTasks.length === 0 ? (
-          <p className="text-sm text-zinc-500">
-            Bana atanmış, gecikmiş ya da bu hafta teslim olacak açık görev yok. 🎉
+      {me && (
+        <section className="space-y-2">
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+            Bana atanmış açık görevler{" "}
+            {myBoardTasks.length > 0 && <span>({myBoardTasks.length})</span>}
+          </h2>
+          {myBoardTasks.length === 0 ? (
+            <p className="text-sm text-zinc-500">Sana atanmış açık görev yok. 🎉</p>
+          ) : (
+            <TaskBoard tasks={myBoardTasks} boardId="panom" />
+          )}
+        </section>
+      )}
+
+      {otherTasks.length > 0 && (
+        <section className="space-y-2">
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+            Ekipte gecikmiş / bu hafta teslim ({otherTasks.length})
+          </h2>
+          <p className="text-xs text-zinc-500">
+            Bu görevler başkalarına atanmış ya da hiç atanmamış — takip için burada.
           </p>
-        ) : (
-          <TaskBoard tasks={relevantTasks} boardId="panom" />
-        )}
-      </section>
+          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {otherTasks.map((t) => (
+              <TaskGridCard key={t.id} task={t} badges={t.badges} />
+            ))}
+          </div>
+        </section>
+      )}
 
       <section className="space-y-2">
         <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
