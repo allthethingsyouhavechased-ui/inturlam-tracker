@@ -29,10 +29,11 @@ export function searchAll(query: string): SearchResults {
     db
       .prepare(
         `SELECT * FROM brands
-         WHERE archived = 0 AND name LIKE ? COLLATE NOCASE
+         WHERE archived = 0
+           AND (name LIKE ? COLLATE NOCASE OR instagram_handle LIKE ? COLLATE NOCASE)
          ORDER BY name LIMIT ?`,
       )
-      .all(like, RESULT_LIMIT),
+      .all(like, like, RESULT_LIMIT),
   );
 
   const content = plainList<ContentSearchResult>(
@@ -56,10 +57,10 @@ export function searchAll(query: string): SearchResults {
          JOIN content_items ci ON ci.id = t.content_item_id
          JOIN brands b ON b.id = ci.brand_id
          LEFT JOIN people p ON p.id = t.assignee_id
-         WHERE t.title LIKE ? COLLATE NOCASE
+         WHERE t.title LIKE ? COLLATE NOCASE OR t.notes LIKE ? COLLATE NOCASE
          ORDER BY t.title LIMIT ?`,
       )
-      .all(like, RESULT_LIMIT),
+      .all(like, like, RESULT_LIMIT),
   );
 
   return { brands, content, tasks };

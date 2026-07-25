@@ -145,9 +145,16 @@ export default function QuickAddModal({
             onClick={() => !pending && setOpen(false)}
             aria-hidden
           />
-          <div className="relative w-full max-w-md rounded-xl border border-black/10 bg-white p-4 shadow-lg dark:border-white/10 dark:bg-zinc-900">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="quickadd-title"
+            className="relative w-full max-w-md rounded-xl border border-black/10 bg-white p-4 shadow-lg dark:border-white/10 dark:bg-zinc-900"
+          >
             <div className="mb-3 flex items-center justify-between">
-              <h2 className="text-sm font-semibold">Hızlı görev ekle</h2>
+              <h2 id="quickadd-title" className="text-sm font-semibold">
+                Hızlı görev ekle
+              </h2>
               <button
                 type="button"
                 onClick={() => setOpen(false)}

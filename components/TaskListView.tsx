@@ -191,6 +191,9 @@ export default function TaskListView({
                 <input
                   type="checkbox"
                   checked={allSelected}
+                  ref={(el) => {
+                    if (el) el.indeterminate = someSelected && !allSelected;
+                  }}
                   onChange={toggleAll}
                   aria-label="Tümünü seç"
                   className="cursor-pointer accent-indigo-600"

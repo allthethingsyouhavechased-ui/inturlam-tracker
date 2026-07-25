@@ -22,6 +22,13 @@ export const CLUSTER_LABEL: Record<Cluster, string> = Object.fromEntries(
   CLUSTERS.map((c) => [c.id, c.label]),
 ) as Record<Cluster, string>;
 
+export const COVER_TEST_VERDICTS: CoverTestVerdict[] = [
+  "Gecti",
+  "Kismen",
+  "Sinirda",
+  "Basarisiz",
+];
+
 export const COVER_TEST_LABEL: Record<CoverTestVerdict, string> = {
   Gecti: "Geçti",
   Kismen: "Kısmen",

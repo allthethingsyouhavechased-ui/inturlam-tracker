@@ -1,5 +1,12 @@
 import { getDb, plainList, plainOne } from "@/lib/db/client";
-import type { Brand, BrandAudit, BrandRelationView, BrandWithCount, Cluster } from "@/lib/types";
+import type {
+  Brand,
+  BrandAudit,
+  BrandRelationView,
+  BrandWithCount,
+  Cluster,
+  CoverTestVerdict,
+} from "@/lib/types";
 
 export function listBrands(): Brand[] {
   return plainList<Brand>(
@@ -39,10 +46,38 @@ export function updateBrand(input: {
   name: string;
   cluster: Cluster;
   instagramHandle: string | null;
+  followerCount: number | null;
+  postCount: number | null;
+  medianReelViews: string | null;
+  coverTestVerdict: CoverTestVerdict | null;
+  coverTestNote: string | null;
+  keyFinding: string | null;
+  firstAction: string | null;
+  tier: string | null;
 }): void {
   getDb()
-    .prepare("UPDATE brands SET name = ?, cluster = ?, instagram_handle = ? WHERE id = ?")
-    .run(input.name, input.cluster, input.instagramHandle, input.id);
+    .prepare(
+      `UPDATE brands SET
+         name = ?, cluster = ?, instagram_handle = ?,
+         follower_count = ?, post_count = ?, median_reel_views = ?,
+         cover_test_verdict = ?, cover_test_note = ?,
+         key_finding = ?, first_action = ?, tier = ?
+       WHERE id = ?`,
+    )
+    .run(
+      input.name,
+      input.cluster,
+      input.instagramHandle,
+      input.followerCount,
+      input.postCount,
+      input.medianReelViews,
+      input.coverTestVerdict,
+      input.coverTestNote,
+      input.keyFinding,
+      input.firstAction,
+      input.tier,
+      input.id,
+    );
 }
 
 export function setBrandArchived(id: string, archived: boolean): void {
