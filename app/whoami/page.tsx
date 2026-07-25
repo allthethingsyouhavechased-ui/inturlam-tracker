@@ -11,7 +11,7 @@ export default async function WhoAmIPage() {
   return (
     <div className="mx-auto max-w-md space-y-6 py-8">
       <div className="space-y-1 text-center">
-        <h1 className="text-xl font-semibold tracking-tight">Sen kimsin?</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Sen kimsin?</h1>
         <p className="text-sm text-zinc-500">
           Görevleri ve yorumları senin adına kaydedebilmem için seç.
         </p>
@@ -25,13 +25,13 @@ export default async function WhoAmIPage() {
               type="submit"
               className={`w-full rounded-lg border px-4 py-3 text-left font-medium transition-colors ${
                 current?.id === p.id
-                  ? "border-indigo-400 bg-indigo-50 text-indigo-700 dark:border-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-300"
-                  : "border-black/10 bg-white hover:border-indigo-300 hover:bg-indigo-50/50 dark:border-white/10 dark:bg-zinc-900 dark:hover:border-indigo-800"
+                  ? "border-brand-400 bg-brand-50 text-brand-700 dark:border-brand-700 dark:bg-brand-950/40 dark:text-brand-300"
+                  : "border-black/10 bg-white hover:border-brand-300 hover:bg-brand-50/50 dark:border-white/10 dark:bg-zinc-900 dark:hover:border-brand-800"
               }`}
             >
               {p.name}
               {current?.id === p.id && (
-                <span className="ml-2 text-xs font-normal text-indigo-500">
+                <span className="ml-2 text-xs font-normal text-brand-500">
                   (şu an bu)
                 </span>
               )}

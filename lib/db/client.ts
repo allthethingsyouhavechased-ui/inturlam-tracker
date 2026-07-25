@@ -2,7 +2,11 @@ import { DatabaseSync } from "node:sqlite";
 import path from "node:path";
 import fs from "node:fs";
 
-const DB_PATH = path.join(process.cwd(), "data", "inturlam.db");
+// Varsayılan tek dosya; `INTURLAM_DB_PATH` ile değiştirilebilir. Bunun tek
+// gerçek kullanıcısı testler (geçici DB) ve yedekleme/geri yükleme script'leri —
+// gerçek veriye asla dokunmasınlar diye.
+const DB_PATH =
+  process.env.INTURLAM_DB_PATH ?? path.join(process.cwd(), "data", "inturlam.db");
 const SCHEMA_PATH = path.join(process.cwd(), "lib", "db", "schema.sql");
 
 declare global {
@@ -31,8 +35,92 @@ function createConnection(): DatabaseSync {
   migrateContentItemsTableIfNeeded(db);
   migrateContentItemsArchivedIfNeeded(db);
   migrateTasksTableIfNeeded(db);
+  migrateTasksRepeatIfNeeded(db);
   db.exec(schemaSql);
+  seedTaskTemplatesIfNeeded(db);
   return db;
+}
+
+// tasks.repeat_days — tekrar eden görevler için. CHECK/FK içermediği için
+// tabloyu yeniden kurmaya gerek yok, düz ALTER yeterli (client.ts'teki kırılgan
+// rebuild desenine bulaşmıyoruz). Idempotent: sütun varsa no-op.
+function migrateTasksRepeatIfNeeded(db: DatabaseSync): void {
+  const tasksExists = db
+    .prepare(`SELECT 1 FROM sqlite_master WHERE type='table' AND name='tasks'`)
+    .get();
+  if (!tasksExists) return;
+  const columns = db.prepare(`PRAGMA table_info(tasks)`).all() as { name: string }[];
+  if (columns.some((c) => c.name === "repeat_days")) return;
+  db.exec(`ALTER TABLE tasks ADD COLUMN repeat_days INTEGER`);
+}
+
+// Ajansın her markada tekrarlayan iş akışları — başlangıç içeriği.
+// YALNIZCA tablo tamamen boşken tohumlanır: kullanıcı bir şablonu silerse her
+// sunucu açılışında geri gelmesin. (Kategorilerdeki id bazlı `INSERT OR IGNORE`
+// deseni bu yüzden burada bilinçli olarak tekrarlanmadı.)
+const DEFAULT_TEMPLATES: {
+  id: string;
+  name: string;
+  contentType: string | null;
+  items: { title: string; priority: string; offset: number | null }[];
+}[] = [
+  {
+    id: "reel-akisi",
+    name: "Reel akışı",
+    contentType: "Reel",
+    items: [
+      { title: "Brief ve konsept", priority: "Normal", offset: -10 },
+      { title: "Çekim", priority: "Yuksek", offset: -6 },
+      { title: "Kurgu + altyazı", priority: "Yuksek", offset: -3 },
+      { title: "Kapak görseli", priority: "Yuksek", offset: -2 },
+      { title: "Onay ve yayın", priority: "Normal", offset: 0 },
+    ],
+  },
+  {
+    id: "foto-cekimi",
+    name: "Foto çekimi",
+    contentType: "Foto",
+    items: [
+      { title: "Çekim listesi hazırla", priority: "Normal", offset: -5 },
+      { title: "Çekim", priority: "Yuksek", offset: -3 },
+      { title: "Retuş ve seçim", priority: "Normal", offset: -1 },
+      { title: "Teslim", priority: "Normal", offset: 0 },
+    ],
+  },
+  {
+    id: "kampanya",
+    name: "Kampanya",
+    contentType: "Kampanya",
+    items: [
+      { title: "Konsept ve slogan", priority: "Yuksek", offset: -14 },
+      { title: "Görsel/video üretimi", priority: "Yuksek", offset: -7 },
+      { title: "Metin ve CTA", priority: "Normal", offset: -5 },
+      { title: "Yayın takvimi onayı", priority: "Normal", offset: -2 },
+      { title: "İlk hafta performans raporu", priority: "Dusuk", offset: 7 },
+    ],
+  },
+];
+
+function seedTaskTemplatesIfNeeded(db: DatabaseSync): void {
+  const { n } = db.prepare("SELECT COUNT(*) AS n FROM task_templates").get() as {
+    n: number;
+  };
+  if (n > 0) return;
+
+  const insertTemplate = db.prepare(
+    "INSERT OR IGNORE INTO task_templates (id, name, content_type, sort_order) VALUES (?, ?, ?, ?)",
+  );
+  const insertItem = db.prepare(
+    `INSERT OR IGNORE INTO task_template_items
+       (id, template_id, title, priority, due_offset_days, sort_order)
+     VALUES (?, ?, ?, ?, ?, ?)`,
+  );
+  DEFAULT_TEMPLATES.forEach((t, i) => {
+    insertTemplate.run(t.id, t.name, t.contentType, (i + 1) * 10);
+    t.items.forEach((item, j) => {
+      insertItem.run(`${t.id}-${j + 1}`, t.id, item.title, item.priority, item.offset, (j + 1) * 10);
+    });
+  });
 }
 
 // brands.cluster üzerindeki CHECK kısıtlamasının VAR olup olmadığını anlamak için.

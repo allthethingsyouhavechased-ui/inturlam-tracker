@@ -52,7 +52,7 @@ export default function ActivityFeed({
                 {href ? (
                   <Link
                     href={href}
-                    className="decoration-zinc-300 underline-offset-2 hover:text-indigo-600 hover:underline dark:decoration-zinc-600 dark:hover:text-indigo-400"
+                    className="decoration-zinc-300 underline-offset-2 hover:text-brand-600 hover:underline dark:decoration-zinc-600 dark:hover:text-brand-400"
                   >
                     {e.summary}
                   </Link>

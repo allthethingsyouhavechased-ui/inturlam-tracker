@@ -25,7 +25,7 @@ export default async function SearchPage({
 
   return (
     <div className="space-y-6">
-      <h1 className="text-xl font-semibold tracking-tight">
+      <h1 className="text-2xl font-semibold tracking-tight">
         {query ? `"${query}" için arama sonuçları` : "Arama"}
       </h1>
 
@@ -49,7 +49,7 @@ export default async function SearchPage({
               <Link
                 key={brand.id}
                 href={`/brands/${brand.id}`}
-                className="flex items-center gap-2.5 rounded-xl border border-black/10 bg-white px-4 py-3 transition-colors hover:border-indigo-300 hover:bg-indigo-50/50 dark:border-white/10 dark:bg-zinc-900 dark:hover:border-indigo-800 dark:hover:bg-indigo-950/30"
+                className="flex items-center gap-2.5 rounded-xl border border-black/10 bg-white px-4 py-3 transition-colors hover:border-brand-300 hover:bg-brand-50/50 dark:border-white/10 dark:bg-zinc-900 dark:hover:border-brand-800 dark:hover:bg-brand-950/30"
               >
                 <BrandLogo name={brand.name} logoPath={brand.logo_path} size="sm" />
                 <span>
@@ -74,7 +74,7 @@ export default async function SearchPage({
               <li key={item.id}>
                 <Link
                   href={`/brands/${item.brand_id}/content/${item.id}`}
-                  className="flex flex-wrap items-center gap-2 rounded-xl border border-black/10 bg-white px-4 py-3 transition-colors hover:border-indigo-300 hover:bg-indigo-50/50 dark:border-white/10 dark:bg-zinc-900 dark:hover:border-indigo-800 dark:hover:bg-indigo-950/30"
+                  className="flex flex-wrap items-center gap-2 rounded-xl border border-black/10 bg-white px-4 py-3 transition-colors hover:border-brand-300 hover:bg-brand-50/50 dark:border-white/10 dark:bg-zinc-900 dark:hover:border-brand-800 dark:hover:bg-brand-950/30"
                 >
                   <span className="font-medium">{item.title}</span>
                   <span className="text-xs text-zinc-500">{item.brand_name}</span>
@@ -95,7 +95,7 @@ export default async function SearchPage({
               <li key={task.id}>
                 <Link
                   href={`/tasks/${task.id}`}
-                  className="flex flex-wrap items-center gap-2 rounded-xl border border-black/10 bg-white px-4 py-3 transition-colors hover:border-indigo-300 hover:bg-indigo-50/50 dark:border-white/10 dark:bg-zinc-900 dark:hover:border-indigo-800 dark:hover:bg-indigo-950/30"
+                  className="flex flex-wrap items-center gap-2 rounded-xl border border-black/10 bg-white px-4 py-3 transition-colors hover:border-brand-300 hover:bg-brand-50/50 dark:border-white/10 dark:bg-zinc-900 dark:hover:border-brand-800 dark:hover:bg-brand-950/30"
                 >
                   <span className="font-medium">{task.title}</span>
                   <span

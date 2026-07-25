@@ -71,7 +71,7 @@ export default async function ReportsPage({
 
   return (
     <div className="space-y-6">
-      <h1 className="text-xl font-semibold tracking-tight">Raporlar</h1>
+      <h1 className="text-2xl font-semibold tracking-tight">Raporlar</h1>
       <ReportsClient
         people={personViews}
         brands={brandViews}

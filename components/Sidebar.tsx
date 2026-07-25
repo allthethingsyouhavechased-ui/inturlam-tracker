@@ -16,9 +16,14 @@ export default function Sidebar() {
     else contentsByBrand.set(c.brand_id, [c]);
   }
 
+  // `md:overflow-visible` ŞART: aside'da overflow-y-auto kalırsa içindeki
+  // `sticky` nav için yeni bir kaydırma bağlamı oluşur ve sticky sayfaya göre
+  // değil bu kutuya göre çalışır — yani hiç çalışmaz, sidebar sayfayla birlikte
+  // yukarı kayıp altında boşluk bırakır. Masaüstünde kaydırma içerideki nav'ın
+  // işi; mobilde (off-canvas panel) aside'ın kendisi kayar.
   return (
-    <aside className="h-full w-64 overflow-y-auto border-r border-black/10 bg-zinc-50 md:h-auto md:w-60 md:bg-transparent dark:border-white/10 dark:bg-zinc-950 dark:md:bg-transparent">
-      <nav className="sticky top-[57px] max-h-[calc(100vh-57px)] space-y-3 overflow-y-auto p-3">
+    <aside className="h-full w-64 overflow-y-auto border-r border-black/10 bg-zinc-50 md:w-60 md:overflow-visible md:bg-transparent dark:border-white/10 dark:bg-zinc-950 dark:md:bg-transparent">
+      <nav className="space-y-3 p-3 md:sticky md:top-[var(--header-h)] md:max-h-[calc(100vh-var(--header-h))] md:overflow-y-auto">
         {groups.map((group) => {
           if (group.items.length === 0) return null;
           return (

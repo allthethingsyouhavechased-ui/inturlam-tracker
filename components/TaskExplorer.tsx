@@ -22,7 +22,7 @@ const SORT_LABEL: Record<SortKey, string> = {
 };
 
 const selectClass =
-  "rounded-md border border-black/10 bg-white px-2.5 py-1.5 text-sm outline-none focus:border-indigo-500 dark:border-white/15 dark:bg-zinc-900";
+  "rounded-md border border-black/10 bg-white px-2.5 py-1.5 text-sm outline-none focus:border-brand-500 dark:border-white/15 dark:bg-zinc-900";
 
 export default function TaskExplorer({
   tasks,
@@ -169,7 +169,7 @@ export default function TaskExplorer({
               onClick={() => setView(v)}
               className={`px-3 py-1 font-medium transition-colors ${
                 view === v
-                  ? "bg-indigo-600 text-white"
+                  ? "bg-brand-600 text-white"
                   : "bg-white text-zinc-600 hover:bg-black/5 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-white/10"
               }`}
             >

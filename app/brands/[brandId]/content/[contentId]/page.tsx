@@ -50,7 +50,7 @@ export default async function ContentPage({
       </div>
 
       <div className="flex flex-wrap items-center gap-3">
-        <h1 className="text-xl font-semibold tracking-tight">{content.title}</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">{content.title}</h1>
         <span className="rounded-full bg-black/5 px-2 py-0.5 text-xs text-zinc-600 dark:bg-white/10 dark:text-zinc-300">
           {CONTENT_TYPE_LABEL[content.type]}
         </span>

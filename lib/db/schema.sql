@@ -74,8 +74,35 @@ CREATE TABLE IF NOT EXISTS tasks (
   assignee_id     TEXT REFERENCES people(id) ON DELETE SET NULL,
   due_date        TEXT,
   notes           TEXT,
+  -- Tekrar eden görev: kaç günde bir. NULL/0 = tekrar yok. Görev "Yayınlandı"
+  -- durumuna alınınca bir sonraki örneği otomatik açılır (lib/actions/tasks.ts).
+  repeat_days     INTEGER,
   created_at      TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at      TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+-- Görev şablonları: aynı iş akışı (Reel → brief/çekim/kurgu/kapak/yayın) her
+-- içerik için elle yazılmasın. Kategoriler gibi bunlar da kullanıcı tarafından
+-- yönetiliyor, sabit listede değil.
+CREATE TABLE IF NOT EXISTS task_templates (
+  id           TEXT PRIMARY KEY,
+  name         TEXT NOT NULL,
+  -- Hangi içerik türünde önerilecek. NULL = her tür.
+  content_type TEXT,
+  sort_order   INTEGER NOT NULL DEFAULT 0,
+  created_at   TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS task_template_items (
+  id              TEXT PRIMARY KEY,
+  template_id     TEXT NOT NULL REFERENCES task_templates(id) ON DELETE CASCADE,
+  title           TEXT NOT NULL,
+  priority        TEXT NOT NULL DEFAULT 'Normal' CHECK (priority IN ('Dusuk','Normal','Yuksek','Acil')),
+  assignee_id     TEXT REFERENCES people(id) ON DELETE SET NULL,
+  -- İçeriğin target_date'ine göre gün kayması: -3 = teslimden 3 gün önce.
+  -- NULL = tarihsiz görev.
+  due_offset_days INTEGER,
+  sort_order      INTEGER NOT NULL DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS comments (
@@ -117,6 +144,7 @@ CREATE INDEX IF NOT EXISTS idx_tasks_content_item  ON tasks(content_item_id);
 CREATE INDEX IF NOT EXISTS idx_tasks_assignee      ON tasks(assignee_id);
 CREATE INDEX IF NOT EXISTS idx_tasks_due_date      ON tasks(due_date);
 CREATE INDEX IF NOT EXISTS idx_comments_task       ON comments(task_id);
+CREATE INDEX IF NOT EXISTS idx_template_items_template ON task_template_items(template_id);
 CREATE INDEX IF NOT EXISTS idx_comment_attachments_comment ON comment_attachments(comment_id);
 CREATE INDEX IF NOT EXISTS idx_brand_relations_brand   ON brand_relations(brand_id);
 CREATE INDEX IF NOT EXISTS idx_brand_relations_related ON brand_relations(related_brand_id);

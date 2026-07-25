@@ -58,7 +58,7 @@ export default function CommentItem({
             <button
               type="button"
               onClick={() => setEditing(true)}
-              className="hover:text-indigo-600 dark:hover:text-indigo-400"
+              className="hover:text-brand-600 dark:hover:text-brand-400"
             >
               Düzenle
             </button>
@@ -80,13 +80,13 @@ export default function CommentItem({
             value={body}
             onChange={(e) => setBody(e.target.value)}
             rows={2}
-            className="w-full rounded-md border border-black/10 bg-white px-3 py-2 text-sm outline-none focus:border-indigo-500 dark:border-white/15 dark:bg-zinc-900"
+            className="w-full rounded-md border border-black/10 bg-white px-3 py-2 text-sm outline-none focus:border-brand-500 dark:border-white/15 dark:bg-zinc-900"
           />
           <div className="flex items-center gap-3">
             <button
               type="submit"
               disabled={pending}
-              className="rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-indigo-500 disabled:opacity-50"
+              className="rounded-md bg-brand-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-brand-500 disabled:opacity-50"
             >
               {pending ? "…" : "Kaydet"}
             </button>

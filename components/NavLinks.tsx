@@ -25,7 +25,7 @@ export default function NavLinks() {
             href={link.href}
             className={`border-b-2 px-2.5 py-1.5 text-sm transition-colors ${
               active
-                ? "border-indigo-600 font-medium text-zinc-900 dark:border-indigo-400 dark:text-white"
+                ? "border-brand-600 font-medium text-zinc-900 dark:border-brand-400 dark:text-white"
                 : "border-transparent text-zinc-600 hover:border-black/20 hover:text-zinc-900 dark:text-zinc-300 dark:hover:border-white/30 dark:hover:text-white"
             }`}
           >

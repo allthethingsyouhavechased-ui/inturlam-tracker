@@ -81,7 +81,7 @@ function Column({
   return (
     <div
       ref={setNodeRef}
-      className={`space-y-2 rounded-xl border-t-2 bg-slate-50/60 p-2 transition-colors dark:bg-white/[0.02] ${TASK_STATUS_BORDER_TOP[status]} ${isOver ? "bg-indigo-50/60 dark:bg-indigo-950/20" : ""}`}
+      className={`space-y-2 rounded-xl border-t-2 bg-slate-50/60 p-2 transition-colors dark:bg-white/[0.02] ${TASK_STATUS_BORDER_TOP[status]} ${isOver ? "bg-brand-50/60 dark:bg-brand-950/20" : ""}`}
     >
       <div className="flex items-center gap-2 px-1 text-xs font-semibold uppercase tracking-wider text-zinc-400">
         <span className={`h-2 w-2 rounded-full ${TASK_STATUS_DOT[status]}`} />
@@ -172,7 +172,7 @@ export default function TaskBoard({
               onClick={() => setInternalSortKey(opt.key)}
               className={`rounded-full px-2.5 py-1 font-medium transition-colors ${
                 sortKey === opt.key
-                  ? "bg-indigo-600 text-white"
+                  ? "bg-brand-600 text-white"
                   : "bg-black/5 text-zinc-600 hover:bg-black/10 dark:bg-white/10 dark:text-zinc-300 dark:hover:bg-white/20"
               }`}
             >

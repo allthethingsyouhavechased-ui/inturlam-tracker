@@ -16,7 +16,7 @@ export default function SubmitButton({
       disabled={pending}
       className={
         className ??
-        "inline-flex items-center justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-500 disabled:opacity-50"
+        "inline-flex items-center justify-center rounded-md bg-brand-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-500 disabled:opacity-50"
       }
     >
       {pending ? "…" : children}

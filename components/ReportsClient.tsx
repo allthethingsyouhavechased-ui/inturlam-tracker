@@ -23,7 +23,7 @@ const RANGE_OPTIONS: { key: RangeKey; label: string }[] = [
 ];
 
 const inputClass =
-  "rounded-md border border-black/10 bg-white px-2 py-1 text-xs outline-none focus:border-indigo-500 dark:border-white/15 dark:bg-zinc-900";
+  "rounded-md border border-black/10 bg-white px-2 py-1 text-xs outline-none focus:border-brand-500 dark:border-white/15 dark:bg-zinc-900";
 
 export default function ReportsClient({
   people,
@@ -89,7 +89,7 @@ export default function ReportsClient({
             onClick={() => setRange(opt.key)}
             className={`rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${
               rangeKey === opt.key
-                ? "bg-indigo-600 text-white"
+                ? "bg-brand-600 text-white"
                 : "bg-black/5 text-zinc-600 hover:bg-black/10 dark:bg-white/10 dark:text-zinc-300 dark:hover:bg-white/20"
             }`}
           >
@@ -114,7 +114,7 @@ export default function ReportsClient({
             <button
               type="button"
               onClick={applyCustomRange}
-              className="rounded-md bg-indigo-600 px-2 py-1 text-xs font-medium text-white hover:bg-indigo-500"
+              className="rounded-md bg-brand-600 px-2 py-1 text-xs font-medium text-white hover:bg-brand-500"
             >
               Uygula
             </button>
@@ -145,7 +145,7 @@ export default function ReportsClient({
           <button
             type="button"
             onClick={exportPeopleCSV}
-            className="text-xs font-medium text-indigo-600 hover:text-indigo-500 print:hidden"
+            className="text-xs font-medium text-brand-600 hover:text-brand-500 print:hidden"
           >
             CSV indir
           </button>
@@ -218,7 +218,7 @@ export default function ReportsClient({
           <button
             type="button"
             onClick={exportBrandsCSV}
-            className="text-xs font-medium text-indigo-600 hover:text-indigo-500 print:hidden"
+            className="text-xs font-medium text-brand-600 hover:text-brand-500 print:hidden"
           >
             CSV indir
           </button>

@@ -38,7 +38,7 @@ export default function PanomViews({
               onClick={() => setView(v)}
               className={`px-3 py-1 font-medium transition-colors ${
                 view === v
-                  ? "bg-indigo-600 text-white"
+                  ? "bg-brand-600 text-white"
                   : "bg-white text-zinc-600 hover:bg-black/5 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-white/10"
               }`}
             >

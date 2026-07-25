@@ -14,7 +14,7 @@ export default function AllTasksPage() {
   return (
     <div className="space-y-6">
       <AutoRefresh />
-      <h1 className="text-xl font-semibold tracking-tight">Görevler</h1>
+      <h1 className="text-2xl font-semibold tracking-tight">Görevler</h1>
       <TaskExplorer tasks={tasks} brands={brands} people={people} />
     </div>
   );

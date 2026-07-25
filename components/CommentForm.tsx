@@ -69,7 +69,7 @@ export default function CommentForm({ taskId }: { taskId: string }) {
         name="body"
         rows={2}
         placeholder="Bir not ekle…"
-        className="w-full rounded-md border border-black/10 bg-white px-3 py-2 text-sm outline-none focus:border-indigo-500 dark:border-white/15 dark:bg-zinc-900"
+        className="w-full rounded-md border border-black/10 bg-white px-3 py-2 text-sm outline-none focus:border-brand-500 dark:border-white/15 dark:bg-zinc-900"
       />
       {images.length > 0 && (
         <div className="flex flex-wrap gap-2">
@@ -95,7 +95,7 @@ export default function CommentForm({ taskId }: { taskId: string }) {
       )}
       {error && <p className="text-xs text-rose-600">{error}</p>}
       <div className="flex items-center justify-between gap-2">
-        <label className="cursor-pointer text-xs font-medium text-zinc-500 hover:text-indigo-600 dark:hover:text-indigo-400">
+        <label className="cursor-pointer text-xs font-medium text-zinc-500 hover:text-brand-600 dark:hover:text-brand-400">
           📎 Görsel ekle
           <input
             ref={fileInputRef}
@@ -109,7 +109,7 @@ export default function CommentForm({ taskId }: { taskId: string }) {
         <button
           type="submit"
           disabled={pending}
-          className="inline-flex items-center justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-500 disabled:opacity-50"
+          className="inline-flex items-center justify-center rounded-md bg-brand-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-500 disabled:opacity-50"
         >
           {pending ? "…" : "Yorum ekle"}
         </button>

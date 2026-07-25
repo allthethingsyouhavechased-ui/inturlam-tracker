@@ -18,7 +18,7 @@ import { getTask } from "@/lib/repositories/tasks";
 export const dynamic = "force-dynamic";
 
 const inputClass =
-  "w-full rounded-md border border-black/10 bg-white px-3 py-2 text-sm outline-none focus:border-indigo-500 dark:border-white/15 dark:bg-zinc-900";
+  "w-full rounded-md border border-black/10 bg-white px-3 py-2 text-sm outline-none focus:border-brand-500 dark:border-white/15 dark:bg-zinc-900";
 
 export default async function TaskPage({
   params,
@@ -57,7 +57,7 @@ export default async function TaskPage({
         </Link>
       </div>
 
-      <h1 className="text-xl font-semibold tracking-tight">{task.title}</h1>
+      <h1 className="text-2xl font-semibold tracking-tight">{task.title}</h1>
 
       <div className="flex flex-wrap items-center gap-x-6 gap-y-3 rounded-xl border border-black/10 bg-white p-4 dark:border-white/10 dark:bg-zinc-900">
         <label className="flex items-center gap-2 text-sm text-zinc-500">
@@ -105,7 +105,7 @@ export default async function TaskPage({
         <div className="flex items-center justify-between">
           <button
             type="submit"
-            className="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-500"
+            className="inline-flex items-center rounded-md bg-brand-600 px-3 py-2 text-sm font-medium text-white hover:bg-brand-500"
           >
             Kaydet
           </button>
@@ -129,7 +129,7 @@ export default async function TaskPage({
         ) : (
           <p className="text-sm text-zinc-500">
             Yorum yazmak için{" "}
-            <Link href="/whoami" className="font-medium text-indigo-600">
+            <Link href="/whoami" className="font-medium text-brand-600">
               kim olduğunu seç
             </Link>
             .

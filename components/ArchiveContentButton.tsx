@@ -21,7 +21,7 @@ export default function ArchiveContentButton({
           e.preventDefault();
           startTransition(() => unarchiveContentItemAction(contentId));
         }}
-        className="text-xs font-medium text-indigo-600 hover:text-indigo-500 disabled:opacity-50"
+        className="text-xs font-medium text-brand-600 hover:text-brand-500 disabled:opacity-50"
       >
         {pending ? "…" : "Arşivden çıkar"}
       </button>

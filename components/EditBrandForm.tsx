@@ -9,7 +9,7 @@ import ClusterSelect from "./ClusterSelect";
 import SubmitButton from "./SubmitButton";
 
 const inputClass =
-  "w-full rounded-md border border-black/10 bg-white px-3 py-2 text-sm outline-none focus:border-indigo-500 dark:border-white/15 dark:bg-zinc-900";
+  "w-full rounded-md border border-black/10 bg-white px-3 py-2 text-sm outline-none focus:border-brand-500 dark:border-white/15 dark:bg-zinc-900";
 
 const labelClass = "grid gap-1 text-xs font-medium text-zinc-500";
 
@@ -28,7 +28,7 @@ export default function EditBrandForm({
       <button
         type="button"
         onClick={() => setEditing(true)}
-        className="text-xs font-medium text-zinc-500 hover:text-indigo-600 dark:hover:text-indigo-400"
+        className="text-xs font-medium text-zinc-500 hover:text-brand-600 dark:hover:text-brand-400"
       >
         Düzenle
       </button>

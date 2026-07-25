@@ -71,7 +71,7 @@ export default async function PanomPage() {
   return (
     <div className="space-y-8">
       <AutoRefresh />
-      <h1 className="text-xl font-semibold tracking-tight">
+      <h1 className="text-2xl font-semibold tracking-tight">
         Panom{" "}
         {me && <span className="text-sm font-normal text-zinc-500">· {me.name}</span>}
       </h1>
@@ -79,7 +79,7 @@ export default async function PanomPage() {
       {!me && (
         <section className="rounded-xl border border-black/10 bg-white p-4 text-sm text-zinc-600 dark:border-white/10 dark:bg-zinc-900 dark:text-zinc-300">
           Panom sana atanmış görevleri gösterir — önce{" "}
-          <Link href="/whoami" className="font-medium text-indigo-600">
+          <Link href="/whoami" className="font-medium text-brand-600">
             kim olduğunu seç
           </Link>
           . Ekipte gecikmiş ve bu hafta teslim olacak görevler zaten aşağıda.
@@ -104,10 +104,10 @@ export default async function PanomPage() {
               <Link
                 key={b.id}
                 href={`/brands/${b.id}`}
-                className="flex items-center justify-between rounded-lg border border-black/10 bg-white px-3 py-2 text-sm transition-colors hover:border-indigo-300 dark:border-white/10 dark:bg-zinc-900 dark:hover:border-indigo-800"
+                className="flex items-center justify-between rounded-lg border border-black/10 bg-white px-3 py-2 text-sm transition-colors hover:border-brand-300 dark:border-white/10 dark:bg-zinc-900 dark:hover:border-brand-800"
               >
                 <span className="font-medium">{b.name}</span>
-                <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-indigo-100 px-2 text-xs font-semibold text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">
+                <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-brand-100 px-2 text-xs font-semibold text-brand-700 dark:bg-brand-950 dark:text-brand-300">
                   {b.open_count}
                 </span>
               </Link>

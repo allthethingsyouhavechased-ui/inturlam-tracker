@@ -27,7 +27,7 @@ interface ContentOption {
 }
 
 const inputClass =
-  "w-full rounded-md border border-black/10 bg-white px-3 py-2 text-sm outline-none focus:border-indigo-500 dark:border-white/15 dark:bg-zinc-900";
+  "w-full rounded-md border border-black/10 bg-white px-3 py-2 text-sm outline-none focus:border-brand-500 dark:border-white/15 dark:bg-zinc-900";
 
 export default function QuickAddModal({
   brands,
@@ -132,7 +132,7 @@ export default function QuickAddModal({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-1 rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-indigo-500"
+        className="inline-flex items-center gap-1 rounded-md bg-brand-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-brand-500"
       >
         + Yeni
       </button>
@@ -293,7 +293,7 @@ export default function QuickAddModal({
                 <button
                   type="submit"
                   disabled={pending || brands.length === 0}
-                  className="inline-flex items-center justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-500 disabled:opacity-50"
+                  className="inline-flex items-center justify-center rounded-md bg-brand-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-500 disabled:opacity-50"
                 >
                   {pending ? "Oluşturuluyor…" : "Oluştur"}
                 </button>

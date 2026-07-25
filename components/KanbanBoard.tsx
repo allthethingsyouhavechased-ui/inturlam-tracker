@@ -53,7 +53,7 @@ function TaskCard({
     >
       <Link
         href={`/tasks/${task.id}`}
-        className="block text-sm font-medium hover:text-indigo-600 dark:hover:text-indigo-400"
+        className="block text-sm font-medium hover:text-brand-600 dark:hover:text-brand-400"
         onPointerDown={(e) => e.stopPropagation()}
       >
         {TASK_PRIORITY_FLAG_THRESHOLD.includes(task.priority) && (
@@ -95,7 +95,7 @@ function Column({
   return (
     <div
       ref={setNodeRef}
-      className={`space-y-2 rounded-xl border-t-2 bg-slate-50/60 p-2 transition-colors dark:bg-white/[0.02] ${TASK_STATUS_BORDER_TOP[status]} ${isOver ? "bg-indigo-50/60 dark:bg-indigo-950/20" : ""}`}
+      className={`space-y-2 rounded-xl border-t-2 bg-slate-50/60 p-2 transition-colors dark:bg-white/[0.02] ${TASK_STATUS_BORDER_TOP[status]} ${isOver ? "bg-brand-50/60 dark:bg-brand-950/20" : ""}`}
     >
       <div className="flex items-center gap-2 px-1 text-xs font-semibold uppercase tracking-wider text-zinc-400">
         <span className={`h-2 w-2 rounded-full ${TASK_STATUS_DOT[status]}`} />

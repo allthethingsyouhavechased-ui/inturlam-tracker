@@ -108,8 +108,34 @@ export interface Task {
   assignee_id: string | null;
   due_date: string | null;
   notes: string | null;
+  // Kaç günde bir tekrarlayacağı. null/0 = tekrar yok.
+  repeat_days: number | null;
   created_at: string;
   updated_at: string;
+}
+
+// Görev şablonu: bir içerik türü için standart iş akışı.
+export interface TaskTemplate {
+  id: string;
+  name: string;
+  content_type: ContentType | null;
+  sort_order: number;
+  created_at: string;
+}
+
+export interface TaskTemplateItem {
+  id: string;
+  template_id: string;
+  title: string;
+  priority: TaskPriority;
+  assignee_id: string | null;
+  // İçeriğin target_date'ine göre gün kayması (-3 = teslimden 3 gün önce).
+  due_offset_days: number | null;
+  sort_order: number;
+}
+
+export interface TaskTemplateWithItems extends TaskTemplate {
+  items: TaskTemplateItem[];
 }
 
 export interface CommentAttachment {
@@ -128,7 +154,12 @@ export interface Comment {
   created_at: string;
 }
 
-export type ActivityEntityType = "task" | "content" | "brand" | "cluster";
+export type ActivityEntityType =
+  | "task"
+  | "content"
+  | "brand"
+  | "cluster"
+  | "template";
 
 export interface ActivityEntry {
   id: string;

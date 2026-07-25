@@ -151,8 +151,38 @@ sonraki oturumda üzerine ekleriz.
 
 ## Yedekleme
 
-Tüm veri tek dosyada: `data/inturlam.db`. Yedek almak için bu dosyayı kopyalaman
-yeterli (sunucu kapalıyken `.db-wal`/`.db-shm` dosyalarıyla birlikte kopyala).
+Tüm veri tek dosyada: `data/inturlam.db`, dosya ekleri `public/uploads/` altında.
+
+```bash
+npm run db:backup
+```
+
+`data/backup/<YYYYAAGG-SSDDss>/` altına veritabanının tutarlı bir anlık görüntüsünü
+(`VACUUM INTO`) ve dosya eklerini kopyalar. **Sunucu açıkken de güvenle çalışır** —
+dosyayı elle kopyalamak `.db-wal` içindeki son yazmaları kaçırabilir, bu komut kaçırmaz.
+
+`npm run dev` ve `npm run start` bu komutu otomatik olarak önce çalıştırır
+(`predev` / `prestart`), yani sunucuyu her açtığında bir yedek alınır.
+Son 14 yedek saklanır, eskisi silinir.
+
+İsteğe bağlı ikinci hedef (ör. ofis PC ile paylaşılan Drive klasörü):
+
+```bash
+INTURLAM_BACKUP_DIR="G:\Drive'ım\INTURLAM_YEDEK" npm run db:backup
+# saklanacak yedek sayısı: INTURLAM_BACKUP_KEEP (varsayılan 14)
+```
+
+### Geri yükleme
+
+```bash
+npm run db:restore                                  # yedekleri listeler
+npm run db:restore -- 20260725-164325 --force       # geri yükler
+```
+
+`--force` olmadan hiçbir şey yazmaz. Yazmadan önce yedeğin `integrity_check`'ini
+doğrular ve mevcut veritabanını `data/backup/restore-oncesi-*` altına alır.
+**Geri yüklemeden önce sunucuyu durdur** — açık bir bağlantı dosyanın değiştiğini
+görmez ve yeni yedeğin üzerine eski sayfaları yazabilir.
 
 ## Mimari notlar
 

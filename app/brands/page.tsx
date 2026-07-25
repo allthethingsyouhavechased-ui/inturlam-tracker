@@ -24,7 +24,7 @@ export default function BrandsPage() {
 
   return (
     <div className="space-y-8">
-      <h1 className="text-xl font-semibold tracking-tight">Markalar</h1>
+      <h1 className="text-2xl font-semibold tracking-tight">Markalar</h1>
 
       <section className="rounded-xl border border-black/10 bg-white p-4 dark:border-white/10 dark:bg-zinc-900">
         <h2 className="mb-3 text-sm font-semibold">Yeni marka ekle</h2>
@@ -51,7 +51,7 @@ export default function BrandsPage() {
               {inCluster.map((brand) => (
                 <div
                   key={brand.id}
-                  className="group flex items-center justify-between gap-2 rounded-xl border border-black/10 bg-white px-4 py-3 transition-colors hover:border-indigo-300 hover:bg-indigo-50/50 dark:border-white/10 dark:bg-zinc-900 dark:hover:border-indigo-800 dark:hover:bg-indigo-950/30"
+                  className="group flex items-center justify-between gap-2 rounded-xl border border-black/10 bg-white px-4 py-3 transition-colors hover:border-brand-300 hover:bg-brand-50/50 dark:border-white/10 dark:bg-zinc-900 dark:hover:border-brand-800 dark:hover:bg-brand-950/30"
                 >
                   <Link
                     href={`/brands/${brand.id}`}
@@ -62,7 +62,7 @@ export default function BrandsPage() {
                   </Link>
                   <div className="flex items-center gap-2">
                     {brand.open_count > 0 ? (
-                      <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-indigo-100 px-2 text-xs font-semibold text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">
+                      <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-brand-100 px-2 text-xs font-semibold text-brand-700 dark:bg-brand-950 dark:text-brand-300">
                         {brand.open_count}
                       </span>
                     ) : (

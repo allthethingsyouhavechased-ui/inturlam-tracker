@@ -47,7 +47,7 @@ export default function SidebarBrandGroup({
       <div
         className={`flex items-center gap-1 rounded-md px-1 py-1 text-sm ${
           isActiveBrand
-            ? "bg-indigo-50 dark:bg-indigo-950/40"
+            ? "bg-brand-50 dark:bg-brand-950/40"
             : "hover:bg-black/5 dark:hover:bg-white/5"
         }`}
       >
@@ -72,7 +72,7 @@ export default function SidebarBrandGroup({
           <span className="truncate font-medium">{brand.name}</span>
         </Link>
         {brand.open_count > 0 && (
-          <span className="shrink-0 rounded-full bg-indigo-100 px-1.5 text-xs font-semibold text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">
+          <span className="shrink-0 rounded-full bg-brand-100 px-1.5 text-xs font-semibold text-brand-700 dark:bg-brand-950 dark:text-brand-300">
             {brand.open_count}
           </span>
         )}
@@ -92,7 +92,7 @@ export default function SidebarBrandGroup({
                   href={href}
                   className={`block truncate rounded px-1.5 py-1 text-xs ${
                     isActiveContent
-                      ? "bg-indigo-100 font-medium text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300"
+                      ? "bg-brand-100 font-medium text-brand-700 dark:bg-brand-950 dark:text-brand-300"
                       : "text-zinc-600 hover:bg-black/5 dark:text-zinc-300 dark:hover:bg-white/5"
                   }`}
                 >

@@ -27,6 +27,10 @@ kategorilere (`clusters` tablosu) ayrılır. Her markanın ayrıca Instagram ara
   tam denetim metinleri (`brand_audits`). Kişileri/marka adlarını buradan düzenle. `getDb()`'yi
   `lib/db/client.ts`'den import ediyor (bkz. "Node native TS import" tuzağı aşağıda) — kendi
   bağlantısını açmıyor, tek bootstrap noktası.
+- Yedekleme: `db/backup.mts` (`npm run db:backup`, `predev`/`prestart` ile otomatik) ve
+  `db/restore.mts` (`npm run db:restore`). Yedek `VACUUM INTO` ile alınır — sunucu DB'yi açık
+  tutarken bile tutarlı; dosyayı elle kopyalamak `.db-wal`'daki son yazmaları kaçırır. İkisi de
+  `getDb()` KULLANMAZ, kendi salt-okunur bağlantısını açar (yedek alırken migration çalışmasın).
 - Demo veri: `db/seed-demo.mts` (`npm run db:seed:demo`) — uygulamayı elle gezerek test etmek için
   14 içerik + 41 görev + yorum + aktivite yazar. Tüm id'ler `demo-` ön ekli; script her çalıştığında
   önce bu kayıtları silip yeniden yazar (idempotent), `-- --clean` ile sadece siler. Gerçek veriye

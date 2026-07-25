@@ -32,7 +32,7 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100">
+      <body className="min-h-full bg-zinc-50 font-sans text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100">
         {/* Sayfa boyanmadan önce `.dark` class'ını uygula — tema seçimi
             localStorage'da, yoksa OS tercihi. Böylece koyu modda beyaz
             ekran parlaması (FOUC) olmaz. */}
@@ -48,7 +48,11 @@ export default function RootLayout({
               <Sidebar />
             </SidebarMobileFrame>
             <main className="min-w-0 flex-1">
-              <div className="mx-auto max-w-5xl px-4 py-6">{children}</div>
+              {/* 5xl (1024px) veri yoğun tablolar/panolar için dardı: 1920px
+                  ekranda tablo sıkışırken sağ-sol boş kalıyordu. Uzun metin
+                  okunan yerler (marka denetim metni, yorumlar) kendi içinde
+                  max-w-3xl ile sınırlanıyor — satır uzunluğu bozulmasın. */}
+              <div className="mx-auto max-w-7xl px-4 py-6">{children}</div>
             </main>
           </div>
         </SidebarMobileProvider>

@@ -47,7 +47,7 @@ export default function TaskGridCard({
           {badges.map((b) => (
             <span
               key={b.label}
-              className={`rounded-full px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide ${b.className}`}
+              className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${b.className}`}
             >
               {b.label}
             </span>
@@ -57,7 +57,7 @@ export default function TaskGridCard({
 
       <Link
         href={`/tasks/${task.id}`}
-        className="text-sm font-medium leading-snug hover:text-indigo-600 dark:hover:text-indigo-400"
+        className="text-sm font-medium leading-snug hover:text-brand-600 dark:hover:text-brand-400"
       >
         {TASK_PRIORITY_FLAG_THRESHOLD.includes(task.priority) && (
           <span className="mr-1">{TASK_PRIORITY_ICON[task.priority]}</span>

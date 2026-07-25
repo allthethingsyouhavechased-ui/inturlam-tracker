@@ -153,6 +153,16 @@ export const OPEN_TASK_STATUSES: TaskStatus[] = TASK_STATUSES.filter(
   (s) => s !== "Yayinlandi",
 );
 
+// Tekrar eden görevler: arayüzdeki select ve action doğrulaması aynı listeyi
+// kullansın diye tek yerde. Gün cinsinden — "aylık" 30 gün kabul ediliyor
+// (takvim ayı değil; iç araç için yeterli, sürpriz yok).
+export const REPEAT_OPTIONS: { days: number; label: string }[] = [
+  { days: 0, label: "Tekrar yok" },
+  { days: 7, label: "Haftalık" },
+  { days: 14, label: "2 haftada bir" },
+  { days: 30, label: "Aylık" },
+];
+
 export const TASK_PRIORITIES: TaskPriority[] = ["Dusuk", "Normal", "Yuksek", "Acil"];
 
 export const TASK_PRIORITY_LABEL: Record<TaskPriority, string> = {

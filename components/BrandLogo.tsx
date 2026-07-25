@@ -25,7 +25,7 @@ export default function BrandLogo({
   }
   return (
     <div
-      className={`${sizeClass} flex shrink-0 items-center justify-center rounded-full bg-indigo-100 font-semibold text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300`}
+      className={`${sizeClass} flex shrink-0 items-center justify-center rounded-full bg-brand-100 font-semibold text-brand-700 dark:bg-brand-950 dark:text-brand-300`}
       aria-hidden
     >
       {name.charAt(0).toUpperCase()}

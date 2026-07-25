@@ -11,7 +11,7 @@ export default function ActivityPage() {
     <div className="space-y-4">
       <AutoRefresh />
       <div>
-        <h1 className="text-xl font-semibold tracking-tight">Aktivite</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Aktivite</h1>
         <p className="mt-1 text-sm text-zinc-500">
           Portföydeki tüm hareketler — en yeni en üstte (son 150 kayıt).
         </p>

@@ -38,7 +38,7 @@ export default async function Header() {
             type="search"
             name="q"
             placeholder="Marka, içerik, görev ara…"
-            className="w-full rounded-md border border-black/10 bg-white px-3 py-1.5 text-sm placeholder:text-zinc-400 focus:border-indigo-400 focus:outline-none dark:border-white/10 dark:bg-zinc-900"
+            className="w-full rounded-md border border-black/10 bg-white px-3 py-1.5 text-sm placeholder:text-zinc-400 focus:border-brand-400 focus:outline-none dark:border-white/10 dark:bg-zinc-900"
           />
         </form>
         <div className="flex items-center gap-2 text-sm">
@@ -68,7 +68,7 @@ export default async function Header() {
           ) : (
             <Link
               href="/whoami"
-              className="rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-indigo-500"
+              className="rounded-md bg-brand-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-brand-500"
             >
               Sen kimsin?
             </Link>

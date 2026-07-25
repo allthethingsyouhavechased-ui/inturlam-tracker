@@ -33,7 +33,7 @@ import type { Person, TaskPriority, TaskStatus, TaskWithContext } from "@/lib/ty
 const UNASSIGN = "__none__";
 
 const barSelectClass =
-  "rounded-md border border-black/10 bg-white px-2 py-1 text-xs outline-none focus:border-indigo-500 disabled:opacity-50 dark:border-white/15 dark:bg-zinc-900";
+  "rounded-md border border-black/10 bg-white px-2 py-1 text-xs outline-none focus:border-brand-500 disabled:opacity-50 dark:border-white/15 dark:bg-zinc-900";
 
 // Tıklanabilir sütun başlığı. Bileşen olarak DIŞARIDA tanımlı: içeride
 // tanımlansaydı her render'da yeni bir tip olacağı için React başlığı yeniden
@@ -60,12 +60,12 @@ function SortableTh({
         onClick={() => onToggle(column)}
         title={LIST_SORT_HINT[column]}
         className={`group inline-flex items-center gap-1 uppercase tracking-wider transition-colors hover:text-zinc-700 dark:hover:text-zinc-200 ${
-          active ? "text-indigo-600 dark:text-indigo-400" : ""
+          active ? "text-brand-600 dark:text-brand-400" : ""
         }`}
       >
         {label}
         <span
-          className={`text-[9px] leading-none ${
+          className={`text-[10px] leading-none ${
             active ? "" : "opacity-0 transition-opacity group-hover:opacity-40"
           }`}
           aria-hidden
@@ -142,8 +142,8 @@ export default function TaskListView({
   return (
     <div className="space-y-3">
       {someSelected && (
-        <div className="sticky top-[57px] z-10 flex flex-wrap items-center gap-2 rounded-xl border border-indigo-200 bg-indigo-50/90 p-2 text-sm shadow-sm backdrop-blur dark:border-indigo-900/60 dark:bg-indigo-950/70">
-          <span className="px-1 font-medium text-indigo-700 dark:text-indigo-300">
+        <div className="sticky top-[var(--header-h)] z-10 flex flex-wrap items-center gap-2 rounded-xl border border-brand-200 bg-brand-50/90 p-2 text-sm shadow-sm backdrop-blur dark:border-brand-900/60 dark:bg-brand-950/70">
+          <span className="px-1 font-medium text-brand-700 dark:text-brand-300">
             {selected.size} seçili
           </span>
 
@@ -228,7 +228,7 @@ export default function TaskListView({
             Sil
           </button>
 
-          {pending && <span className="text-xs text-indigo-500">İşleniyor…</span>}
+          {pending && <span className="text-xs text-brand-500">İşleniyor…</span>}
 
           <button
             type="button"
@@ -255,7 +255,7 @@ export default function TaskListView({
                   }}
                   onChange={toggleAll}
                   aria-label="Tümünü seç"
-                  className="cursor-pointer accent-indigo-600"
+                  className="cursor-pointer accent-brand-600"
                 />
               </th>
               <SortableTh column="gorev" label="Görev" sort={sort} onToggle={toggleSort} />
@@ -273,7 +273,7 @@ export default function TaskListView({
                 <tr
                   key={t.id}
                   className={`border-b border-black/5 last:border-0 dark:border-white/5 ${
-                    isSel ? "bg-indigo-50/60 dark:bg-indigo-950/20" : ""
+                    isSel ? "bg-brand-50/60 dark:bg-brand-950/20" : ""
                   }`}
                 >
                   <td className="px-3 py-2 align-top">
@@ -282,13 +282,13 @@ export default function TaskListView({
                       checked={isSel}
                       onChange={() => toggle(t.id)}
                       aria-label={`${t.title} seç`}
-                      className="mt-0.5 cursor-pointer accent-indigo-600"
+                      className="mt-0.5 cursor-pointer accent-brand-600"
                     />
                   </td>
                   <td className="px-3 py-2">
                     <Link
                       href={`/tasks/${t.id}`}
-                      className="font-medium hover:text-indigo-600 dark:hover:text-indigo-400"
+                      className="font-medium hover:text-brand-600 dark:hover:text-brand-400"
                     >
                       {TASK_PRIORITY_FLAG_THRESHOLD.includes(t.priority) && (
                         <span className="mr-1">{TASK_PRIORITY_ICON[t.priority]}</span>

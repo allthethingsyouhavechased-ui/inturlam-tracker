@@ -63,7 +63,7 @@ export default async function BrandPage({
       <div className="flex flex-wrap items-center gap-3">
         <BrandLogo name={brand.name} logoPath={brand.logo_path} size="lg" />
         <div>
-          <h1 className="text-xl font-semibold tracking-tight">{brand.name}</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">{brand.name}</h1>
           <div className="flex flex-wrap items-center gap-2 text-xs text-zinc-500">
             <span>{clusterLabels[brand.cluster] ?? UNKNOWN_CLUSTER_LABEL}</span>
             {brand.instagram_handle && (
@@ -73,7 +73,7 @@ export default async function BrandPage({
                   href={`https://instagram.com/${brand.instagram_handle}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-indigo-600 hover:text-indigo-500 dark:text-indigo-400"
+                  className="text-brand-600 hover:text-brand-500 dark:text-brand-400"
                 >
                   @{brand.instagram_handle}
                 </a>
@@ -144,7 +144,7 @@ export default async function BrandPage({
                   <Link
                     key={r.id}
                     href={`/brands/${r.related_brand_id}`}
-                    className="flex flex-wrap items-center gap-1.5 rounded-lg border border-black/10 px-3 py-2 text-xs transition-colors hover:border-indigo-300 dark:border-white/10 dark:hover:border-indigo-800"
+                    className="flex flex-wrap items-center gap-1.5 rounded-lg border border-black/10 px-3 py-2 text-xs transition-colors hover:border-brand-300 dark:border-white/10 dark:hover:border-brand-800"
                   >
                     <BrandLogo
                       name={r.related_brand_name}
@@ -169,7 +169,7 @@ export default async function BrandPage({
               <summary className="cursor-pointer text-xs font-semibold uppercase tracking-wider text-zinc-400">
                 Tam Denetim Raporu
               </summary>
-              <div className="prose prose-sm prose-zinc mt-3 max-w-none dark:prose-invert prose-headings:font-semibold prose-a:text-indigo-600 dark:prose-a:text-indigo-400">
+              <div className="prose prose-sm prose-zinc mt-3 max-w-none dark:prose-invert prose-headings:font-semibold prose-a:text-brand-600 dark:prose-a:text-brand-400">
                 <ReactMarkdown>{audit.body_markdown}</ReactMarkdown>
               </div>
             </details>
@@ -199,7 +199,7 @@ export default async function BrandPage({
             {items.map((item) => (
               <li
                 key={item.id}
-                className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border border-black/10 bg-white px-4 py-3 transition-colors hover:border-indigo-300 hover:bg-indigo-50/50 dark:border-white/10 dark:bg-zinc-900 dark:hover:border-indigo-800 dark:hover:bg-indigo-950/30"
+                className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border border-black/10 bg-white px-4 py-3 transition-colors hover:border-brand-300 hover:bg-brand-50/50 dark:border-white/10 dark:bg-zinc-900 dark:hover:border-brand-800 dark:hover:bg-brand-950/30"
               >
                 <Link
                   href={`/brands/${brand.id}/content/${item.id}`}
