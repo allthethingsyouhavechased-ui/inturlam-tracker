@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Logo from "@/components/Logo";
 import { currentWeekRange, todayISO } from "@/lib/date";
 import { listBrandsWithOpenCounts } from "@/lib/repositories/brands";
 import {
@@ -52,11 +53,14 @@ export default function HomePage() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-xl font-semibold tracking-tight">İNTURLAM İş Takip</h1>
-        <p className="mt-1 text-sm text-zinc-500">
-          Ajans genelinde marka, içerik ve görev takibi.
-        </p>
+      <div className="flex items-center gap-3">
+        <Logo className="h-11 w-11 shrink-0 text-zinc-800 dark:text-zinc-100" />
+        <div>
+          <h1 className="text-xl font-semibold tracking-tight">İNTURLAM İş Takip</h1>
+          <p className="mt-1 text-sm text-zinc-500">
+            Ajans genelinde marka, içerik ve görev takibi.
+          </p>
+        </div>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">

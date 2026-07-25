@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Logo from "@/components/Logo";
 import MobileMenuButton from "@/components/MobileMenuButton";
 import NavLinks from "@/components/NavLinks";
 import QuickAddModal from "@/components/QuickAddModal";
@@ -21,9 +22,10 @@ export default async function Header() {
           <MobileMenuButton />
           <Link
             href="/"
-            className="rounded-md px-2.5 py-1.5 font-semibold tracking-tight hover:bg-black/5 dark:hover:bg-white/10"
+            className="flex items-center gap-2 rounded-md px-2.5 py-1.5 font-semibold tracking-tight hover:bg-black/5 dark:hover:bg-white/10"
           >
-            İNTURLAM
+            <Logo className="h-6 w-6 shrink-0" />
+            <span>İNTURLAM</span>
           </Link>
           <NavLinks />
         </nav>

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none" stroke-linejoin="round" stroke-linecap="round">
+  <style>
+    :root { --c: #27272a; }
+    @media (prefers-color-scheme: dark) { :root { --c: #e5e5e5; } }
+    * { stroke: var(--c); }
+  </style>
+  <circle cx="50" cy="50" r="46" stroke-width="3"/>
+  <path stroke-width="2.4" d="M50 16 L82.3 39.5 L70 77.5 L30 77.5 L17.7 39.5 Z"/>
+  <path stroke-width="2.4" d="M58.8 37.9 L64.3 54.6 L50 65 L35.7 54.6 L41.2 37.9 Z"/>
+  <path stroke-width="2.4" d="M50 50 L58.8 37.9 M50 50 L64.3 54.6 M50 50 L50 65 M50 50 L35.7 54.6 M50 50 L41.2 37.9"/>
+  <path stroke-width="2.4" d="M50 16 L41.2 37.9 M50 16 L58.8 37.9 M82.3 39.5 L58.8 37.9 M82.3 39.5 L64.3 54.6 M70 77.5 L64.3 54.6 M70 77.5 L50 65 M30 77.5 L50 65 M30 77.5 L35.7 54.6 M17.7 39.5 L35.7 54.6 M17.7 39.5 L41.2 37.9"/>
+</svg>
