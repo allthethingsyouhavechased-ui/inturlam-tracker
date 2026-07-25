@@ -1,0 +1,34 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # node:sqlite ve native TypeScript stripping için Node 24 şart —
+      # testler `node --test "tests/**/*.test.ts"` ile doğrudan .ts çalıştırıyor.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+
+      - run: npm ci
+
+      - name: Tip kontrolü
+        run: npx tsc --noEmit
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Testler
+        run: npm test
+
+      # data/inturlam.db repoda yok; getDb() yoksa oluşturduğu için build sorunsuz.
+      - name: Build
+        run: npm run build
