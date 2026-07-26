@@ -5,6 +5,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { recordActivity } from "@/lib/activity";
 import { getCurrentPerson } from "@/lib/identity";
+import { notifyMentions } from "@/lib/notifications";
 import {
   addCommentAttachment,
   createComment,
@@ -74,6 +75,19 @@ export async function addCommentAction(formData: FormData) {
     brandId: task?.brand_id ?? null,
     summary: `“${task?.title ?? "Görev"}” görevine yorum yaptı`,
   });
+
+  // @mention edilen kişilere bildirim üret (varsa). Kendini mention etmek
+  // bildirim doğurmaz — notifyMentions bunu zaten filtreler. En iyi çabadır,
+  // hata olursa yutulur; yorum burada zaten başarıyla kaydedilmiş durumda.
+  if (body) {
+    notifyMentions({
+      body,
+      actor: person,
+      taskId,
+      taskTitle: task?.title ?? "Görev",
+      brandId: task?.brand_id ?? null,
+    });
+  }
 
   revalidatePath("/", "layout");
 }

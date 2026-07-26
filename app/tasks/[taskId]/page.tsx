@@ -124,7 +124,12 @@ export default async function TaskPage({
         <h2 className="text-sm font-semibold">Yorumlar ({comments.length})</h2>
         <ul className="space-y-2">
           {comments.map((c) => (
-            <CommentItem key={c.id} comment={c} canEdit={me?.id === c.author_id} />
+            <CommentItem
+              key={c.id}
+              comment={c}
+              canEdit={me?.id === c.author_id}
+              people={people}
+            />
           ))}
           {comments.length === 0 && (
             <li className="text-sm text-zinc-500 dark:text-zinc-400">Henüz yorum yok.</li>

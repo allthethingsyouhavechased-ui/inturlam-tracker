@@ -139,6 +139,23 @@ CREATE TABLE IF NOT EXISTS activity_log (
   created_at  TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
+-- @mention bildirimleri: bir yorumda @İsim ile bahsedilen kişiye. activity_log
+-- ile aynı gerekçeyle (yukarıya bak) actor/recipient/task/brand bilgisi anlık
+-- (snapshot) metin/id olarak tutulur, FK YOK — kişi ya da görev sonradan
+-- silinse bile bildirim geçmişi okunabilir kalsın.
+CREATE TABLE IF NOT EXISTS notifications (
+  id             TEXT PRIMARY KEY,
+  recipient_id   TEXT NOT NULL,
+  recipient_name TEXT,
+  actor_id       TEXT,
+  actor_name     TEXT,
+  task_id        TEXT,
+  brand_id       TEXT,
+  summary        TEXT NOT NULL,
+  read           INTEGER NOT NULL DEFAULT 0,
+  created_at     TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
 CREATE INDEX IF NOT EXISTS idx_brands_cluster      ON brands(cluster);
 CREATE INDEX IF NOT EXISTS idx_clusters_sort       ON clusters(sort_order);
 CREATE INDEX IF NOT EXISTS idx_content_items_brand    ON content_items(brand_id);
@@ -154,3 +171,5 @@ CREATE INDEX IF NOT EXISTS idx_brand_relations_related ON brand_relations(relate
 CREATE INDEX IF NOT EXISTS idx_activity_created ON activity_log(created_at);
 CREATE INDEX IF NOT EXISTS idx_activity_brand   ON activity_log(brand_id);
 CREATE INDEX IF NOT EXISTS idx_activity_entity  ON activity_log(entity_type, entity_id);
+CREATE INDEX IF NOT EXISTS idx_notifications_recipient_read ON notifications(recipient_id, read);
+CREATE INDEX IF NOT EXISTS idx_notifications_created        ON notifications(created_at);

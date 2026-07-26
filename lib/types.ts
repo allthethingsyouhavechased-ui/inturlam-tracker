@@ -142,6 +142,21 @@ export interface ActivityEntry {
   created_at: string;
 }
 
+// @mention bildirimi. recipient/actor/task/brand alanları activity_log ile
+// aynı gerekçeyle anlık (snapshot) tutulur — FK yok, bkz. schema.sql.
+export interface Notification {
+  id: string;
+  recipient_id: string;
+  recipient_name: string | null;
+  actor_id: string | null;
+  actor_name: string | null;
+  task_id: string | null;
+  brand_id: string | null;
+  summary: string;
+  read: number;
+  created_at: string;
+}
+
 export interface TaskCardBadge {
   label: string;
   className: string;

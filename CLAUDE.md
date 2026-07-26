@@ -109,6 +109,20 @@ kategorilere (`clusters` tablosu) ayrılır. Her markanın ayrıca Instagram ara
   kendi görevine (`/tasks/[id]`) ayrıca linkli; hücrenin tamamını da (gün detayına gitmek için)
   tıklanabilir yapmak iç içe `<a>` üretir (geçersiz HTML). Gün detayına gitmenin tek yolu tarih
   numarası (`touch-target` ile büyütülmüş) ve taşma metni ("+N daha") — hücrenin geri kalanı `<div>`.
+- **@mention eşleştirmede en uzun isim önce kazanır:** `lib/mentions.ts` aktif kişileri isim
+  uzunluğuna göre AZALAN sırada dener ve her eşleşen `[start,end)` aralığını `claimed` listesine
+  ekler; daha kısa bir isim (`Yunus`) aynı aralıkta tekrar eşleşmeye çalışırsa (`Yunus Emre`'nin
+  içindeki "Yunus" öneki gibi) bu, `claimed` ile çakıştığı için sayılmaz. Sırayı isim uzunluğuna
+  göre değil de kişi listesi sırasına göre denersen kısa isim uzun ismi böler, yanlış kişiye
+  bildirim gider. Bildirim üretimi (`extractMentionedPeople`) ve yorum metnindeki vurgulama
+  (`CommentItem`) AYNI `findMentionMatches`'ı çağırır — biri güncellenip diğeri unutulamaz.
+- **Sunucu props'unu optimistic client state'e `useEffect` OLMADAN yansıt:** `NotificationBell`
+  gelen `notifications`/`unreadCount` prop'larını yerel state'e kopyalayıp bir `useEffect` içinde
+  senkronlamıyor (bu `react-hooks/set-state-in-effect`'e takılırdı, bkz. yukarıdaki Sidebar notu —
+  aynı kural burada da geçerli). Bunun yerine yalnızca "bu oturumda okundu işaretlenen id'ler"
+  kümesini tutuyor; ekrana çizilen liste ve rozet sayısı her render'da `props` ile bu küçük
+  override kümesinden TÜRETİLİYOR. Sunucu verisi + iyimser tıklama gerektiren yeni bir bileşende
+  bu deseni tercih et — prop'u state'e kopyalamak neredeyse hep bir senkronizasyon efekti gerektirir.
 
 ## Marka sayfası: kaldırılan araştırma verileri
 

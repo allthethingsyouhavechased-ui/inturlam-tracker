@@ -2,6 +2,7 @@ import Link from "next/link";
 import Logo from "@/components/Logo";
 import MobileMenuButton from "@/components/MobileMenuButton";
 import NavLinks from "@/components/NavLinks";
+import NotificationBell from "@/components/NotificationBell";
 import QuickAddModal from "@/components/QuickAddModal";
 import SidebarToggle from "@/components/SidebarToggle";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -9,6 +10,10 @@ import { clearIdentity } from "@/lib/actions/identity";
 import { getCurrentPerson } from "@/lib/identity";
 import { listBrands } from "@/lib/repositories/brands";
 import { listAllContentSummaries } from "@/lib/repositories/content";
+import {
+  countUnreadForPerson,
+  listNotificationsForPerson,
+} from "@/lib/repositories/notifications";
 import { listActivePeople } from "@/lib/repositories/people";
 
 export default async function Header() {
@@ -16,6 +21,8 @@ export default async function Header() {
   const brands = listBrands();
   const contents = listAllContentSummaries();
   const people = listActivePeople();
+  const notifications = person ? listNotificationsForPerson(person.id) : [];
+  const unreadCount = person ? countUnreadForPerson(person.id) : 0;
   return (
     <header className="sticky top-0 z-10 border-b border-black/10 bg-white/80 backdrop-blur dark:border-white/10 dark:bg-zinc-950/80">
       <div className="flex items-center justify-between gap-4 px-4 py-3">
@@ -78,6 +85,9 @@ export default async function Header() {
             >
               Sen kimsin?
             </Link>
+          )}
+          {person && (
+            <NotificationBell notifications={notifications} unreadCount={unreadCount} />
           )}
           <ThemeToggle />
         </div>
