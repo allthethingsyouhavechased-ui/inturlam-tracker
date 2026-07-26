@@ -4,6 +4,7 @@ import { useState } from "react";
 import { updateBrandAction } from "@/lib/actions/brands";
 import { getActionErrorMessage } from "@/lib/errorMessage";
 import type { Brand } from "@/lib/types";
+import BrandLogoPicker from "./BrandLogoPicker";
 import ClusterSelect from "./ClusterSelect";
 import SubmitButton from "./SubmitButton";
 
@@ -48,6 +49,8 @@ export default function EditBrandForm({
       className="w-full space-y-4 rounded-xl border border-black/10 bg-white p-4 dark:border-white/10 dark:bg-zinc-900"
     >
       <input type="hidden" name="brandId" value={brand.id} />
+
+      <BrandLogoPicker currentLogoPath={brand.logo_path} />
 
       {/* Temel bilgiler */}
       <div className="grid gap-3 sm:grid-cols-3">

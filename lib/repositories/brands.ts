@@ -86,6 +86,14 @@ export function updateBrand(input: {
   );
 }
 
+export function updateBrandLogo(id: string, logoPath: string): void {
+  getDb().prepare("UPDATE brands SET logo_path = ? WHERE id = ?").run(logoPath, id);
+}
+
+export function deleteBrand(id: string): void {
+  getDb().prepare("DELETE FROM brands WHERE id = ?").run(id);
+}
+
 export function setBrandArchived(id: string, archived: boolean): void {
   getDb()
     .prepare("UPDATE brands SET archived = ? WHERE id = ?")

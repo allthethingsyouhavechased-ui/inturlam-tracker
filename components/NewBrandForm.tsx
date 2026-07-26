@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { createBrandAction } from "@/lib/actions/brands";
 import { getActionErrorMessage } from "@/lib/errorMessage";
+import BrandLogoPicker from "./BrandLogoPicker";
 import ClusterSelect from "./ClusterSelect";
 import SubmitButton from "./SubmitButton";
 
@@ -33,31 +34,34 @@ export default function NewBrandForm({
           setError(getActionErrorMessage(e));
         }
       }}
-      className="grid gap-3 sm:grid-cols-[1fr_auto_auto_auto] sm:items-end"
+      className="grid gap-3"
     >
-      <label className="grid gap-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">
-        Marka adı
-        <input
-          name="name"
-          required
-          placeholder="Örn. Yeni Marka"
-          className={inputClass}
-        />
-      </label>
-      <label className="grid gap-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">
-        Kategori
-        <ClusterSelect key={resetKey} clusters={clusters} className={inputClass} />
-      </label>
-      <label className="grid gap-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">
-        Instagram (opsiyonel)
-        <input
-          name="instagramHandle"
-          placeholder="kullaniciadi"
-          className={inputClass}
-        />
-      </label>
-      <SubmitButton>Marka ekle</SubmitButton>
-      {error && <p role="alert" className="text-xs text-rose-600 dark:text-rose-400 sm:col-span-4">{error}</p>}
+      <div className="grid gap-3 sm:grid-cols-[1fr_auto_auto_auto] sm:items-end">
+        <label className="grid gap-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">
+          Marka adı
+          <input
+            name="name"
+            required
+            placeholder="Örn. Yeni Marka"
+            className={inputClass}
+          />
+        </label>
+        <label className="grid gap-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">
+          Kategori
+          <ClusterSelect key={resetKey} clusters={clusters} className={inputClass} />
+        </label>
+        <label className="grid gap-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">
+          Instagram (opsiyonel)
+          <input
+            name="instagramHandle"
+            placeholder="kullaniciadi"
+            className={inputClass}
+          />
+        </label>
+        <SubmitButton>Marka ekle</SubmitButton>
+      </div>
+      <BrandLogoPicker key={resetKey} />
+      {error && <p role="alert" className="text-xs text-rose-600 dark:text-rose-400">{error}</p>}
     </form>
   );
 }

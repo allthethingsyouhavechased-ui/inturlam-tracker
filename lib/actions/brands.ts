@@ -6,10 +6,18 @@ import { resolveClusterFromForm } from "@/lib/clusters";
 import { todayISO } from "@/lib/date";
 import {
   createBrand,
+  deleteBrand,
   getBrand,
   setBrandArchived,
   updateBrand,
+  updateBrandLogo,
 } from "@/lib/repositories/brands";
+import { deleteUploadedFile, saveBrandLogo } from "@/lib/uploads";
+
+function extractLogoFile(formData: FormData): File | null {
+  const value = formData.get("logo");
+  return value instanceof File && value.size > 0 ? value : null;
+}
 
 function cleanValue(value: FormDataEntryValue | null): string | null {
   const s = String(value ?? "").trim();
@@ -35,6 +43,12 @@ export async function createBrandAction(formData: FormData) {
     cluster,
     instagramHandle: cleanValue(formData.get("instagramHandle")),
   });
+
+  const logo = extractLogoFile(formData);
+  if (logo) {
+    const logoPath = await saveBrandLogo(logo, id);
+    updateBrandLogo(id, logoPath);
+  }
 
   await recordActivity({
     action: "brand.create",
@@ -67,6 +81,12 @@ export async function updateBrandAction(formData: FormData) {
     today: todayISO(),
   });
 
+  const logo = extractLogoFile(formData);
+  if (logo) {
+    const logoPath = await saveBrandLogo(logo, id);
+    updateBrandLogo(id, logoPath);
+  }
+
   await recordActivity({
     action: "brand.update",
     entityType: "brand",
@@ -87,6 +107,30 @@ export async function archiveBrandAction(brandId: string) {
     entityId: brandId,
     brandId,
     summary: `“${brand?.name ?? "Marka"}” markasını arşivledi`,
+  });
+  revalidatePath("/", "layout");
+}
+
+// Kalıcı silme yalnızca arşivdeki bir markaya izin verir — aktif bir markayı
+// tek tıkla, altındaki tüm içerik/görev/yorum geçmişiyle birlikte kalıcı
+// olarak kaybetmeyi zorlaştıran bilinçli bir güvenlik adımı (bkz. arşivle
+// önce deseni, DeleteBrandButton yalnızca arşiv listesinde gösteriliyor).
+export async function deleteBrandAction(brandId: string) {
+  const brand = getBrand(brandId);
+  if (!brand) return;
+  if (brand.archived !== 1) {
+    throw new Error("Önce markayı arşivle, sonra sil.");
+  }
+  deleteBrand(brandId);
+  if (brand.logo_path) {
+    await deleteUploadedFile(brand.logo_path);
+  }
+  await recordActivity({
+    action: "brand.delete",
+    entityType: "brand",
+    entityId: null,
+    brandId: null,
+    summary: `“${brand.name}” markasını kalıcı olarak sildi`,
   });
   revalidatePath("/", "layout");
 }

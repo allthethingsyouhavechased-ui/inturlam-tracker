@@ -89,6 +89,17 @@ Gıda, B2B / Yapı, Hamam, Gayrimenkul, Diğer). Her markanın yanında:
 
 Bir markaya tıklayınca o markanın sayfasına gidersin.
 
+Üstteki **"Yeni marka ekle"** kutusundan yeni bir marka açabilirsin: ad, kategori,
+Instagram kullanıcı adı ve isteğe bağlı bir **logo** (📎 "Logo ekle"ye basıp görsel
+seç, önizlemesini gör, sonra "Ekle"ye bas).
+
+Bir markayı listeden kaldırmak istersen **arşivle** — silinmez, sayfanın altında
+ayrı bir "Arşivlenenler" listesinde durur, istersen oradan **arşivden çıkar**
+diyip geri getirirsin. Arşivdeki bir markayı **kalıcı olarak silmek** de mümkün
+(dikkat, geri gelmez — altındaki tüm içerik/görev/yorum da gider); bu düğme
+kasıtlı olarak yalnızca arşivlenmiş markalarda çıkar, aktif bir markayı yanlışlıkla
+tek tıkla silemezsin.
+
 ---
 
 ## 6. Marka sayfası
@@ -102,7 +113,7 @@ Marka adına tıklayınca üstte bir **profil kartı** görürsün:
   nelere dikkat edilmeli)
 
 Bu bilgileri **"Düzenle"** ile kendin güncelleyebilirsin — marka adı, kategori,
-Instagram kullanıcı adı, takipçi/gönderi sayısı, tier, kısa bilgi.
+Instagram kullanıcı adı, takipçi/gönderi sayısı, tier, kısa bilgi, **logo**.
 
 Bunların altında markanın **içerik/proje listesi** ve en altta o markadaki tüm
 hareketlerin (içerik/görev oluşturma, durum değişimi vb.) geçmişi var.

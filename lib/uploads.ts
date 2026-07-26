@@ -4,7 +4,7 @@ import path from "node:path";
 export const MAX_IMAGE_FILES = 6;
 export const MAX_IMAGE_SIZE = 8 * 1024 * 1024; // 8MB
 
-const ALLOWED_IMAGE_EXTENSIONS: Record<string, string> = {
+export const ALLOWED_IMAGE_EXTENSIONS: Record<string, string> = {
   "image/png": "png",
   "image/jpeg": "jpg",
   "image/gif": "gif",
@@ -52,4 +52,27 @@ export async function saveImageFiles(
 export async function deleteUploadedFile(filePath: string): Promise<void> {
   const abs = path.join(process.cwd(), "public", filePath.replace(/^\//, ""));
   await fs.unlink(abs).catch(() => {});
+}
+
+// Marka logoları `public/logos/<brandId>.<uzanti>` altında, `db/seed.mts`'in
+// beklediği ADLANDIRMAYLA AYNI yere yazılır — böylece bu yoldan yüklenen bir
+// logo, sonradan `db:seed` çalıştırıldığında da bulunur/korunur. Dosya adı
+// UUID değil brandId olduğu için tek marka için tek dosya olur; önceki logo
+// farklı bir uzantıdaysa (ör. .jpg -> .png değişimi) yetim kalmasın diye önce
+// aynı brandId ile başlayan dosyalar temizlenir.
+export async function saveBrandLogo(image: File, brandId: string): Promise<string> {
+  validateImageFiles([image]);
+  const logoDir = path.join(process.cwd(), "public", "logos");
+  await fs.mkdir(logoDir, { recursive: true });
+  const existing = await fs.readdir(logoDir).catch(() => [] as string[]);
+  for (const file of existing) {
+    if (file.startsWith(`${brandId}.`)) {
+      await fs.unlink(path.join(logoDir, file)).catch(() => {});
+    }
+  }
+  const ext = ALLOWED_IMAGE_EXTENSIONS[image.type];
+  const fileName = `${brandId}.${ext}`;
+  const buffer = Buffer.from(await image.arrayBuffer());
+  await fs.writeFile(path.join(logoDir, fileName), buffer);
+  return `/logos/${fileName}`;
 }

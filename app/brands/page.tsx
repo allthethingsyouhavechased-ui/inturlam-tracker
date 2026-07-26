@@ -1,6 +1,7 @@
 import BrandLogo from "@/components/BrandLogo";
 import ArchiveBrandButton from "@/components/ArchiveBrandButton";
 import ClusterManager from "@/components/ClusterManager";
+import DeleteBrandButton from "@/components/DeleteBrandButton";
 import NewBrandForm from "@/components/NewBrandForm";
 import Link from "next/link";
 import { listArchivedBrands, listBrandsWithOpenCounts } from "@/lib/repositories/brands";
@@ -98,7 +99,10 @@ export default function BrandsPage() {
                   <BrandLogo name={brand.name} logoPath={brand.logo_path} size="sm" />
                   <span>{brand.name}</span>
                 </span>
-                <ArchiveBrandButton brandId={brand.id} archived />
+                <div className="flex items-center gap-3">
+                  <ArchiveBrandButton brandId={brand.id} archived />
+                  <DeleteBrandButton brandId={brand.id} />
+                </div>
               </div>
             ))}
           </div>
