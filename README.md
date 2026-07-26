@@ -8,10 +8,8 @@ kurulumu basit bir iç araç.
 - **Görev takibi:** Her marka için içerik/proje planla (Reel, Foto, Kampanya…), altına
   görevler düş (brief, çekim, kurgu, onay, yayın), kime atandığını ve son tarihini
   işaretle, yorum bırak.
-- **Marka araştırma paneli:** Her markanın Instagram verisi (takipçi, gönderi, medyan
-  Reel izlenmesi, kapak testi sonucu), öne çıkan bulgu, ilk aksiyon önerisi, diğer
-  markalarla ilişkisi (rakip/tedarikçi/marka ailesi vb.) ve tam 7 katmanlı denetim
-  raporu — hepsi marka sayfasında, ayrı bir dosya açmaya gerek kalmadan.
+- **Marka bilgileri:** Her markanın Instagram verisi (takipçi, gönderi sayısı, haftalık
+  tazelenme takibi) ve öne çıkan bulgu, marka sayfasında bir bakışta.
 - **"Panom" sayfası:** Herkes kendi açık görevlerini, gecikmişleri ve o hafta teslim
   olacakları tek ekranda görür — durumunu da göreve girmeden, doğrudan bu listeden
   değiştirebilir.

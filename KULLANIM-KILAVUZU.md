@@ -7,13 +7,21 @@ onlarla ilgilenen zaten Yunus Emre. Burada sadece **günlük olarak nasıl kulla
 
 ## 1. Bu nedir?
 
-İNTURLAM'ın markaları için ortak bir görev takip sayfası. İki ana bölümü var:
+İNTURLAM'ın markaları için ortak bir görev takip sayfası. Hiyerarşi şöyle:
 
-- **Görevler:** Hangi markada, hangi içerik için, kim ne yapıyor, ne zamana kadar —
-  hepsi tek yerde. Herkes kendi görevini görür, durumunu günceller.
-- **Marka bilgileri:** Her markanın Instagram'daki durumu (takipçi sayısı, hangi
-  içerikler işe yarıyor, hangi markayla nasıl bir ilişkisi var) bir bakışta önünde —
-  brief hazırlarken ayrıca not/dosya aramana gerek kalmaz.
+**Marka → İçerik/Proje → Görev → (yorum)**
+
+Örnek: *Hacıbaba Coffee House* (marka) → *Soğuk Kahve Kampanyası* (içerik/proje) →
+*3 adet Reel kurgusu* (görev) → altına yorumlar/görseller.
+
+İki ana kullanım şekli var:
+- **Tek bir markayla/projeyle uğraşırken:** Markalar → marka → içerik/proje seç,
+  o projenin görev panosuna girersin.
+- **"Bugün ne yapmalıyım" derken:** Panom, Görevler, Takvim sayfaları — tüm
+  markalardaki görevleri tek ekranda, farklı süzgeçlerle gösterir.
+
+Uygulama şu an **boş başlıyor** — deneme amaçlı açılmış içerik/görevler temizlendi.
+Gerçek işler buradan itibaren eklenecek.
 
 ---
 
@@ -47,7 +55,30 @@ Kendi adını değiştirmek/çıkış yapmak istersen: sağ üstteki adının ya
 
 ---
 
-## 4. Ana sayfa: Markalar
+## 4. Üst menüye genel bakış
+
+Üstteki menüde 8 bölüm var (dar ekranda/telefonda sağ üstteki **☰** menü ikonuna taşınır):
+
+| Bölüm | Ne işe yarar |
+|---|---|
+| **Markalar** | 19 markanın listesi, marka bilgileri, içerik/proje ekleme |
+| **Görevler** | Portföydeki TÜM görevler, filtreleme, pano/liste görünümü |
+| **Takvim** | Görevleri teslim tarihine göre ay ay gör |
+| **Raporlar** | Kim/hangi marka ne kadar iş tamamladı |
+| **Aktivite** | Portföydeki tüm hareketlerin (kim ne yaptı) kronolojik akışı |
+| **Ekip** | Kullanıcı/kişi listesi yönetimi |
+| **Şablonlar** | Tekrarlayan görev grupları (brief→çekim→kurgu→onay→yayın gibi) |
+| **Panom** | Sana özel: senin görevlerin, gecikmişler, bu hafta teslimler |
+
+Menünün yanında ayrıca:
+- 🔍 **Arama kutusu** (masaüstünde ortada) — marka/içerik/görev adı yaz, Enter'a bas.
+- **"+ Yeni"** butonu — herhangi bir sayfadan hızlıca görev eklemek için (bkz. §19).
+- 🔔 **Bildirim zili** — biri seni bir yorumda @etiketlediğinde burada görürsün (§20).
+- ☀️/🌙 **Tema düğmesi** — açık/koyu tema, tercih tarayıcında hatırlanır.
+
+---
+
+## 5. Ana sayfa: Markalar
 
 Girince karşına 19 marka, kümelerine göre gruplanmış gelir (Balık & Deniz, Kahve &
 Gıda, B2B / Yapı, Hamam, Gayrimenkul, Diğer). Her markanın yanında:
@@ -60,26 +91,25 @@ Bir markaya tıklayınca o markanın sayfasına gidersin.
 
 ---
 
-## 5. Marka sayfası
+## 6. Marka sayfası
 
 Marka adına tıklayınca üstte bir **profil kartı** görürsün:
 
-- Logo, marka adı, Instagram hesabı (tıklanabilir link)
-- Takipçi sayısı, gönderi sayısı, medyan Reel izlenmesi, "kapak testi" sonucu
-  (marka logosu kapatılsa bile hesap tanınıyor mu — Geçti/Kısmen/Başarısız)
-- **Öne çıkan bulgu** ve **ilk aksiyon**: o markayla ilgili en önemli tespit ve
-  önerilen ilk adım, tek bakışta
-- **İlgili Markalar:** bu markanın portföydeki başka hangi markayla rakip, tedarikçi,
-  aynı marka ailesinden ya da kardeş şube olduğu — tıklayınca o markaya gider
-- **"Tam Denetim Raporu"**: tıklayınca açılan, o markanın tüm Instagram analizinin
-  (kimlik, içerik, performans, riskler, öneriler) uzun hâli. Varsayılan kapalı,
-  merak edince aç.
+- Logo, marka adı, Instagram hesabı (tıklanabilir link), varsa Tier etiketi
+- Takipçi sayısı, gönderi sayısı ve son güncellenme tarihi — bu iki sayı **haftalık
+  elle** güncelleniyor; 7 günden eskiyse yanında sarı bir **"tazelenmeli"** uyarısı çıkar
+- **Kısa bilgi**: o marka hakkında bilinmesi gereken 2-3 cümle (ne satıyor, tonu ne,
+  nelere dikkat edilmeli)
 
-Bunların altında markanın **içerik/proje listesi** var.
+Bu bilgileri **"Düzenle"** ile kendin güncelleyebilirsin — marka adı, kategori,
+Instagram kullanıcı adı, takipçi/gönderi sayısı, tier, kısa bilgi.
+
+Bunların altında markanın **içerik/proje listesi** ve en altta o markadaki tüm
+hareketlerin (içerik/görev oluşturma, durum değişimi vb.) geçmişi var.
 
 ---
 
-## 6. Yeni içerik/proje ekleme
+## 7. Yeni içerik/proje ekleme
 
 Marka sayfasında, üstteki "Yeni içerik / proje" kutusuna:
 
@@ -88,36 +118,116 @@ Marka sayfasında, üstteki "Yeni içerik / proje" kutusuna:
 - **Atanan**: bu içerikten/projeden kim sorumlu — açılışta kendi adın seçili gelir,
   istersen başka birine ata ya da "— kimse —" bırak
 - **Hedef tarih** (opsiyonel)
+- **Şablon** (opsiyonel): bir şablon seçersen içerik oluşur oluşmaz o şablondaki
+  görevler otomatik açılır — brief/çekim/kurgu/onay gibi standart adımları elle
+  tek tek yazmana gerek kalmaz (şablonlar hakkında §17'ye bak)
 
 yazıp eklersin. Listede görünür, tıklayınca içine girip görev eklemeye başlayabilirsin.
 
+Bir içeriği **arşivleyebilir** ya da (dikkat, geri gelmez) **silebilirsin** — bu
+butonlar içerik listesinde ve içeriğin kendi sayfasında bulunur.
+
 ---
 
-## 7. Görev ekleme ve durumunu değiştirme
+## 8. İçerik/proje sayfası: görev panosu
 
-Bir içeriğin içine girince görev panosunu görürsün — 5 sütun:
+Bir içeriğin içine girince görev panosunu (Kanban) görürsün — 5 sütun:
 
 **Beklemede → Devam Ediyor → İncelemede → Onaylandı → Yayınlandı**
 
 - **Yeni görev eklemek** için üstteki kutuya başlık yaz, kime atanacağını ve varsa son
-  tarihini seç.
-- **Bir görevin durumunu değiştirmek** için görev kartındaki durum etiketine tıkla,
-  açılan listeden yeni durumu seç — anında kaydolur, ayrıca kaydet butonuna basmana
-  gerek yok.
-- **Atanan kişiyi değiştirmek** için aynı kartta atanan-kişi etiketine tıkla.
-- Bir göreve tıklayıp içine girersen: teslim tarihini/notlarını düzenleyebilir, **yorum**
-  bırakabilir, gerekirse görevi silebilirsin.
+  tarihini seç. Ya da **"Şablondan görev ekle…"** ile hazır bir şablonun tüm
+  görevlerini birden aç.
+- **Bir görevin durumunu değiştirmek** için kartı tutup başka bir sütuna
+  **sürükleyip bırak** — anında kaydolur, ayrıca kaydet butonuna basmana gerek yok.
+  (Kartın üzerindeki durum etiketine tıklayıp listeden seçmek de aynı işi yapar.)
+- Bir göreve tıklayıp içine girersen: teslim tarihini/notlarını düzenleyebilir,
+  **görsel ekleyebilir**, **yorum** bırakabilir, gerekirse görevi silebilirsin (§9).
+- İçeriğin kendisinin de bir **durumu** vardır (Planlandı / Üretimde / Tamamlandı /
+  İptal Edildi) — üstteki etikete tıklayıp değiştirebilirsin.
 
 ---
 
-## 8. Yorum bırakma
+## 9. Görev detay sayfası
 
-Görevin detay sayfasında en altta yorum kutusu var. Brief detayı, referans linki,
-hatırlatma — ne olursa yazıp gönder. Yorumlar altında tarih ve kimin yazdığı görünür.
+Bir görevin başlığına tıklayınca detay sayfası açılır:
+
+- **Durum / Atanan / Öncelik**: üç ayrı açılır liste, her biri tek tıkla değişir.
+- **Tekrar**: bu görev periyodik mi? (Yok / Haftalık / 2 haftada bir / Aylık.)
+  Görevi **"Yayınlandı"** yaptığında bir sonraki örneği otomatik açılır — aynı
+  başlık/atanan/öncelik/not ile, durumu yeniden "Beklemede". Yeni teslim tarihi
+  **eski görevin teslim tarihine** göre kayar, o gün geç kapatırsan takvim kaymaz.
+- **Teslim tarihi** ve **Notlar** (brief, referans linkleri, hatırlatmalar) —
+  düzenleyip **"Kaydet"**e bas.
+- **Notlara görsel ekleme**: Notlar kutusunun altında görsel ekleme alanı var —
+  bir ya da birden fazla görsel seç, önizlemesini gör, istersen kaldır, sonra
+  **"Kaydet"**e bastığında görseller görevin notuna kalıcı olarak eklenir. Daha
+  sonra tek tek silebilirsin.
+- **Yorumlar**: en altta, bkz. §10.
+- **Hareketler**: bu göreve özel, kim ne zaman ne değiştirmiş (durum, öncelik,
+  atanan, teslim tarihi…) — kronolojik günlük.
+- **Görevi sil**: dikkat, geri gelmez.
 
 ---
 
-## 9. "Panom" sayfası
+## 10. Yorum bırakma, görsel ekleme, birini etiketleme
+
+Görevin detay sayfasında (ya da §11'deki liste görünümünde yorum panelinden) yorum
+kutusuna:
+
+- Metin yaz, **📎 Görsel ekle** ile bir veya birden fazla görsel iliştir (önizleme
+  gösterir, göndermeden kaldırabilirsin), **"Yorum ekle"**ye bas.
+- **@İsim** yazarak birini etiketleyebilirsin (ör. `@Sıla buna bi bakar mısın?`).
+  Etiketlenen kişiye bildirim gider (🔔 zil, bkz. §20) ve yorumda o isim vurgulanır.
+  Aktif ekip üyelerinin (bkz. §16) isimleriyle eşleşir; büyük/küçük harf ya da baştaki
+  parça yeterli.
+
+Yorumlar altında tarih ve kimin yazdığı görünür, eklenen görseller küçük önizleme
+olarak gösterilir (tıklayınca büyük hâli açılır).
+
+---
+
+## 11. "Görevler" sayfası: tüm görevler, filtreleme, liste görünümü
+
+Üstteki menüden **"Görevler"**e tıkla. Burada **portföydeki bütün görevler** tek
+listede, üstte filtrelerle:
+
+- Görev adına göre arama kutusu
+- Marka, Durum, Öncelik, Atanan (Herkes / Atanmamış / kişi) süzgeçleri
+- **Pano** / **Liste** görünüm anahtarı (sağ üstte)
+
+**Pano görünümü**: içerik sayfasındaki gibi Kanban, ama tüm markalar bir arada.
+Sütun başlıklarına tıklayarak (Marka/Durum/Öncelik/Atanan) sıralayabilirsin.
+
+**Liste görünümü** — satırların üzerinden değiştirebileceğin alanlar:
+- **Öncelik / Durum / Atanan** hücrelerine tıkla, açılan listeden seç — göreve
+  girmene gerek kalmaz, anında kaydolur.
+- **Teslim** hücresine tıkla, açılan tarih seçiciden yeni tarihi seç.
+- **Yorum** hücresindeki sayıya tıkla — **sağ taraftan bir panel açılır**, o
+  görevin tüm yorumlarını (görseller ve @etiketler dahil) doğrudan orada
+  görürsün, göreve ayrıca girmen gerekmez. Panelde "Görevi aç" linkiyle istersen
+  tam detay sayfasına da geçebilirsin. Paneli kapatmak için **Kapat**'a bas,
+  arka plana tıkla ya da **Esc** tuşuna bas.
+
+Bu sayede sabah "bugün ne değişecek" diye tek tek görev sayfalarını açıp
+kapatmak yerine, hepsini bu tek listeden yönetebilirsin.
+
+---
+
+## 12. Takvim sayfası
+
+Üstteki menüden **"Takvim"**e tıkla. Ay ızgarasında, teslim tarihi olan görevler
+kendi günlerinde küçük renkli etiketler (öncelik rengine göre) olarak görünür.
+
+- **‹ ›** ile ay değiştir, **"Bugün"** ile geçerli aya dön.
+- Bir güne tıklayınca altta o günün tüm görevleri, §11'deki aynı **liste
+  görünümüyle** açılır — oradan da durum/öncelik/atanan/teslim tarihini
+  değiştirebilirsin.
+- O ayda hiç teslim tarihli görev yoksa bunu açıkça söyler.
+
+---
+
+## 13. "Panom" sayfası
 
 Üstteki menüden **"Panom"**a tıkla. Burada:
 
@@ -128,23 +238,116 @@ hatırlatma — ne olursa yazıp gönder. Yorumlar altında tarih ve kimin yazd�
 
 Sabah işe başlarken önce buraya bakmak günü planlamayı kolaylaştırır.
 
-**Durumu buradan da değiştirebilirsin** — her görev satırının solundaki renkli durum
-etiketine tıkla, açılan listeden yeni durumu seç. Görevin içine girmene gerek yok,
-anında kaydolur. Görevi tamamlayıp **"Yayınlandı"** yaptığında "Benim görevlerim"
+Buradaki listeler de §11'deki liste görünümünü kullanır — yani öncelik, durum,
+atanan, teslim tarihini satırdan değiştirebilir, yorum sayısına tıklayıp panelden
+okuyabilirsin. Görevi tamamlayıp **"Yayınlandı"** yaptığında "Benim görevlerim"
 listesinden otomatik düşer (artık açık görev sayılmaz).
 
 ---
 
-## 10. Bilmen gereken küçük detaylar
+## 14. Raporlar sayfası
+
+Üstteki menüden **"Raporlar"**a tıkla. Kim ne kadar iş tamamlamış, hangi markada
+ne kadar iş bitmiş — kişi bazında ve marka bazında iki ayrı tablo.
+
+Üstteki tarih aralığı seçiciyle **bu hafta / bu ay / özel tarih aralığı** arasında
+geçiş yapabilirsin (varsayılan: tüm zamanlar). Bir kişiye/markaya tıklayınca o
+kişinin/markanın hangi markalarda/kişilerle kaç görev tamamladığının dökümünü
+görürsün.
+
+---
+
+## 15. Aktivite sayfası
+
+Üstteki menüden **"Aktivite"**ye tıkla. Portföydeki **son 150 hareketi**
+kronolojik olarak gösterir: kim hangi markayı güncelledi, hangi içerik/görev
+oluşturuldu, hangi görevin durumu değişti, kim yorum yazdı. Marka sayfasındaki ve
+görev sayfasındaki "Hareketler" bölümleri bu akışın o markaya/göreve ait kısmıdır.
+
+---
+
+## 16. Ekip sayfası
+
+Üstteki menüden **"Ekip"**e tıkla. Buradan:
+
+- **Yeni ekip üyesi ekle** — isim yaz, ekle. O kişi artık "Sen kimsin?" listesinde
+  ve atanan/etiketleme seçeneklerinde görünür.
+- Bir kişiyi **çıkar** (pasif yap) — geçmiş görev/yorum kayıtları silinmez, sadece
+  yeni atama/@etiketleme listelerinden düşer. İstersen tekrar aktif edebilirsin.
+
+---
+
+## 17. Şablonlar sayfası
+
+Üstteki menüden **"Şablonlar"**a tıkla. Her içerikte tekrarlayan iş akışını
+(brief → çekim → kurgu → kapak → yayın gibi) bir kere tanımlarsın, her yeni
+içerikte elle tek tek görev yazmazsın.
+
+- Her şablon satırı bir görev: başlık + öncelik + **gün kayması** + (isteğe
+  bağlı) sabit atanan.
+- **Gün kayması**, içeriğin *hedef tarihine* göre hesaplanır: `-6` → teslimden
+  6 gün önce, `0` → teslim günü, `+7` → teslimden bir hafta sonra. İçeriğin hedef
+  tarihi yoksa görevler tarihsiz açılır.
+- Bir şablonu tek bir içerik türüne bağlayabilirsin (ör. "Reel akışı" → Reel);
+  yeni içerik formundaki şablon listesi seçilen türe göre filtrelenir.
+- Uygulama iki yerden: marka sayfasındaki "yeni içerik" formunun **Şablon**
+  alanından (içerik açılır açılmaz görevler de açılır), ya da mevcut bir içeriğin
+  sayfasındaki **"Şablondan görev ekle…"** kutusundan.
+- Bir şablonu silersen geri gelmez, ama daha önce ondan açılmış görevlere
+  dokunmaz.
+
+---
+
+## 18. Arama
+
+Üst menünün ortasındaki arama kutusuna (masaüstünde görünür) marka, içerik/proje
+veya görev adının bir parçasını yaz, Enter'a bas. Sonuçlar üç grupta gelir:
+Markalar / İçerikler / Görevler — istediğine tıklayıp doğrudan o sayfaya gidersin.
+
+---
+
+## 19. Hızlı ekle ("+ Yeni")
+
+Hangi sayfada olursan ol, sağ üstteki **"+ Yeni"** butonuyla marka sayfasına
+gitmeden hızlıca görev ekleyebilirsin:
+
+1. Marka seç.
+2. Var olan bir içerik/proje seç, ya da **"+ Yeni içerik oluştur"**la anında
+   yeni bir içerik açıp görevi onun altına koy.
+3. Görev başlığı, öncelik, atanan, teslim tarihi (son ikisi opsiyonel) yaz,
+   **"Oluştur"**a bas.
+
+Aklına gelen küçük bir işi not almak için görev panosuna girmeye gerek kalmaz.
+
+---
+
+## 20. Bildirimler
+
+Sağ üstteki 🔔 zil ikonu, biri seni bir yorumda **@isminle** etiketlediğinde
+kırmızı bir sayı gösterir. Zile tıklayınca son bildirimler açılır:
+
+- Bir bildirime tıklayınca ilgili göreve gidersin ve otomatik okundu işaretlenir.
+- **"Tümünü okundu işaretle"** ile hepsini tek seferde temizleyebilirsin.
+
+Bildirim almak için birinin yorumda tam adını (`@Sıla`, `@Yunus Emre` gibi)
+yazması yeterli — kişi aktif ekip listesinde olmalı (§16).
+
+---
+
+## 21. Bilmen gereken küçük detaylar
 
 - **Yetki sınırı yok** — herkes her markaya görev/içerik ekleyebilir, durum
   değiştirebilir. Ortak bir güven üzerine kurulu, dikkatli kullan.
 - **Değişiklikler diğerlerine ~15 saniyede yansır.** Aynı sayfayı açık tutan biri
   senin yaptığın değişikliği hemen görmeyebilir, sayfa kendini birkaç saniyede bir
   arkada tazeliyor — F5'e basmana genelde gerek yok ama basarsan da bir şey bozulmaz.
-- **Silinen bir görev geri gelmez** — silmeden önce emin ol.
+- **Silinen bir içerik/görev geri gelmez** — silmeden önce emin ol.
 - **Logo/marka verisi yoksa** o alan sayfada görünmez, sayfa bozulmaz — sadece o
   markanın bilgisi henüz eklenmemiş demektir.
+- **Açık/koyu tema** tercihin, o tarayıcıda hatırlanır; sağ üstteki güneş/ay
+  ikonuyla değiştirirsin.
+- **Telefonda menü** sağ üstteki ☰ ikonunun altına taşınır, geri kalan her şey
+  aynı şekilde çalışır.
 
 ---
 
@@ -152,7 +355,7 @@ listesinden otomatik düşer (artık açık görev sayılmaz).
 
 - **Adrese hiç giremiyorsan:** aynı ofis Wi-Fi'ında olduğundan emin ol, sunucunun
   (Yunus Emre'nin bilgisayarı) açık olup olmadığını sor.
-- **"Sen kimsin?" listesinde adın yoksa:** Yunus Emre'ye söyle, listeye eklenmen
-  gerekiyor.
+- **"Sen kimsin?" listesinde adın yoksa:** Yunus Emre'ye söyle, Ekip sayfasından
+  eklenmen gerekiyor.
 - **Sayfa garip görünüyorsa / bir şey tıklanmıyorsa:** sayfayı yenile (F5). Hâlâ
   düzelmiyorsa Yunus Emre'ye haber ver.
