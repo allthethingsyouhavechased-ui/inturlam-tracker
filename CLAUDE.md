@@ -97,6 +97,18 @@ kategorilere (`clusters` tablosu) ayrılır. Her markanın ayrıca Instagram ara
   (best-effort), sonra migration fonksiyonları çalışır, sonra `schemaSql` İKİNCİ kez uygulanır
   (bu sefer tablo doğru şekilde kurulmuş olduğu için hatasız geçer). Yeni bir migration eklerken
   bu deseni boz­ma — özellikle yeni sütun/CHECK içeren yeni bir index/constraint eklediğinde.
+- **Takvim (`/calendar`) ay değil, IZGARA aralığı çeker:** `listTasksDueInRange`'e verilen aralık
+  görüntülenen ayın 1'i–sonu değil, `calendarGridDays()`'in ürettiği dolgu günleri dahil TAM ızgara
+  (önceki/sonraki aydan taşan Pazartesi–Pazar) aralığıdır — yoksa ay başında/sonunda soluk gösterilen
+  komşu ay günleri her zaman boş görünür, oysa o günlerde gerçek görev olabilir. "Bu ay boş mu"
+  kontrolü (`hasTasksThisMonth`) ayrıca ayın kendisiyle sınırlanır, ızgara dolgusuyla değil — ikisini
+  karıştırma. Aynı fonksiyon, haftalık panoyu besleyen `listTasksDueThisWeek`'in aksine
+  `'Yayinlandi'` durumunu FİLTRELEMİYOR (bilinçli: geçmiş bir ay tamamlanmış işi de göstermeli) —
+  "tutarlı olsun" diye o filtreyi buraya kopyalama.
+- **`CalendarGrid`'de hücrenin tamamı değil yalnızca tarih numarası link'tir:** Her öncelik pill'i
+  kendi görevine (`/tasks/[id]`) ayrıca linkli; hücrenin tamamını da (gün detayına gitmek için)
+  tıklanabilir yapmak iç içe `<a>` üretir (geçersiz HTML). Gün detayına gitmenin tek yolu tarih
+  numarası (`touch-target` ile büyütülmüş) ve taşma metni ("+N daha") — hücrenin geri kalanı `<div>`.
 
 ## Marka sayfası: kaldırılan araştırma verileri
 

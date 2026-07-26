@@ -74,6 +74,25 @@ export function listTasksDueThisWeek(
   );
 }
 
+// "/calendar" (Takvim) sayfası için — verilen aralıkta (ay ızgarası, dolgu
+// günleri dahil) teslim tarihi olan TÜM görevler, durumdan bağımsız.
+// `listTasksDueThisWeek`'in aksine 'Yayinlandi' filtrelenmiyor: takvim geçmiş
+// bir ayı gösterirken tamamlanmış iş de o günün altında görünmeli, yoksa
+// geçmiş aylar olduğundan daha boş görünür. Aynı gün içinde önce en öncelikli
+// görev listelensin diye sıralama günün içinde de PRIORITY_ORDER_SQL kullanır
+// — hücrede yalnızca ilk birkaçı gösterilip gerisi "+N daha" ile katlanıyor.
+export function listTasksDueInRange(start: string, end: string): TaskWithContext[] {
+  return plainList<TaskWithContext>(
+    getDb()
+      .prepare(
+        `${WITH_CONTEXT_SELECT}
+         WHERE t.due_date IS NOT NULL AND t.due_date BETWEEN ? AND ?
+         ORDER BY t.due_date, ${PRIORITY_ORDER_SQL}, b.name`,
+      )
+      .all(start, end),
+  );
+}
+
 export function listOverdueTasks(today: string): TaskWithContext[] {
   return plainList<TaskWithContext>(
     getDb()

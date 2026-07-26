@@ -150,3 +150,15 @@ export const TASK_PRIORITY_BORDER: Record<TaskPriority, string> = {
   Yuksek: "border-l-amber-500",
   Acil: "border-l-rose-500",
 };
+
+// Takvim ızgarasının dar ekran görünümünde (metin pill'i sığmadığında) öncelik
+// göstergesi — TASK_PRIORITY_BORDER ile aynı renk ailesi, TASK_STATUS_DOT ile
+// aynı düz-nokta deseni. Tailwind'in derleme-zamanı taraması runtime'da
+// üretilen sınıf adlarını yakalayamadığı için (bkz. TASK_STATUS_BORDER_TOP
+// yorumu) burada da literal bir sözlük olarak yazılmalı.
+export const TASK_PRIORITY_DOT: Record<TaskPriority, string> = {
+  Dusuk: "bg-slate-300 dark:bg-slate-600",
+  Normal: "bg-sky-400 dark:bg-sky-600",
+  Yuksek: "bg-amber-500",
+  Acil: "bg-rose-500",
+};
