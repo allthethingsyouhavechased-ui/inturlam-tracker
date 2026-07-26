@@ -10,8 +10,13 @@ import {
   TASK_STATUS_LABEL,
   TASK_STATUSES,
 } from "@/lib/constants";
-import { todayISO } from "@/lib/date";
+import { formatDateShort, todayISO } from "@/lib/date";
 import { getPerson } from "@/lib/repositories/people";
+import {
+  addTaskAttachment,
+  deleteTaskAttachment,
+  getTaskAttachment,
+} from "@/lib/repositories/taskAttachments";
 import {
   bulkDeleteTasks,
   bulkUpdateTaskAssignee,
@@ -23,11 +28,18 @@ import {
   getTask,
   updateTaskAssignee,
   updateTaskDetails,
+  updateTaskDueDate,
   updateTaskPriority,
   updateTaskRepeat,
   updateTaskStatus,
 } from "@/lib/repositories/tasks";
 import type { TaskPriority, TaskStatus } from "@/lib/types";
+import {
+  deleteUploadedFile,
+  extractImageFiles,
+  saveImageFiles,
+  validateImageFiles,
+} from "@/lib/uploads";
 
 function cleanText(value: FormDataEntryValue | null): string | null {
   const s = String(value ?? "").trim();
@@ -148,15 +160,40 @@ export async function setTaskAssigneeAction(
   revalidatePath("/", "layout");
 }
 
+export async function setTaskDueDateAction(taskId: string, dueDate: string | null) {
+  const task = getTask(taskId);
+  updateTaskDueDate(taskId, dueDate);
+  await recordActivity({
+    action: "task.duedate",
+    entityType: "task",
+    entityId: taskId,
+    brandId: task?.brand_id ?? null,
+    summary: dueDate
+      ? `“${task?.title ?? "Görev"}” teslim tarihini ${formatDateShort(dueDate)} yaptı`
+      : `“${task?.title ?? "Görev"}” teslim tarihini kaldırdı`,
+  });
+  revalidatePath("/", "layout");
+}
+
 export async function updateTaskDetailsAction(formData: FormData) {
   const id = String(formData.get("taskId") ?? "").trim();
   if (!id) throw new Error("Görev bulunamadı.");
   const task = getTask(id);
+
+  const images = extractImageFiles(formData);
+  validateImageFiles(images);
+
   updateTaskDetails({
     id,
     dueDate: cleanText(formData.get("dueDate")),
     notes: cleanText(formData.get("notes")),
   });
+
+  const saved = await saveImageFiles(images, "tasks");
+  for (const { filePath, originalName } of saved) {
+    addTaskAttachment({ taskId: id, filePath, originalName });
+  }
+
   await recordActivity({
     action: "task.details",
     entityType: "task",
@@ -164,6 +201,14 @@ export async function updateTaskDetailsAction(formData: FormData) {
     brandId: task?.brand_id ?? null,
     summary: `“${task?.title ?? "Görev"}” görev detaylarını güncelledi`,
   });
+  revalidatePath("/", "layout");
+}
+
+export async function deleteTaskAttachmentAction(attachmentId: string) {
+  const attachment = getTaskAttachment(attachmentId);
+  if (!attachment) return;
+  deleteTaskAttachment(attachmentId);
+  await deleteUploadedFile(attachment.file_path);
   revalidatePath("/", "layout");
 }
 

@@ -123,6 +123,16 @@ export interface Comment {
   created_at: string;
 }
 
+// Görevin "Notlar" alanına eklenen görseller — CommentAttachment ile aynı
+// şekilde, ama doğrudan bir task_id'ye bağlı.
+export interface TaskAttachment {
+  id: string;
+  task_id: string;
+  file_path: string;
+  original_name: string | null;
+  created_at: string;
+}
+
 export type ActivityEntityType =
   | "task"
   | "content"

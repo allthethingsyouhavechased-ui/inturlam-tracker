@@ -1,34 +1,12 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import MentionText from "@/components/MentionText";
 import { deleteCommentAction, updateCommentAction } from "@/lib/actions/comments";
 import { formatDateTime } from "@/lib/date";
 import { getActionErrorMessage } from "@/lib/errorMessage";
-import { findMentionMatches } from "@/lib/mentions";
 import type { CommentWithAuthor } from "@/lib/repositories/comments";
 import type { Person } from "@/lib/types";
-
-// Yorum gövdesindeki "@İsim" bahsetmelerini vurgular. Aynı eşleştirme mantığı
-// (lib/mentions.ts) bildirim üretiminde de kullanılıyor — "kim bildirim alır"
-// ile "ne vurgulanır" burada asla birbirinden sapmaz.
-function renderBodyWithMentions(body: string, people: Person[]): React.ReactNode {
-  const matches = findMentionMatches(body, people);
-  if (matches.length === 0) return body;
-
-  const nodes: React.ReactNode[] = [];
-  let cursor = 0;
-  matches.forEach((m, i) => {
-    if (m.start > cursor) nodes.push(body.slice(cursor, m.start));
-    nodes.push(
-      <span key={i} className="font-semibold text-brand-600 dark:text-brand-400">
-        {body.slice(m.start, m.end)}
-      </span>,
-    );
-    cursor = m.end;
-  });
-  if (cursor < body.length) nodes.push(body.slice(cursor));
-  return nodes;
-}
 
 export default function CommentItem({
   comment,
@@ -132,7 +110,7 @@ export default function CommentItem({
       ) : (
         comment.body && (
           <p className="whitespace-pre-wrap">
-            {renderBodyWithMentions(comment.body, people)}
+            <MentionText body={comment.body} people={people} />
           </p>
         )
       )}

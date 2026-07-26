@@ -189,6 +189,12 @@ export function updateTaskPriority(id: string, priority: TaskPriority): void {
     .run(priority, id);
 }
 
+export function updateTaskDueDate(id: string, dueDate: string | null): void {
+  getDb()
+    .prepare("UPDATE tasks SET due_date = ?, updated_at = datetime('now') WHERE id = ?")
+    .run(dueDate, id);
+}
+
 export function updateTaskAssignee(id: string, assigneeId: string | null): void {
   getDb()
     .prepare(

@@ -7,6 +7,7 @@ import CommentForm from "@/components/CommentForm";
 import CommentItem from "@/components/CommentItem";
 import DeleteTaskButton from "@/components/DeleteTaskButton";
 import SubmitButton from "@/components/SubmitButton";
+import TaskNotesAttachments from "@/components/TaskNotesAttachments";
 import TaskPrioritySelect from "@/components/TaskPrioritySelect";
 import TaskRepeatSelect from "@/components/TaskRepeatSelect";
 import TaskStatusSelect from "@/components/TaskStatusSelect";
@@ -15,6 +16,7 @@ import { getCurrentPerson } from "@/lib/identity";
 import { listActivityForEntity } from "@/lib/repositories/activity";
 import { listCommentsByTask } from "@/lib/repositories/comments";
 import { listActivePeople } from "@/lib/repositories/people";
+import { listAttachmentsByTask } from "@/lib/repositories/taskAttachments";
 import { getTask } from "@/lib/repositories/tasks";
 
 export const dynamic = "force-dynamic";
@@ -34,6 +36,7 @@ export default async function TaskPage({
   const people = listActivePeople();
   const comments = listCommentsByTask(taskId);
   const activity = listActivityForEntity("task", taskId);
+  const attachments = listAttachmentsByTask(taskId);
   const me = await getCurrentPerson();
 
   return (
@@ -112,6 +115,10 @@ export default async function TaskPage({
             className={inputClass}
           />
         </label>
+        <TaskNotesAttachments
+          key={attachments.map((a) => a.id).join(",")}
+          attachments={attachments}
+        />
         <div className="flex items-center justify-between">
           {/* Ham <button type="submit"> yerine SubmitButton: useFormStatus ile
               gönderim sırasında kendini devre dışı bırakır (çift kayıt olmaz). */}

@@ -18,6 +18,11 @@ function createConnection(): DatabaseSync {
   fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
   const db = new DatabaseSync(DB_PATH);
   db.exec("PRAGMA journal_mode = WAL");
+  // Next dev sunucusunun render-worker alt süreçleri her biri kendi ilk DB
+  // dokunuşunda bu bağlantıyı açar (globalThis singleton'ı sadece kendi süreci
+  // içinde korur); busy_timeout olmadan aynı WAL dosyasına eşzamanlı ilk açılış
+  // + migration DDL'i SQLITE_BUSY ile çakışabilir.
+  db.exec("PRAGMA busy_timeout = 5000");
   db.exec("PRAGMA foreign_keys = ON");
   const schemaSql = fs.readFileSync(SCHEMA_PATH, "utf-8");
   try {

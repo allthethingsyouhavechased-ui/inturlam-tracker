@@ -124,6 +124,17 @@ CREATE TABLE IF NOT EXISTS comment_attachments (
   created_at    TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
+-- Görevin "Notlar" alanına eklenen görseller — comment_attachments ile aynı
+-- desen, ama comments'e değil doğrudan tasks'e bağlı (not, yorumdan bağımsız
+-- bir alan).
+CREATE TABLE IF NOT EXISTS task_attachments (
+  id            TEXT PRIMARY KEY,
+  task_id       TEXT NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
+  file_path     TEXT NOT NULL,
+  original_name TEXT,
+  created_at    TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
 -- Aktivite geçmişi: kim, ne zaman, hangi varlıkta ne yaptı. Denetlenebilirlik
 -- için append-only. actor_name/entity bilgileri anlık (snapshot) tutulur ki
 -- kişi/varlık sonradan silinse bile kayıt okunabilir kalsın — bu yüzden FK yok.
@@ -166,6 +177,7 @@ CREATE INDEX IF NOT EXISTS idx_tasks_due_date      ON tasks(due_date);
 CREATE INDEX IF NOT EXISTS idx_comments_task       ON comments(task_id);
 CREATE INDEX IF NOT EXISTS idx_template_items_template ON task_template_items(template_id);
 CREATE INDEX IF NOT EXISTS idx_comment_attachments_comment ON comment_attachments(comment_id);
+CREATE INDEX IF NOT EXISTS idx_task_attachments_task ON task_attachments(task_id);
 CREATE INDEX IF NOT EXISTS idx_brand_relations_brand   ON brand_relations(brand_id);
 CREATE INDEX IF NOT EXISTS idx_brand_relations_related ON brand_relations(related_brand_id);
 CREATE INDEX IF NOT EXISTS idx_activity_created ON activity_log(created_at);

@@ -2,8 +2,12 @@
 
 import Link from "next/link";
 import { useMemo, useState, useTransition } from "react";
+import AssigneeSelect from "@/components/AssigneeSelect";
 import CommentIcon from "@/components/CommentIcon";
-import PersonAvatar from "@/components/PersonAvatar";
+import TaskCommentsPanel from "@/components/TaskCommentsPanel";
+import TaskDueDateEdit from "@/components/TaskDueDateEdit";
+import TaskPrioritySelect from "@/components/TaskPrioritySelect";
+import TaskStatusSelect from "@/components/TaskStatusSelect";
 import {
   bulkDeleteTasksAction,
   bulkSetTaskAssigneeAction,
@@ -12,15 +16,12 @@ import {
 } from "@/lib/actions/tasks";
 import {
   TASK_PRIORITIES,
-  TASK_PRIORITY_BADGE,
   TASK_PRIORITY_FLAG_THRESHOLD,
   TASK_PRIORITY_ICON,
   TASK_PRIORITY_LABEL,
-  TASK_STATUS_BADGE,
   TASK_STATUS_LABEL,
   TASK_STATUSES,
 } from "@/lib/constants";
-import { formatDateShort, isOverdue } from "@/lib/date";
 import { getActionErrorMessage } from "@/lib/errorMessage";
 import {
   LIST_SORT_HINT,
@@ -91,6 +92,9 @@ export default function TaskListView({
   const [error, setError] = useState<string | null>(null);
   // null = sunucudan gelen varsayılan sıra (öncelik → teslim tarihi → marka).
   const [sort, setSort] = useState<ListSort | null>(null);
+  // Yorum sütununa tıklayınca açılan sağ panel — hangi görevin yorumları
+  // gösteriliyor. null = kapalı.
+  const [openComments, setOpenComments] = useState<{ id: string; title: string } | null>(null);
 
   // tasks prop değişince (filtre değişimi ya da AutoRefresh) seçimi hâlâ var
   // olan görevlere buda — silinmiş/filtrelenmiş id'ler seçili kalmasın.
@@ -301,53 +305,25 @@ export default function TaskListView({
                   </td>
                   <td className="px-3 py-2 text-zinc-500 dark:text-zinc-400">{t.brand_name}</td>
                   <td className="px-3 py-2">
-                    <span
-                      className={`rounded-full px-2 py-0.5 text-xs font-medium ${TASK_PRIORITY_BADGE[t.priority]}`}
-                    >
-                      {TASK_PRIORITY_LABEL[t.priority]}
-                    </span>
+                    <TaskPrioritySelect taskId={t.id} priority={t.priority} />
                   </td>
                   <td className="px-3 py-2">
-                    <span
-                      className={`rounded-full px-2 py-0.5 text-xs font-medium ${TASK_STATUS_BADGE[t.status]}`}
-                    >
-                      {TASK_STATUS_LABEL[t.status]}
-                    </span>
+                    <TaskStatusSelect taskId={t.id} status={t.status} />
                   </td>
                   <td className="px-3 py-2">
-                    {t.assignee_name ? (
-                      <span className="flex items-center gap-1.5">
-                        <PersonAvatar name={t.assignee_name} size="xs" />
-                        <span className="text-zinc-600 dark:text-zinc-300">
-                          {t.assignee_name}
-                        </span>
-                      </span>
-                    ) : (
-                      <span className="text-zinc-500 dark:text-zinc-400">—</span>
-                    )}
+                    <AssigneeSelect taskId={t.id} assigneeId={t.assignee_id} people={people} />
                   </td>
                   <td className="px-3 py-2">
-                    {t.due_date ? (
-                      <span
-                        className={`tabular-nums text-xs ${
-                          isOverdue(t.due_date)
-                            ? "font-medium text-rose-600 dark:text-rose-400"
-                            : "text-zinc-500 dark:text-zinc-400"
-                        }`}
-                      >
-                        {formatDateShort(t.due_date)}
-                      </span>
-                    ) : (
-                      <span className="text-zinc-500 dark:text-zinc-400">—</span>
-                    )}
+                    <TaskDueDateEdit taskId={t.id} dueDate={t.due_date} />
                   </td>
                   {/* Yorum sütunu: sayı + son yorumun metni `title` içinde,
-                      üstüne gelince tam metin okunur. Satırı şişirmemek için
-                      hücrede yalnızca sayaç var — tamamı görev detayında. */}
+                      üstüne gelince tam metin okunur. Tıklayınca sağda panel
+                      açılır (görev sayfasına gitmeye gerek kalmadan). */}
                   <td className="px-3 py-2">
                     {t.comment_count > 0 ? (
-                      <Link
-                        href={`/tasks/${t.id}`}
+                      <button
+                        type="button"
+                        onClick={() => setOpenComments({ id: t.id, title: t.title })}
                         title={
                           t.last_comment_body
                             ? `${t.last_comment_author ?? "?"}: ${t.last_comment_body}`
@@ -357,7 +333,7 @@ export default function TaskListView({
                       >
                         <CommentIcon />
                         <span className="tabular-nums">{t.comment_count}</span>
-                      </Link>
+                      </button>
                     ) : (
                       <span className="text-zinc-500 dark:text-zinc-400">—</span>
                     )}
@@ -368,6 +344,15 @@ export default function TaskListView({
           </tbody>
         </table>
       </div>
+
+      {openComments && (
+        <TaskCommentsPanel
+          taskId={openComments.id}
+          taskTitle={openComments.title}
+          people={people}
+          onClose={() => setOpenComments(null)}
+        />
+      )}
     </div>
   );
 }
