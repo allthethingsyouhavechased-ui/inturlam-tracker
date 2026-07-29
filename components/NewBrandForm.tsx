@@ -8,7 +8,7 @@ import ClusterSelect from "./ClusterSelect";
 import SubmitButton from "./SubmitButton";
 
 const inputClass =
-  "w-full rounded-md border border-black/10 bg-white px-3 py-2 text-sm outline-none focus:border-brand-500 dark:border-white/15 dark:bg-zinc-900";
+  "min-h-11 w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-sm outline-none focus:border-brand-500 dark:border-white/15 dark:bg-zinc-900";
 
 export default function NewBrandForm({
   clusters,

@@ -25,24 +25,23 @@
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 
-  /* Marka aksan rengi. Kodda `indigo-*` yerine `brand-*` kullanılır (bg-brand-600,
-     text-brand-700, border-brand-300 …) — böylece aksan rengini değiştirmek 150
-     dosya dokunuşu değil, aşağıdaki 11 satır.
-     Değerler Tailwind'in varsayılan indigo skalasından birebir kopyalandı
-     (node_modules/tailwindcss/theme.css); `var(--color-indigo-*)` diye referans
-     VERİLMEZ, çünkü Tailwind kullanılmayan tema değişkenlerini çıktıdan atar ve
-     son indigo kullanımı kalkınca referans boşa düşerdi. */
-  --color-brand-50: oklch(96.2% 0.018 272.314);
-  --color-brand-100: oklch(93% 0.034 272.788);
-  --color-brand-200: oklch(87% 0.065 274.039);
-  --color-brand-300: oklch(78.5% 0.115 274.713);
-  --color-brand-400: oklch(67.3% 0.182 276.935);
-  --color-brand-500: oklch(58.5% 0.233 277.117);
-  --color-brand-600: oklch(51.1% 0.262 276.966);
-  --color-brand-700: oklch(45.7% 0.24 277.023);
-  --color-brand-800: oklch(39.8% 0.195 277.366);
-  --color-brand-900: oklch(35.9% 0.144 278.697);
-  --color-brand-950: oklch(25.7% 0.09 281.288);
+  /* Marka aksan rengi. Soğuk mavi skala, yoğun veri ekranlarında durum
+     renkleriyle yarışmadan gezinme ve birincil eylemleri öne çıkarır. */
+  --color-brand-50: oklch(97% 0.01 260);
+  --color-brand-100: oklch(94% 0.02 260);
+  --color-brand-200: oklch(88% 0.04 260);
+  --color-brand-300: oklch(80% 0.08 260);
+  --color-brand-400: oklch(70% 0.12 260);
+  --color-brand-500: oklch(60% 0.16 260);
+  --color-brand-600: oklch(52% 0.18 260);
+  --color-brand-700: oklch(44% 0.16 260);
+  --color-brand-800: oklch(36% 0.12 260);
+  --color-brand-900: oklch(28% 0.08 260);
+  --color-brand-950: oklch(20% 0.04 260);
+
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.05);
+  --shadow-md: 0 8px 24px -12px rgb(15 23 42 / 0.28);
+  --shadow-lg: 0 18px 44px -20px rgb(15 23 42 / 0.38);
 }
 
 body {
@@ -52,6 +51,17 @@ body {
      `font-family: Arial, Helvetica, sans-serif` satırı, layout'un next/font ile
      yüklediği Geist'i eziyordu ve uygulama uzun süre Arial ile render edildi.
      Font artık <body class="font-sans"> üzerinden `--font-sans` → Geist. */
+  overflow-x: clip;
+  background-image:
+    radial-gradient(circle at 50% 0%, rgb(37 99 235 / 0.055), transparent 34rem),
+    radial-gradient(circle at 100% 0%, rgb(168 85 247 / 0.035), transparent 28rem);
+  background-attachment: fixed;
+}
+
+.dark body {
+  background-image:
+    radial-gradient(circle at 50% 0%, rgb(37 99 235 / 0.14), transparent 34rem),
+    radial-gradient(circle at 100% 0%, rgb(168 85 247 / 0.08), transparent 28rem);
 }
 
 /* --- Klavye odağı ---------------------------------------------------------

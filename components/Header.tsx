@@ -24,14 +24,14 @@ export default async function Header() {
   const notifications = person ? listNotificationsForPerson(person.id) : [];
   const unreadCount = person ? countUnreadForPerson(person.id) : 0;
   return (
-    <header className="sticky top-0 z-10 border-b border-black/10 bg-white/80 backdrop-blur dark:border-white/10 dark:bg-zinc-950/80">
-      <div className="flex items-center justify-between gap-4 px-4 py-3">
-        <nav className="flex items-center gap-1 text-sm">
+    <header className="sticky top-0 z-30 border-b border-black/5 bg-white/75 backdrop-blur-xl dark:border-white/5 dark:bg-zinc-950/75">
+      <div className="mx-auto flex h-[var(--header-h)] max-w-[1600px] items-center justify-between gap-2 px-3 sm:gap-4 sm:px-4">
+        <nav className="flex min-w-0 items-center gap-0.5 text-sm sm:gap-1">
           <MobileMenuButton />
           <SidebarToggle />
           <Link
             href="/"
-            className="flex items-center gap-2 rounded-md px-2.5 py-1.5 font-semibold tracking-tight hover:bg-black/5 dark:hover:bg-white/10"
+            className="flex min-w-0 items-center gap-2 rounded-xl px-1.5 py-1.5 font-semibold tracking-tight hover:bg-black/5 sm:px-2.5 dark:hover:bg-white/10"
           >
             <Logo className="h-6 w-6 shrink-0" />
             {/* Telefonda logo tek başına yeter; kelime marka sağdaki kimlik
@@ -43,16 +43,16 @@ export default async function Header() {
         <form
           action="/search"
           method="GET"
-          className="hidden flex-1 max-w-xs sm:block"
+          className="hidden min-w-0 max-w-xs flex-1 lg:block"
         >
           <input
             type="search"
             name="q"
             placeholder="Marka, içerik, görev ara…"
-            className="w-full rounded-md border border-black/10 bg-white px-3 py-1.5 text-sm placeholder:text-zinc-500 focus:border-brand-400 focus:outline-none dark:border-white/10 dark:bg-zinc-900 dark:placeholder:text-zinc-400"
+            className="w-full rounded-xl border border-black/10 bg-white/85 px-3 py-2 text-sm shadow-sm placeholder:text-zinc-500 focus:border-brand-400 focus:outline-none dark:border-white/10 dark:bg-zinc-900/85 dark:placeholder:text-zinc-400"
           />
         </form>
-        <div className="flex items-center gap-2 text-sm">
+        <div className="flex shrink-0 items-center gap-1 text-sm sm:gap-2">
           <QuickAddModal
             brands={brands}
             contents={contents}
@@ -63,7 +63,7 @@ export default async function Header() {
             <>
               {/* Dar ekranda ismin ortadan bölünmemesi için: iki kelimelik
                   isimler (Yunus Emre) alt satıra kaçıp header'ı yükseltiyordu. */}
-              <span className="max-w-20 truncate whitespace-nowrap text-zinc-500 dark:text-zinc-400 sm:max-w-none">
+              <span className="max-w-16 truncate whitespace-nowrap text-zinc-500 dark:text-zinc-400 sm:max-w-32">
                 <span className="hidden sm:inline">Giriş: </span>
                 <span className="font-medium text-zinc-800 dark:text-zinc-100">
                   {person.name}
@@ -72,7 +72,7 @@ export default async function Header() {
               <form action={clearIdentity}>
                 <button
                   type="submit"
-                  className="rounded-md px-2 py-1 text-xs text-zinc-500 dark:text-zinc-400 hover:bg-black/5 hover:text-zinc-800 dark:hover:bg-white/10"
+                  className="rounded-lg px-1.5 py-1 text-xs text-zinc-500 hover:bg-black/5 hover:text-zinc-800 sm:px-2 dark:text-zinc-400 dark:hover:bg-white/10"
                 >
                   değiştir
                 </button>
@@ -81,9 +81,11 @@ export default async function Header() {
           ) : (
             <Link
               href="/whoami"
-              className="rounded-md bg-brand-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-brand-500"
+              className="rounded-full bg-brand-600 px-2.5 py-2 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-brand-500 sm:px-4"
+              aria-label="Kim olduğunu seç"
             >
-              Sen kimsin?
+              <span className="sm:hidden">Kimlik</span>
+              <span className="hidden sm:inline">Sen kimsin?</span>
             </Link>
           )}
           {person && (

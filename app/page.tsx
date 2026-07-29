@@ -2,7 +2,10 @@ import Link from "next/link";
 import ActivityFeed from "@/components/ActivityFeed";
 import Logo from "@/components/Logo";
 import PersonAvatar from "@/components/PersonAvatar";
-import { TASK_PRIORITY_LABEL } from "@/lib/constants";
+import {
+  TASK_PRIORITY_LABEL,
+  TASK_STATUS_LABEL,
+} from "@/lib/constants";
 import { currentWeekRange, formatDateShort, todayISO } from "@/lib/date";
 import { getCurrentPerson } from "@/lib/identity";
 import { listRecentActivity } from "@/lib/repositories/activity";
@@ -12,7 +15,7 @@ import {
   listOverdueTasks,
   listTasksDueThisWeek,
 } from "@/lib/repositories/tasks";
-import type { TaskWithContext } from "@/lib/types";
+import type { TaskStatus, TaskWithContext } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -42,13 +45,91 @@ function StatCard({
   return (
     <Link
       href={href}
-      className="rounded-xl border border-black/10 bg-white p-4 transition-colors hover:border-brand-300 hover:bg-brand-50/40 dark:border-white/10 dark:bg-zinc-900 dark:hover:border-brand-800 dark:hover:bg-brand-950/30"
+      className="group relative min-w-0 overflow-hidden rounded-2xl border border-black/5 bg-white p-4 shadow-sm transition-[transform,box-shadow,border-color] hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-md sm:p-5 dark:border-white/5 dark:bg-zinc-900 dark:hover:border-brand-900"
     >
-      <div className={`text-2xl font-semibold tabular-nums ${ACCENT[accent]}`}>
-        {value}
+      <div className="relative z-10 min-w-0">
+        <div className={`text-3xl font-bold tabular-nums tracking-tight ${ACCENT[accent]}`}>
+          {value}
+        </div>
+        <div className="mt-1 truncate text-[11px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+          {label}
+        </div>
       </div>
-      <div className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">{label}</div>
+      <div
+        className="absolute -bottom-8 -right-8 h-24 w-24 rounded-full bg-brand-500/[0.045] transition-transform group-hover:scale-125"
+        aria-hidden="true"
+      />
     </Link>
+  );
+}
+
+const WORKLOAD_STATUSES = [
+  { status: "Beklemede", color: "bg-zinc-400" },
+  { status: "DevamEdiyor", color: "bg-blue-500" },
+  { status: "Incelemede", color: "bg-amber-500" },
+  { status: "Onaylandi", color: "bg-emerald-500" },
+] satisfies { status: TaskStatus; color: string }[];
+
+function WorkloadChart({ tasks }: { tasks: TaskWithContext[] }) {
+  const statusCounts = tasks.reduce<Record<TaskStatus, number>>(
+    (counts, task) => {
+      counts[task.status] += 1;
+      return counts;
+    },
+    {
+      Beklemede: 0,
+      DevamEdiyor: 0,
+      Incelemede: 0,
+      Onaylandi: 0,
+      Yayinlandi: 0,
+    },
+  );
+  const total = tasks.length;
+
+  return (
+    <section className="min-w-0 rounded-2xl border border-black/5 bg-white p-5 shadow-sm dark:border-white/5 dark:bg-zinc-900">
+      <div className="mb-5 flex items-baseline justify-between gap-3">
+        <h2 className="text-sm font-semibold text-zinc-800 dark:text-zinc-200">Açık iş yükü</h2>
+        <span className="text-xs tabular-nums text-zinc-500 dark:text-zinc-400">
+          {total} görev
+        </span>
+      </div>
+      {total === 0 ? (
+        <p className="text-sm text-zinc-500 dark:text-zinc-400">Açık görev bulunmuyor.</p>
+      ) : (
+        <div className="space-y-4">
+          {WORKLOAD_STATUSES.map(({ status, color }) => {
+            const count = statusCounts[status];
+            const percentage = Math.round((count / total) * 100);
+            return (
+              <div key={status} className="space-y-1.5">
+                <div className="flex items-center justify-between gap-3 text-xs">
+                  <span className="font-medium text-zinc-600 dark:text-zinc-300">
+                    {TASK_STATUS_LABEL[status]}
+                  </span>
+                  <span className="tabular-nums text-zinc-500 dark:text-zinc-400">
+                    {count} · %{percentage}
+                  </span>
+                </div>
+                <div
+                  className="h-2 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800"
+                  role="progressbar"
+                  aria-label={`${TASK_STATUS_LABEL[status]} görev oranı`}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-valuenow={percentage}
+                >
+                  <div
+                    className={`h-full rounded-full ${color} transition-[width] duration-500`}
+                    style={{ width: `${percentage}%` }}
+                  />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </section>
   );
 }
 
@@ -57,34 +138,53 @@ function StatCard({
 // verilmesin diye tarihin yanında "gecikmiş" anlamı zaten bölüm başlığında.
 function TaskRow({ task, overdue }: { task: TaskWithContext; overdue?: boolean }) {
   return (
-    <li>
+    <li className="group">
       <Link
         href={`/tasks/${task.id}`}
-        className="flex items-center gap-3 rounded-lg px-2 py-2 transition-colors hover:bg-black/[0.03] dark:hover:bg-white/5"
+        className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 rounded-xl px-3 py-3 transition-colors hover:bg-zinc-50 dark:hover:bg-white/5"
       >
+        <span
+          className={`h-2 w-2 rounded-full ${
+            overdue ? "bg-rose-500" : "bg-zinc-300 dark:bg-zinc-700"
+          }`}
+          aria-hidden="true"
+        />
         <span className="min-w-0 flex-1">
-          <span className="block truncate text-sm font-medium">{task.title}</span>
-          <span className="block truncate text-xs text-zinc-500 dark:text-zinc-400">
+          <span className="block truncate text-sm font-semibold text-zinc-800 transition-colors group-hover:text-brand-700 dark:text-zinc-200 dark:group-hover:text-brand-300">
+            {task.title}
+          </span>
+          <span className="block truncate text-[11px] text-zinc-500 dark:text-zinc-400">
             {task.brand_name} · {task.content_title}
           </span>
         </span>
-        {task.priority !== "Normal" && (
-          <span className="hidden shrink-0 text-xs text-zinc-500 dark:text-zinc-400 sm:inline">
-            {TASK_PRIORITY_LABEL[task.priority]}
+        <span className="flex shrink-0 items-center gap-2">
+          {task.priority !== "Normal" && (
+            <span
+              className={`hidden rounded-md px-1.5 py-0.5 text-[10px] font-bold uppercase sm:inline ${
+                task.priority === "Acil"
+                  ? "bg-amber-100 text-amber-800 dark:bg-amber-500/15 dark:text-amber-300"
+                  : "bg-rose-100 text-rose-700 dark:bg-rose-500/15 dark:text-rose-300"
+              }`}
+            >
+              {TASK_PRIORITY_LABEL[task.priority]}
+            </span>
+          )}
+          <span
+            className={`text-[11px] tabular-nums sm:text-xs ${
+              overdue ? "font-semibold text-rose-600 dark:text-rose-400" : "text-zinc-500 dark:text-zinc-400"
+            }`}
+          >
+            {formatDateShort(task.due_date)}
           </span>
-        )}
-        <span
-          className={`shrink-0 text-xs tabular-nums ${
-            overdue ? "font-medium text-rose-600 dark:text-rose-400" : "text-zinc-500 dark:text-zinc-400"
-          }`}
-        >
-          {formatDateShort(task.due_date)}
+          {task.assignee_name ? (
+            <PersonAvatar name={task.assignee_name} size="xs" />
+          ) : (
+            <span
+              className="h-5 w-5 rounded-full border border-dashed border-zinc-300 dark:border-zinc-700"
+              aria-hidden="true"
+            />
+          )}
         </span>
-        {task.assignee_name ? (
-          <PersonAvatar name={task.assignee_name} size="xs" />
-        ) : (
-          <span className="h-5 w-5 shrink-0" aria-hidden />
-        )}
       </Link>
     </li>
   );
@@ -108,22 +208,31 @@ function TaskPanel({
   // `truncate` olsa bile sütun en uzun görev başlığı kadar genişler ve telefonda
   // sayfaya yatay kaydırma ekler.
   return (
-    <section id={id} className="min-w-0 space-y-2 scroll-mt-20">
-      <div className="flex items-baseline justify-between">
-        <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+    <section id={id} className="min-w-0 space-y-3 scroll-mt-20">
+      <div className="flex items-center justify-between gap-3 px-1">
+        <h2 className="flex min-w-0 items-center gap-2 text-sm font-semibold text-zinc-800 dark:text-zinc-200">
+          {overdue && <span className="h-2 w-2 shrink-0 rounded-full bg-rose-500" aria-hidden="true" />}
           {title}
+          <span className="text-xs font-normal tabular-nums text-zinc-400">
+            ({tasks.length})
+          </span>
         </h2>
         {tasks.length > PREVIEW && (
-          <Link href="/tasks" className="text-xs font-medium text-brand-600 dark:text-brand-400">
-            {tasks.length} görevin tümü →
+          <Link
+            href="/tasks"
+            className="shrink-0 text-xs font-semibold text-brand-600 hover:underline dark:text-brand-400"
+          >
+            Tümünü gör
           </Link>
         )}
       </div>
-      <div className="rounded-xl border border-black/10 bg-white p-2 dark:border-white/10 dark:bg-zinc-900">
+      <div className="overflow-hidden rounded-2xl border border-black/5 bg-white p-1.5 shadow-sm dark:border-white/5 dark:bg-zinc-900">
         {tasks.length === 0 ? (
-          <p className="px-2 py-3 text-sm text-zinc-500 dark:text-zinc-400">{emptyText}</p>
+          <p className="px-3 py-8 text-center text-sm text-zinc-500 dark:text-zinc-400">
+            {emptyText}
+          </p>
         ) : (
-          <ul className="space-y-0.5">
+          <ul className="divide-y divide-black/5 dark:divide-white/5">
             {tasks.slice(0, PREVIEW).map((t) => (
               <TaskRow key={t.id} task={t} overdue={overdue} />
             ))}
@@ -164,18 +273,18 @@ export default async function HomePage() {
 
       {/* Telefonda 2×2: tek sütunda 4 kart, ekranın tamamını yiyip altındaki
           asıl işi (gecikmiş görevler) kaydırma mesafesine itiyordu. */}
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard href="/brands" label="Marka" value={brands.length} />
+      <div className="grid min-w-0 grid-cols-2 gap-3 lg:grid-cols-4">
+        <StatCard href="/brands" label="Aktif marka" value={brands.length} />
         <StatCard href="/tasks" label="Açık görev" value={openTasks.length} />
         <StatCard
           href="#gecikmis"
-          label="Gecikmiş görev"
+          label="Gecikmiş"
           value={overdue.length}
           accent="rose"
         />
         <StatCard
           href="#bu-hafta"
-          label="Bu hafta teslim"
+          label="Bu hafta"
           value={thisWeek.length}
           accent="amber"
         />
@@ -184,20 +293,23 @@ export default async function HomePage() {
       {/* Ana sayfa artık "nereye gideyim?" değil "bugün ne var?" sorusunu
           cevaplıyor. Eskiden burada üstteki nav'ı ve soldaki sidebar'ı
           tekrarlayan 6 link kartı vardı — üç kez aynı menü. */}
-      <div className="grid gap-6 lg:grid-cols-2">
-        <TaskPanel
-          id="gecikmis"
-          title="Gecikmiş"
-          tasks={overdue}
-          overdue
-          emptyText="Gecikmiş görev yok — portföy temiz."
-        />
-        <TaskPanel
-          id="bu-hafta"
-          title="Bu hafta teslim"
-          tasks={thisWeek}
-          emptyText="Bu hafta teslim edilecek görev yok."
-        />
+      <div className="grid min-w-0 gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(16rem,1fr)]">
+        <div className="grid min-w-0 gap-6">
+          <TaskPanel
+            id="gecikmis"
+            title="Kritik ve gecikmiş"
+            tasks={overdue}
+            overdue
+            emptyText="Gecikmiş görev yok — portföy temiz."
+          />
+          <TaskPanel
+            id="bu-hafta"
+            title="Bu hafta teslim"
+            tasks={thisWeek}
+            emptyText="Bu hafta teslim edilecek görev yok."
+          />
+        </div>
+        <WorkloadChart tasks={openTasks} />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">

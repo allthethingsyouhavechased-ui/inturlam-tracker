@@ -22,7 +22,7 @@ const SORT_LABEL: Record<SortKey, string> = {
 };
 
 const selectClass =
-  "rounded-md border border-black/10 bg-white px-2.5 py-1.5 text-sm outline-none focus:border-brand-500 dark:border-white/15 dark:bg-zinc-900";
+  "min-h-11 rounded-xl border border-black/5 bg-white px-3 py-2 text-sm shadow-sm outline-none transition-[border-color,box-shadow] focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15 dark:border-white/10 dark:bg-zinc-900";
 
 export default function TaskExplorer({
   tasks,
@@ -57,14 +57,26 @@ export default function TaskExplorer({
   const hasFilter = Boolean(brandId || statusFilter || priority || assigneeId || q);
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap items-center gap-2">
-        <input
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          placeholder="Görev ara…"
-          className={`${selectClass} w-full sm:w-48`}
-        />
+    <div className="space-y-6">
+      <div className="rounded-2xl border border-black/5 bg-zinc-50/70 p-3 dark:border-white/5 dark:bg-white/[0.025] sm:p-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+          <div className="relative w-full sm:min-w-60 sm:flex-[2]">
+            <svg
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400"
+              aria-hidden="true"
+            >
+              <path fillRule="evenodd" d="M9 3.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11ZM2 9a7 7 0 1 1 12.452 4.391l3.328 3.329a.75.75 0 1 1-1.06 1.06l-3.329-3.328A7 7 0 0 1 2 9Z" clipRule="evenodd" />
+            </svg>
+            <input
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              aria-label="Görev ara"
+              placeholder="Görev başlığında ara…"
+              className={`${selectClass} w-full pl-10`}
+            />
+          </div>
         <select
           aria-label="Marka"
           value={brandId}
@@ -72,7 +84,7 @@ export default function TaskExplorer({
             setBrandId(e.target.value);
             setSortKey("marka");
           }}
-          className={selectClass}
+          className={`${selectClass} w-full sm:min-w-36 sm:flex-1`}
         >
           <option value="">Tüm markalar</option>
           {brands.map((b) => (
@@ -88,7 +100,7 @@ export default function TaskExplorer({
             setStatusFilter(e.target.value);
             setSortKey("durum");
           }}
-          className={selectClass}
+          className={`${selectClass} w-full sm:min-w-36 sm:flex-1`}
         >
           <option value="">Tüm durumlar</option>
           {TASK_STATUSES.map((s) => (
@@ -104,7 +116,7 @@ export default function TaskExplorer({
             setPriority(e.target.value);
             setSortKey("oncelik");
           }}
-          className={selectClass}
+          className={`${selectClass} w-full sm:min-w-36 sm:flex-1`}
         >
           <option value="">Tüm öncelikler</option>
           {TASK_PRIORITIES.map((p) => (
@@ -120,7 +132,7 @@ export default function TaskExplorer({
             setAssigneeId(e.target.value);
             setSortKey("atanan");
           }}
-          className={selectClass}
+          className={`${selectClass} w-full sm:min-w-36 sm:flex-1`}
         >
           <option value="">Herkes</option>
           <option value={UNASSIGNED}>Atanmamış</option>
@@ -141,11 +153,12 @@ export default function TaskExplorer({
               setQ("");
               setSortKey("varsayilan");
             }}
-            className="text-xs font-medium text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200"
+            className="min-h-11 rounded-xl px-3 py-2 text-xs font-bold uppercase tracking-wide text-rose-600 transition-colors hover:bg-rose-50 hover:text-rose-700 dark:text-rose-400 dark:hover:bg-rose-500/10"
           >
-            Filtreleri temizle
+            Sıfırla
           </button>
         )}
+        </div>
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -161,16 +174,17 @@ export default function TaskExplorer({
             </span>
           )}
         </p>
-        <div className="inline-flex overflow-hidden rounded-md border border-black/10 text-xs dark:border-white/15">
+        <div className="inline-flex overflow-hidden rounded-xl border border-black/10 bg-white p-0.5 text-xs shadow-sm dark:border-white/15 dark:bg-zinc-900">
           {(["pano", "liste"] as const).map((v) => (
             <button
               key={v}
               type="button"
               onClick={() => setView(v)}
-              className={`px-3 py-1 font-medium transition-colors ${
+              aria-pressed={view === v}
+              className={`min-h-9 rounded-lg px-3 py-1 font-medium transition-colors ${
                 view === v
                   ? "bg-brand-600 text-white"
-                  : "bg-white text-zinc-600 hover:bg-black/5 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-white/10"
+                  : "text-zinc-600 hover:bg-black/5 dark:text-zinc-300 dark:hover:bg-white/10"
               }`}
             >
               {v === "pano" ? "Pano" : "Liste"}

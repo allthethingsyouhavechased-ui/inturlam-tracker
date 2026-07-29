@@ -1,5 +1,6 @@
 import { setIdentity } from "@/lib/actions/identity";
 import { getCurrentPerson } from "@/lib/identity";
+import PersonAvatar from "@/components/PersonAvatar";
 import { listActivePeople } from "@/lib/repositories/people";
 
 export const dynamic = "force-dynamic";
@@ -17,24 +18,35 @@ export default async function WhoAmIPage() {
         </p>
       </div>
 
-      <div className="grid gap-2">
+      <div className="grid grid-cols-1 gap-3 min-[360px]:grid-cols-2">
         {people.map((p) => (
           <form key={p.id} action={setIdentity}>
             <input type="hidden" name="personId" value={p.id} />
             <button
               type="submit"
-              className={`w-full rounded-lg border px-4 py-3 text-left font-medium transition-colors ${
+              className={`flex min-h-36 w-full flex-col items-center justify-center gap-3 rounded-2xl border p-4 text-center transition-[border-color,box-shadow,background-color] sm:p-6 ${
                 current?.id === p.id
-                  ? "border-brand-400 bg-brand-50 text-brand-700 dark:border-brand-700 dark:bg-brand-950/40 dark:text-brand-300"
-                  : "border-black/10 bg-white hover:border-brand-300 hover:bg-brand-50/50 dark:border-white/10 dark:bg-zinc-900 dark:hover:border-brand-800"
+                  ? "border-brand-500 bg-brand-50/60 shadow-sm ring-1 ring-brand-500/20 dark:bg-brand-950/30"
+                  : "border-black/5 bg-white hover:border-brand-300 hover:shadow-md dark:border-white/5 dark:bg-zinc-900"
               }`}
             >
-              {p.name}
-              {current?.id === p.id && (
-                <span className="ml-2 text-xs font-normal text-brand-600 dark:text-brand-400">
-                  (şu an bu)
+              <PersonAvatar name={p.name} size="lg" />
+              <span>
+                <span
+                  className={`block font-bold tracking-tight ${
+                    current?.id === p.id
+                      ? "text-brand-700 dark:text-brand-300"
+                      : "text-zinc-700 dark:text-zinc-200"
+                  }`}
+                >
+                  {p.name}
                 </span>
-              )}
+                {current?.id === p.id && (
+                  <span className="mt-1 block text-[10px] font-bold uppercase tracking-widest text-brand-600 dark:text-brand-400">
+                    Aktif profil
+                  </span>
+                )}
+              </span>
             </button>
           </form>
         ))}

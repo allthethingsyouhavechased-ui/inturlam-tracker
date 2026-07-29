@@ -10,7 +10,7 @@ import { getActionErrorMessage } from "@/lib/errorMessage";
 import SubmitButton from "./SubmitButton";
 
 const inputClass =
-  "w-full rounded-md border border-black/10 bg-white px-3 py-2 text-sm outline-none focus:border-brand-500 dark:border-white/15 dark:bg-zinc-900";
+  "min-h-11 w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-sm outline-none focus:border-brand-500 dark:border-white/15 dark:bg-zinc-900";
 
 interface ClusterItem {
   id: string;
@@ -101,12 +101,12 @@ export default function ClusterManager({ clusters }: { clusters: ClusterItem[] }
   const newFormRef = useRef<HTMLFormElement>(null);
 
   return (
-    <div className="rounded-xl border border-black/10 bg-white p-4 dark:border-white/10 dark:bg-zinc-900">
+    <div className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm dark:border-white/5 dark:bg-zinc-900">
       <button
         type="button"
         onClick={() => setOpen(!open)}
         aria-expanded={open}
-        className="flex w-full items-center gap-1.5 text-sm font-semibold"
+        className="flex min-h-11 w-full items-center gap-1.5 text-sm font-semibold"
       >
         <svg
           viewBox="0 0 16 16"

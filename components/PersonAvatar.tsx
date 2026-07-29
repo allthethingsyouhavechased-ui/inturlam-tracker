@@ -20,9 +20,14 @@ export default function PersonAvatar({
   size = "sm",
 }: {
   name: string;
-  size?: "xs" | "sm";
+  size?: "xs" | "sm" | "md" | "lg";
 }) {
-  const sizeClass = size === "xs" ? "h-5 w-5 text-[10px]" : "h-6 w-6 text-[11px]";
+  const sizeClass = {
+    xs: "h-5 w-5 text-[10px]",
+    sm: "h-6 w-6 text-[11px]",
+    md: "h-9 w-9 text-xs",
+    lg: "h-12 w-12 text-sm",
+  }[size];
   return (
     <span
       title={name}

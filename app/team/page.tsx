@@ -1,5 +1,6 @@
 import DeactivatePersonButton from "@/components/DeactivatePersonButton";
 import NewPersonForm from "@/components/NewPersonForm";
+import PersonAvatar from "@/components/PersonAvatar";
 import { listActivePeople, listInactivePeople } from "@/lib/repositories/people";
 
 export const dynamic = "force-dynamic";
@@ -12,7 +13,7 @@ export default function TeamPage() {
     <div className="space-y-8">
       <h1 className="text-2xl font-semibold tracking-tight">Ekip</h1>
 
-      <section className="rounded-xl border border-black/10 bg-white p-4 dark:border-white/10 dark:bg-zinc-900">
+      <section className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm dark:border-white/5 dark:bg-zinc-900">
         <h2 className="mb-3 text-sm font-semibold">Yeni ekip üyesi ekle</h2>
         <NewPersonForm />
       </section>
@@ -21,13 +22,18 @@ export default function TeamPage() {
         <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
           Aktif ({people.length})
         </h2>
-        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {people.map((p) => (
             <div
               key={p.id}
-              className="flex items-center justify-between rounded-xl border border-black/10 bg-white px-4 py-3 dark:border-white/10 dark:bg-zinc-900"
+              className="flex items-center justify-between gap-3 rounded-2xl border border-black/5 bg-white p-4 shadow-sm transition-shadow hover:shadow-md dark:border-white/5 dark:bg-zinc-900"
             >
-              <span className="font-medium">{p.name}</span>
+              <span className="flex min-w-0 items-center gap-3">
+                <PersonAvatar name={p.name} size="md" />
+                <span className="truncate font-semibold text-zinc-800 dark:text-zinc-200">
+                  {p.name}
+                </span>
+              </span>
               <DeactivatePersonButton personId={p.id} />
             </div>
           ))}
