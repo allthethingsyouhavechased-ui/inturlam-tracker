@@ -27,10 +27,34 @@ export default function BrandsPage() {
     <div className="space-y-8">
       <h1 className="text-2xl font-semibold tracking-tight">Markalar</h1>
 
-      <section className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm dark:border-white/5 dark:bg-zinc-900">
-        <h2 className="mb-3 text-sm font-semibold">Yeni marka ekle</h2>
-        <NewBrandForm clusters={clusters} />
-      </section>
+      <details
+        open={brands.length === 0}
+        className="group overflow-hidden rounded-2xl border border-black/5 bg-white shadow-sm dark:border-white/5 dark:bg-zinc-900"
+      >
+        <summary className="flex min-h-16 cursor-pointer list-none items-center justify-between gap-4 px-4 py-3 outline-none transition-colors hover:bg-zinc-50 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-500 [&::-webkit-details-marker]:hidden dark:hover:bg-white/[0.03]">
+          <span className="min-w-0">
+            <span className="block text-sm font-semibold">Yeni marka ekle</span>
+            <span className="mt-0.5 block text-xs text-zinc-500 dark:text-zinc-400">
+              Formu açmak için tıkla
+            </span>
+          </span>
+          <span
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-black/10 text-zinc-500 transition-[transform,color,background-color] group-open:rotate-180 group-open:bg-zinc-100 group-open:text-zinc-900 dark:border-white/10 dark:text-zinc-400 dark:group-open:bg-white/10 dark:group-open:text-white"
+            aria-hidden="true"
+          >
+            <svg viewBox="0 0 20 20" fill="currentColor" className="h-5 w-5">
+              <path
+                fillRule="evenodd"
+                d="M5.22 7.72a.75.75 0 0 1 1.06 0L10 11.44l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 8.78a.75.75 0 0 1 0-1.06Z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </span>
+        </summary>
+        <div className="border-t border-black/5 p-4 dark:border-white/5">
+          <NewBrandForm clusters={clusters} />
+        </div>
+      </details>
 
       <ClusterManager
         clusters={clusters.map((c) => ({

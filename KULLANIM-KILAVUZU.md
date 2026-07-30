@@ -90,6 +90,9 @@ Ana sayfa günlük operasyonun kısa özetidir:
 
 Markalara sol menüden veya üstteki **Markalar** bağlantısından ulaşabilirsin. Sol
 menüde marka adının yanındaki sayı o markadaki açık görev sayısını gösterir.
+Markalar sayfasında yeni bir marka oluşturmak için kapalı duran **“Yeni marka ekle”**
+satırına tıkla; form açıldığında marka adı, kategori, Instagram hesabı ve logoyu gir.
+İşin bittiğinde aynı satıra tekrar tıklayarak formu kapatabilirsin.
 
 ---
 
