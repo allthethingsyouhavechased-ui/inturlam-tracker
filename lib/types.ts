@@ -55,6 +55,13 @@ export interface Person {
   active: number;
 }
 
+export interface PersonActiveWork {
+  person_id: string;
+  brand_id: string;
+  brand_name: string;
+  updated_at: string;
+}
+
 export interface ContentItem {
   id: string;
   brand_id: string;
@@ -79,6 +86,8 @@ export interface Task {
   notes: string | null;
   // Kaç günde bir tekrarlayacağı. null/0 = tekrar yok.
   repeat_days: number | null;
+  completed_at: string | null;
+  completed_by: string | null;
   created_at: string;
   updated_at: string;
 }

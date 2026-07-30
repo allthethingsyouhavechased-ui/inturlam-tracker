@@ -27,7 +27,7 @@ export default function TaskDueDateEdit({
           startTransition(() => setTaskDueDateAction(taskId, next));
           setEditing(false);
         }}
-        className="rounded-md border border-black/10 bg-white px-1.5 py-0.5 text-xs outline-none focus:border-brand-500 disabled:opacity-50 dark:border-white/15 dark:bg-zinc-900"
+        className="min-h-11 rounded-xl border border-black/10 bg-white px-3 py-2 text-xs outline-none transition-[border-color,box-shadow] focus:border-brand-500 disabled:opacity-50 dark:border-white/15 dark:bg-zinc-900"
       />
     );
   }
@@ -38,7 +38,7 @@ export default function TaskDueDateEdit({
       onClick={() => setEditing(true)}
       disabled={pending}
       title="Teslim tarihini değiştir"
-      className={`tabular-nums text-xs underline decoration-dotted underline-offset-2 hover:decoration-solid disabled:opacity-50 ${
+      className={`ui-press inline-flex min-h-11 items-center rounded-lg px-2.5 tabular-nums text-xs underline decoration-dotted underline-offset-2 hover:bg-black/5 hover:decoration-solid disabled:opacity-50 dark:hover:bg-white/10 ${
         dueDate && isOverdue(dueDate)
           ? "font-medium text-rose-600 dark:text-rose-400"
           : "text-zinc-500 dark:text-zinc-400"

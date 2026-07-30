@@ -173,12 +173,64 @@ export function createNextOccurrence(task: Task, today: string): string {
   return id;
 }
 
-export function updateTaskStatus(id: string, status: TaskStatus): void {
-  getDb()
-    .prepare(
-      "UPDATE tasks SET status = ?, updated_at = datetime('now') WHERE id = ?",
-    )
-    .run(status, id);
+interface TaskStatusRow {
+  id: string;
+  status: TaskStatus;
+}
+
+function applyTaskStatusChanges(
+  tasks: TaskStatusRow[],
+  status: TaskStatus,
+  actorId: string | null,
+): number {
+  const changed = tasks.filter((task) => task.status !== status);
+  if (changed.length === 0) return 0;
+
+  const db = getDb();
+  const update = db.prepare(`
+    UPDATE tasks
+       SET status = ?,
+           completed_at = CASE
+             WHEN ? = 'Yayinlandi' THEN datetime('now')
+             ELSE NULL
+           END,
+           completed_by = CASE
+             WHEN ? = 'Yayinlandi' THEN ?
+             ELSE NULL
+           END,
+           updated_at = datetime('now')
+     WHERE id = ?
+  `);
+  const insertEvent = db.prepare(`
+    INSERT INTO task_status_events
+      (id, task_id, from_status, to_status, actor_id)
+    VALUES (?, ?, ?, ?, ?)
+  `);
+
+  db.exec("BEGIN IMMEDIATE");
+  try {
+    for (const task of changed) {
+      update.run(status, status, status, actorId, task.id);
+      insertEvent.run(crypto.randomUUID(), task.id, task.status, status, actorId);
+    }
+    db.exec("COMMIT");
+  } catch (error) {
+    db.exec("ROLLBACK");
+    throw error;
+  }
+  return changed.length;
+}
+
+export function updateTaskStatus(
+  id: string,
+  status: TaskStatus,
+  actorId: string | null = null,
+): boolean {
+  const task = plainOne<TaskStatusRow>(
+    getDb().prepare("SELECT id, status FROM tasks WHERE id = ?").get(id),
+  );
+  if (!task) return false;
+  return applyTaskStatusChanges([task], status, actorId) > 0;
 }
 
 export function updateTaskPriority(id: string, priority: TaskPriority): void {
@@ -228,14 +280,19 @@ export function deleteTask(id: string): Task | undefined {
 // Tek UPDATE/DELETE ile `WHERE id IN (?, ?, …)` — hepsi tek statement'ta atomik
 // çalışır. Boş liste no-op. Placeholder sayısı id sayısına göre üretiliyor.
 
-export function bulkUpdateTaskStatus(ids: string[], status: TaskStatus): void {
-  if (ids.length === 0) return;
+export function bulkUpdateTaskStatus(
+  ids: string[],
+  status: TaskStatus,
+  actorId: string | null = null,
+): number {
+  if (ids.length === 0) return 0;
   const placeholders = ids.map(() => "?").join(", ");
-  getDb()
-    .prepare(
-      `UPDATE tasks SET status = ?, updated_at = datetime('now') WHERE id IN (${placeholders})`,
-    )
-    .run(status, ...ids);
+  const tasks = plainList<TaskStatusRow>(
+    getDb()
+      .prepare(`SELECT id, status FROM tasks WHERE id IN (${placeholders})`)
+      .all(...ids),
+  );
+  return applyTaskStatusChanges(tasks, status, actorId);
 }
 
 export function bulkUpdateTaskPriority(ids: string[], priority: TaskPriority): void {

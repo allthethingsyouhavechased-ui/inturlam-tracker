@@ -27,7 +27,7 @@ export default function TaskPrioritySelect({
         const next = e.target.value as TaskPriority;
         startTransition(() => setTaskPriorityAction(taskId, next));
       }}
-      className={`cursor-pointer rounded-full border-0 px-2.5 py-1 text-xs font-medium outline-none ${TASK_PRIORITY_BADGE[priority]} ${pending ? "opacity-50" : ""}`}
+      className={`cursor-pointer rounded-full px-2.5 py-1 text-xs font-semibold outline-none ${TASK_PRIORITY_BADGE[priority]} ${pending ? "opacity-50" : ""}`}
     >
       {TASK_PRIORITIES.map((p) => (
         <option key={p} value={p}>

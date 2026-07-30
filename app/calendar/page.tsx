@@ -69,7 +69,7 @@ export default async function CalendarPage({
           <Link
             href={`/calendar?month=${prevMonthParam}`}
             aria-label="Önceki ay"
-            className="touch-target rounded-md px-2 py-1.5 text-lg leading-none text-zinc-600 hover:bg-black/5 dark:text-zinc-300 dark:hover:bg-white/10"
+            className="ui-press inline-flex size-11 items-center justify-center rounded-xl text-2xl leading-none text-zinc-600 hover:bg-black/5 dark:text-zinc-300 dark:hover:bg-white/10"
           >
             ‹
           </Link>
@@ -79,7 +79,7 @@ export default async function CalendarPage({
           <Link
             href={`/calendar?month=${nextMonthParam}`}
             aria-label="Sonraki ay"
-            className="touch-target rounded-md px-2 py-1.5 text-lg leading-none text-zinc-600 hover:bg-black/5 dark:text-zinc-300 dark:hover:bg-white/10"
+            className="ui-press inline-flex size-11 items-center justify-center rounded-xl text-2xl leading-none text-zinc-600 hover:bg-black/5 dark:text-zinc-300 dark:hover:bg-white/10"
           >
             ›
           </Link>
@@ -87,7 +87,7 @@ export default async function CalendarPage({
         {!isCurrentMonth && (
           <Link
             href="/calendar"
-            className="text-sm font-medium text-brand-600 hover:underline dark:text-brand-400"
+            className="ui-press inline-flex min-h-11 items-center rounded-xl px-3 text-sm font-medium text-brand-600 hover:bg-brand-50 dark:text-brand-400 dark:hover:bg-brand-950/30"
           >
             Bugün
           </Link>
@@ -118,7 +118,7 @@ export default async function CalendarPage({
       />
 
       {selectedDay && (
-        <section className="space-y-3 rounded-xl border border-black/10 bg-white p-4 dark:border-white/10 dark:bg-zinc-900">
+        <section className="ui-enter space-y-3 rounded-xl border border-black/10 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-zinc-900">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h2 className="text-sm font-semibold">
               {formatDateLong(selectedDay)}{" "}
@@ -128,7 +128,7 @@ export default async function CalendarPage({
             </h2>
             <Link
               href={`/calendar?month=${monthParam}`}
-              className="text-xs font-medium text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200"
+              className="ui-press inline-flex min-h-11 items-center rounded-lg px-3 text-xs font-medium text-zinc-500 hover:bg-black/5 hover:text-zinc-800 dark:text-zinc-400 dark:hover:bg-white/10 dark:hover:text-zinc-200"
             >
               Kapat ×
             </Link>

@@ -10,7 +10,6 @@ const DB_PATH =
 const SCHEMA_PATH = path.join(process.cwd(), "lib", "db", "schema.sql");
 
 declare global {
-  // eslint-disable-next-line no-var
   var __inturlamDb: DatabaseSync | undefined;
 }
 
@@ -41,6 +40,7 @@ function createConnection(): DatabaseSync {
   migrateContentItemsArchivedIfNeeded(db);
   migrateTasksTableIfNeeded(db);
   migrateTasksRepeatIfNeeded(db);
+  migrateTasksReportingIfNeeded(db);
   // SIRA ÖNEMLİ: yukarıdaki iki brands migration'ı tabloyu SABİT bir sütun
   // listesiyle yeniden kuruyor; bu ALTER onlardan sonra çalışmalı, yoksa
   // eklediği sütun rebuild sırasında düşer.
@@ -75,6 +75,31 @@ function migrateTasksRepeatIfNeeded(db: DatabaseSync): void {
   const columns = db.prepare(`PRAGMA table_info(tasks)`).all() as { name: string }[];
   if (columns.some((c) => c.name === "repeat_days")) return;
   db.exec(`ALTER TABLE tasks ADD COLUMN repeat_days INTEGER`);
+}
+
+// Raporların oluşturulma tarihi yerine gerçek tamamlanma zamanını kullanabilmesi
+// için iki düz sütun eklenir. Eski yayınlanmış görevlerde kesin bir geçmiş yok;
+// updated_at en iyi mevcut başlangıç değeri olarak yalnızca bir kez geri doldurulur.
+function migrateTasksReportingIfNeeded(db: DatabaseSync): void {
+  const tasksExists = db
+    .prepare(`SELECT 1 FROM sqlite_master WHERE type='table' AND name='tasks'`)
+    .get();
+  if (!tasksExists) return;
+
+  const columns = db.prepare(`PRAGMA table_info(tasks)`).all() as { name: string }[];
+  if (!columns.some((c) => c.name === "completed_at")) {
+    db.exec(`ALTER TABLE tasks ADD COLUMN completed_at TEXT`);
+  }
+  if (!columns.some((c) => c.name === "completed_by")) {
+    db.exec(
+      `ALTER TABLE tasks ADD COLUMN completed_by TEXT REFERENCES people(id) ON DELETE SET NULL`,
+    );
+  }
+  db.exec(`
+    UPDATE tasks
+       SET completed_at = updated_at
+     WHERE status = 'Yayinlandi' AND completed_at IS NULL
+  `);
 }
 
 // Ajansın her markada tekrarlayan iş akışları — başlangıç içeriği.

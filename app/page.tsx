@@ -2,10 +2,7 @@ import Link from "next/link";
 import ActivityFeed from "@/components/ActivityFeed";
 import Logo from "@/components/Logo";
 import PersonAvatar from "@/components/PersonAvatar";
-import {
-  TASK_PRIORITY_LABEL,
-  TASK_STATUS_LABEL,
-} from "@/lib/constants";
+import { TASK_PRIORITY_LABEL } from "@/lib/constants";
 import { currentWeekRange, formatDateShort, todayISO } from "@/lib/date";
 import { getCurrentPerson } from "@/lib/identity";
 import { listRecentActivity } from "@/lib/repositories/activity";
@@ -15,7 +12,7 @@ import {
   listOverdueTasks,
   listTasksDueThisWeek,
 } from "@/lib/repositories/tasks";
-import type { TaskStatus, TaskWithContext } from "@/lib/types";
+import type { TaskWithContext } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -60,76 +57,6 @@ function StatCard({
         aria-hidden="true"
       />
     </Link>
-  );
-}
-
-const WORKLOAD_STATUSES = [
-  { status: "Beklemede", color: "bg-zinc-400" },
-  { status: "DevamEdiyor", color: "bg-blue-500" },
-  { status: "Incelemede", color: "bg-amber-500" },
-  { status: "Onaylandi", color: "bg-emerald-500" },
-] satisfies { status: TaskStatus; color: string }[];
-
-function WorkloadChart({ tasks }: { tasks: TaskWithContext[] }) {
-  const statusCounts = tasks.reduce<Record<TaskStatus, number>>(
-    (counts, task) => {
-      counts[task.status] += 1;
-      return counts;
-    },
-    {
-      Beklemede: 0,
-      DevamEdiyor: 0,
-      Incelemede: 0,
-      Onaylandi: 0,
-      Yayinlandi: 0,
-    },
-  );
-  const total = tasks.length;
-
-  return (
-    <section className="min-w-0 rounded-2xl border border-black/5 bg-white p-5 shadow-sm dark:border-white/5 dark:bg-zinc-900">
-      <div className="mb-5 flex items-baseline justify-between gap-3">
-        <h2 className="text-sm font-semibold text-zinc-800 dark:text-zinc-200">Açık iş yükü</h2>
-        <span className="text-xs tabular-nums text-zinc-500 dark:text-zinc-400">
-          {total} görev
-        </span>
-      </div>
-      {total === 0 ? (
-        <p className="text-sm text-zinc-500 dark:text-zinc-400">Açık görev bulunmuyor.</p>
-      ) : (
-        <div className="space-y-4">
-          {WORKLOAD_STATUSES.map(({ status, color }) => {
-            const count = statusCounts[status];
-            const percentage = Math.round((count / total) * 100);
-            return (
-              <div key={status} className="space-y-1.5">
-                <div className="flex items-center justify-between gap-3 text-xs">
-                  <span className="font-medium text-zinc-600 dark:text-zinc-300">
-                    {TASK_STATUS_LABEL[status]}
-                  </span>
-                  <span className="tabular-nums text-zinc-500 dark:text-zinc-400">
-                    {count} · %{percentage}
-                  </span>
-                </div>
-                <div
-                  className="h-2 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800"
-                  role="progressbar"
-                  aria-label={`${TASK_STATUS_LABEL[status]} görev oranı`}
-                  aria-valuemin={0}
-                  aria-valuemax={100}
-                  aria-valuenow={percentage}
-                >
-                  <div
-                    className={`h-full rounded-full ${color} transition-[width] duration-500`}
-                    style={{ width: `${percentage}%` }}
-                  />
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
-    </section>
   );
 }
 
@@ -293,7 +220,7 @@ export default async function HomePage() {
       {/* Ana sayfa artık "nereye gideyim?" değil "bugün ne var?" sorusunu
           cevaplıyor. Eskiden burada üstteki nav'ı ve soldaki sidebar'ı
           tekrarlayan 6 link kartı vardı — üç kez aynı menü. */}
-      <div className="grid min-w-0 gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(16rem,1fr)]">
+      <div className="grid min-w-0 gap-6">
         <div className="grid min-w-0 gap-6">
           <TaskPanel
             id="gecikmis"
@@ -309,7 +236,6 @@ export default async function HomePage() {
             emptyText="Bu hafta teslim edilecek görev yok."
           />
         </div>
-        <WorkloadChart tasks={openTasks} />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">

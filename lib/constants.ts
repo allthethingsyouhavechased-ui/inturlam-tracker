@@ -74,19 +74,24 @@ export const TASK_STATUS_LABEL: Record<TaskStatus, string> = {
 };
 
 export const TASK_STATUS_BADGE: Record<TaskStatus, string> = {
-  Beklemede: "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300",
-  DevamEdiyor: "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300",
-  Incelemede: "bg-violet-100 text-violet-700 dark:bg-violet-950 dark:text-violet-300",
-  Onaylandi: "bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300",
-  Yayinlandi: "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300",
+  Beklemede:
+    "bg-slate-200 text-slate-800 ring-1 ring-inset ring-slate-300 dark:bg-slate-800 dark:text-slate-200 dark:ring-slate-700",
+  DevamEdiyor:
+    "bg-blue-100 text-blue-800 ring-1 ring-inset ring-blue-300 dark:bg-blue-950 dark:text-blue-200 dark:ring-blue-800",
+  Incelemede:
+    "bg-violet-100 text-violet-800 ring-1 ring-inset ring-violet-300 dark:bg-violet-950 dark:text-violet-200 dark:ring-violet-800",
+  Onaylandi:
+    "bg-amber-100 text-amber-900 ring-1 ring-inset ring-amber-300 dark:bg-amber-950 dark:text-amber-200 dark:ring-amber-800",
+  Yayinlandi:
+    "bg-emerald-100 text-emerald-800 ring-1 ring-inset ring-emerald-300 dark:bg-emerald-950 dark:text-emerald-200 dark:ring-emerald-800",
 };
 
 export const TASK_STATUS_DOT: Record<TaskStatus, string> = {
   Beklemede: "bg-slate-400",
-  DevamEdiyor: "bg-amber-500",
-  Incelemede: "bg-violet-500",
-  Onaylandi: "bg-blue-500",
-  Yayinlandi: "bg-emerald-500",
+  DevamEdiyor: "bg-blue-600",
+  Incelemede: "bg-violet-600",
+  Onaylandi: "bg-amber-500",
+  Yayinlandi: "bg-emerald-600",
 };
 
 // Kanban kolon başlıklarının üst çizgisi — TASK_STATUS_DOT ile aynı renk
@@ -95,10 +100,20 @@ export const TASK_STATUS_DOT: Record<TaskStatus, string> = {
 // bir sabit olarak literal yazılmalı.
 export const TASK_STATUS_BORDER_TOP: Record<TaskStatus, string> = {
   Beklemede: "border-t-slate-400",
-  DevamEdiyor: "border-t-amber-500",
-  Incelemede: "border-t-violet-500",
-  Onaylandi: "border-t-blue-500",
-  Yayinlandi: "border-t-emerald-500",
+  DevamEdiyor: "border-t-blue-600",
+  Incelemede: "border-t-violet-600",
+  Onaylandi: "border-t-amber-500",
+  Yayinlandi: "border-t-emerald-600",
+};
+
+// Rapor çubukları ve diğer dolu durum göstergeleri de yukarıdaki semantik
+// paleti kullanır. Aynı durum uygulamanın hiçbir yerinde başka renge dönmez.
+export const TASK_STATUS_PROGRESS: Record<TaskStatus, string> = {
+  Beklemede: "bg-slate-400 dark:bg-slate-500",
+  DevamEdiyor: "bg-blue-600",
+  Incelemede: "bg-violet-600",
+  Onaylandi: "bg-amber-500",
+  Yayinlandi: "bg-emerald-600",
 };
 
 // Bir görevin "açık" (tamamlanmamış) sayılması için: yayınlanmamış olması.
@@ -133,22 +148,27 @@ export const TASK_PRIORITY_ICON: Record<TaskPriority, string> = {
 };
 
 export const TASK_PRIORITY_BADGE: Record<TaskPriority, string> = {
-  Dusuk: "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300",
-  Normal: "bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300",
-  Yuksek: "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300",
-  Acil: "bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300",
+  Dusuk:
+    "border border-slate-300 bg-slate-50 text-slate-700 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-300",
+  Normal:
+    "border border-cyan-400 bg-cyan-50 text-cyan-800 dark:border-cyan-700 dark:bg-cyan-950 dark:text-cyan-200",
+  Yuksek:
+    "border border-orange-400 bg-orange-50 text-orange-800 dark:border-orange-600 dark:bg-orange-950 dark:text-orange-200",
+  Acil:
+    "border border-rose-500 bg-rose-50 text-rose-800 dark:border-rose-600 dark:bg-rose-950 dark:text-rose-200",
 };
 
 // Kanban kartlarında başlığın önüne sadece göz ardı edilmemesi gereken
 // öncelikler için bayrak konur — Normal/Düşük görsel gürültü yaratmasın diye.
 export const TASK_PRIORITY_FLAG_THRESHOLD: TaskPriority[] = ["Yuksek", "Acil"];
 
-// Görev kartlarının/satırlarının sol kenarındaki öncelik rengi (border-l-4 ile).
+// Görev kartlarının TAM çerçevesindeki öncelik rengi. Renk tek başına anlam
+// taşımıyor; kartın içinde ayrıca yazılı öncelik rozeti de gösteriliyor.
 export const TASK_PRIORITY_BORDER: Record<TaskPriority, string> = {
-  Dusuk: "border-l-slate-300 dark:border-l-slate-600",
-  Normal: "border-l-sky-400 dark:border-l-sky-600",
-  Yuksek: "border-l-amber-500",
-  Acil: "border-l-rose-500",
+  Dusuk: "border-slate-300 dark:border-slate-600",
+  Normal: "border-cyan-400 dark:border-cyan-700",
+  Yuksek: "border-orange-500 dark:border-orange-600",
+  Acil: "border-rose-500 dark:border-rose-600",
 };
 
 // Takvim ızgarasının dar ekran görünümünde (metin pill'i sığmadığında) öncelik

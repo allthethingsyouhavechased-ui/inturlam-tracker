@@ -11,6 +11,7 @@ import {
   TASK_STATUSES,
 } from "@/lib/constants";
 import { formatDateShort, todayISO } from "@/lib/date";
+import { getCurrentPerson } from "@/lib/identity";
 import { getPerson } from "@/lib/repositories/people";
 import {
   addTaskAttachment,
@@ -79,18 +80,21 @@ export async function createTaskAction(formData: FormData): Promise<string> {
 export async function setTaskStatusAction(taskId: string, status: TaskStatus) {
   if (!TASK_STATUSES.includes(status)) throw new Error("Geçersiz durum.");
   const task = getTask(taskId);
-  updateTaskStatus(taskId, status);
-  await recordActivity({
-    action: "task.status",
-    entityType: "task",
-    entityId: taskId,
-    brandId: task?.brand_id ?? null,
-    summary: `“${task?.title ?? "Görev"}” görevini ${TASK_STATUS_LABEL[status]} durumuna aldı`,
-  });
+  const actor = await getCurrentPerson();
+  const changed = updateTaskStatus(taskId, status, actor?.id ?? null);
+  if (changed) {
+    await recordActivity({
+      action: "task.status",
+      entityType: "task",
+      entityId: taskId,
+      brandId: task?.brand_id ?? null,
+      summary: `“${task?.title ?? "Görev"}” görevini ${TASK_STATUS_LABEL[status]} durumuna aldı`,
+    });
+  }
 
   // Tekrar eden görev tamamlandıysa bir sonraki örneğini aç. Yeni görev
   // "Beklemede" başladığı için bu dal tekrar tetiklenmez (sonsuz döngü yok).
-  if (status === "Yayinlandi" && task && (task.repeat_days ?? 0) > 0) {
+  if (changed && status === "Yayinlandi" && task && (task.repeat_days ?? 0) > 0) {
     createNextOccurrence(task, todayISO());
     await recordActivity({
       action: "task.repeat",
@@ -240,14 +244,15 @@ function cleanIds(ids: string[]): string[] {
 export async function bulkSetTaskStatusAction(ids: string[], status: TaskStatus) {
   if (!TASK_STATUSES.includes(status)) throw new Error("Geçersiz durum.");
   const clean = cleanIds(ids);
-  bulkUpdateTaskStatus(clean, status);
-  if (clean.length > 0) {
+  const actor = await getCurrentPerson();
+  const changedCount = bulkUpdateTaskStatus(clean, status, actor?.id ?? null);
+  if (changedCount > 0) {
     await recordActivity({
       action: "task.bulk.status",
       entityType: "task",
       entityId: null,
       brandId: null,
-      summary: `${clean.length} görevi ${TASK_STATUS_LABEL[status]} durumuna aldı`,
+      summary: `${changedCount} görevi ${TASK_STATUS_LABEL[status]} durumuna aldı`,
     });
   }
   revalidatePath("/", "layout");

@@ -28,9 +28,9 @@ function dateNumberClass(isToday: boolean, inMonth: boolean): string {
 }
 
 // Ay ızgarasının 7 sütunlu grid'i: haftanın günleri başlığı + her gün için bir
-// hücre. Hücrenin TAMAMI yerine yalnızca tarih numarası tıklanabilir (gün
-// detayına gider); her pill ayrıca kendi görevine linkli — ikisini iç içe
-// <a> yapmadan (geçersiz HTML) ayrı kardeş linkler olarak kurmanın yolu bu.
+// hücre. Mobilde görevler yalnızca nokta olduğu için hücrenin tamamı gün detayına
+// gider; sm+ ekranda yalnızca üst şerit gün linkidir ve görev pill'leri kendi
+// görevlerine gider. Böylece linkler iç içe geçmeden hedefler rahat tıklanır.
 export default function CalendarGrid({
   gridDays,
   tasksByDate,
@@ -66,15 +66,21 @@ export default function CalendarGrid({
         return (
           <div
             key={day.date}
-            className={`flex min-h-16 min-w-0 flex-col gap-1 rounded-lg border p-1 transition-colors sm:min-h-28 sm:p-1.5 ${cellToneClass(day.inMonth, isSelected)}`}
+            className={`ui-surface group relative flex min-h-20 min-w-0 flex-col gap-1 rounded-xl border p-1 sm:min-h-32 sm:p-1.5 ${cellToneClass(day.inMonth, isSelected)} ${
+              isSelected ? "shadow-md" : "hover:border-brand-300 hover:shadow-md dark:hover:border-brand-800"
+            }`}
           >
             <Link
               href={dayHref}
               aria-current={isToday ? "date" : undefined}
               aria-label={dayTasks.length > 0 ? `${dayLabel} — ${dayTasks.length} görev` : dayLabel}
-              className={`touch-target inline-flex h-6 w-6 shrink-0 items-center justify-center self-start rounded-full text-xs font-semibold ${dateNumberClass(isToday, day.inMonth)}`}
+              className="ui-press absolute inset-0 z-0 inline-flex w-full shrink-0 items-start justify-start rounded-xl p-1 text-xs font-semibold hover:bg-black/[0.035] sm:static sm:min-h-11 sm:items-center sm:rounded-lg sm:px-1 sm:py-0 dark:hover:bg-white/[0.06]"
             >
-              {dayNumber}
+              <span
+                className={`grid size-8 place-items-center rounded-full ${dateNumberClass(isToday, day.inMonth)}`}
+              >
+                {dayNumber}
+              </span>
             </Link>
 
             {/* sm+: öncelik renkli, başlığı okunabilir pill'ler */}
@@ -84,7 +90,7 @@ export default function CalendarGrid({
                   key={t.id}
                   href={`/tasks/${t.id}`}
                   title={t.title}
-                  className={`truncate rounded px-1 py-0.5 text-[10px] font-medium leading-tight ${TASK_PRIORITY_BADGE[t.priority]}`}
+                  className={`ui-press flex min-h-7 items-center truncate rounded-md px-2 py-1 text-[10px] font-medium leading-tight hover:translate-x-0.5 ${TASK_PRIORITY_BADGE[t.priority]}`}
                 >
                   {t.title}
                 </Link>
@@ -92,7 +98,7 @@ export default function CalendarGrid({
               {dayTasks.length > MAX_PILLS && (
                 <Link
                   href={dayHref}
-                  className="truncate px-1 text-[10px] font-medium text-zinc-500 hover:text-brand-600 dark:text-zinc-400 dark:hover:text-brand-400"
+                  className="ui-press flex min-h-7 items-center truncate rounded-md px-2 text-[10px] font-medium text-zinc-500 hover:bg-black/[0.035] hover:text-brand-600 dark:text-zinc-400 dark:hover:bg-white/[0.06] dark:hover:text-brand-400"
                 >
                   +{dayTasks.length - MAX_PILLS} daha
                 </Link>
@@ -102,7 +108,7 @@ export default function CalendarGrid({
             {/* Mobil: pill metni bir 7 sütunlu hücreye sığmıyor, yalnızca
                 öncelik renginde noktalar — sayı/başlık için tarihe dokun. */}
             {dayTasks.length > 0 && (
-              <div className="flex flex-wrap gap-0.5 sm:hidden" aria-hidden>
+              <div className="pointer-events-none relative z-10 mt-10 flex flex-wrap gap-0.5 sm:hidden" aria-hidden>
                 {dayTasks.slice(0, MAX_DOTS).map((t) => (
                   <span key={t.id} className={`h-1.5 w-1.5 rounded-full ${TASK_PRIORITY_DOT[t.priority]}`} />
                 ))}

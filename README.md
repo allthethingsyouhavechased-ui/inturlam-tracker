@@ -13,6 +13,10 @@ kurulumu basit bir iç araç.
 - **"Panom" sayfası:** Herkes kendi açık görevlerini, gecikmişleri ve o hafta teslim
   olacakları tek ekranda görür — durumunu da göreve girmeden, doğrudan bu listeden
   değiştirebilir.
+- **Aktif marka kanbanı:** Ekip sayfasında herkes o an çalıştığı markayı seçer; seçilen
+  markadaki açık görevleri kişinin sütununda görünür.
+- **Operasyon raporları:** Dönem, ekip ve marka bazında iş yükü, gecikme, tamamlanma
+  ve iş akışı dağılımını gösterir.
 
 Şifre/hesap sistemi yok — açılışta "Sen kimsin?" ile isim seçilir, cookie'de hatırlanır.
 Veri tek bir yerel dosyada tutulur (`data/inturlam.db`, SQLite) — ayrı bir veritabanı
@@ -21,6 +25,9 @@ sunucusu kurmaya gerek yok.
 **Ofis içinde günlük kullanım için** (kurulum bilmeden, sadece "nasıl kullanırım")
 → **[KULLANIM-KILAVUZU.md](KULLANIM-KILAVUZU.md)** dosyasına bak. Aşağıdaki bölümler
 kurulum/geliştirme/dağıtım içindir.
+
+**Ofis PC'sindeki mevcut kurulumu bu sürüme yükseltmek için**
+→ **[OFIS-GUNCELLEME.md](OFIS-GUNCELLEME.md)** dosyasındaki adımları sırayla uygula.
 
 ## Gereksinimler
 
@@ -49,37 +56,34 @@ Kullanacak kişileri `db/seed.mts` içindeki `PEOPLE` listesinde düzenle
 npm run db:seed
 ```
 
-Seed tekrar çalıştırılabilir: marka/kişi isimlerini günceller, mevcut görev/yorumlara
-dokunmaz. (Aynı şekilde marka adlarını da `BRANDS` listesinden düzeltebilirsin.)
+`db:seed` yalnızca ilk kurulum veya bilinçli veri yenileme içindir. Mevcut ofis
+veritabanını güncellerken çalıştırma; ofisteki kullanıcı verisini korumak için
+`OFIS-GUNCELLEME.md` akışını kullan.
 
-## Ofis PC'sine taşıma (bu proje şu an başka bir bilgisayarda kuruldu)
+## Ofis PC'sine ilk kurulum
 
-Bu proje ev/başka bir bilgisayarda geliştirildi; ofis PC'sinde henüz yok. Kod zaten
-bir git deposu (`git log` ile geçmişi görebilirsin). Ofis PC'sine taşımak için üç yol:
+Kod GitHub'daki private depoda tutulur. Yeni bir ofis bilgisayarına ilk kez kurarken:
 
-**A) USB / taşınabilir disk (en hızlı, hesap gerektirmez)**
-1. Bu klasörü kopyala ama şunları **almadan**: `node_modules/`, `.next/`, `data/`
-   (üçü de yeniden oluşur / kasıtlı olarak boş başlar).
-2. Ofis PC'sinde Node.js kurulu değilse önce kur (bu makinede **v24.18.0** var,
-   20.9+ herhangi bir sürüm çalışır — https://nodejs.org, LTS sürümü indir).
-3. Kopyalanan klasörde: `npm install`, sonra `npm run db:seed`.
+```powershell
+git clone https://github.com/allthethingsyouhavechased-ui/inturlam-tracker.git
+cd inturlam-tracker
+npm install
+npm run db:seed
+npm run build
+npm run start
+```
 
-**B) GitHub (özel repo) — birden fazla makinede çalışmaya devam edeceksen önerilir**
-1. github.com'da yeni bir **private** repo oluştur (ör. `inturlam-tracker`).
-2. Bu makinede:
-   ```powershell
-   git remote add origin https://github.com/<kullanici-adin>/inturlam-tracker.git
-   git push -u origin main
-   ```
-3. Ofis PC'sinde: `git clone <repo-url>`, sonra `npm install` ve `npm run db:seed`.
-4. Bundan sonra değişiklikleri `git push` / `git pull` ile iki makine arasında taşırsın.
+Node.js 20.9+ gerekir; güncel LTS sürümü önerilir. Bu komutlar yeni ve boş kurulum
+içindir. Ofis PC'sinde uygulama zaten kuruluysa tekrar clone veya seed yapma;
+**[OFIS-GUNCELLEME.md](OFIS-GUNCELLEME.md)** dosyasını kullan.
 
-**C) Zaten paylaşılan bir bulut klasörün varsa (Drive/OneDrive)**
-Projeyi (yine `node_modules`, `.next`, `data` hariç) sıkıştırıp o klasöre koy,
-ofis PC'sinde aç, `npm install` + `npm run db:seed` çalıştır.
+Görev ve aktivite geçmişini kontrollü temizlemek için önce kapsamı gösteren,
+`--force` verildiğinde otomatik yedek alıp temizleyen bakım komutu:
 
-Hangisini seçersen seç, ofis PC'sindeki ilk kurulumdan sonra aşağıdaki
-"Ofiste kullanım" adımları aynı.
+```powershell
+npm run db:clear-work
+npm run db:clear-work -- --force
+```
 
 ## Geliştirme (tek makinede)
 

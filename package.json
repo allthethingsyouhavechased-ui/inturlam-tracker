@@ -13,6 +13,7 @@
     "db:migrate": "node db/migrate.mts",
     "db:seed": "node db/seed.mts",
     "db:seed:demo": "node db/seed-demo.mts",
+    "db:clear-work": "node db/clear-work.mts",
     "db:backup": "node db/backup.mts",
     "db:restore": "node db/restore.mts"
   },

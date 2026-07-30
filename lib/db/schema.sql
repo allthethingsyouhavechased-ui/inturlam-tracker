@@ -55,6 +55,14 @@ CREATE TABLE IF NOT EXISTS people (
   active INTEGER NOT NULL DEFAULT 1
 );
 
+-- Ekipte kimin şu anda hangi marka üzerinde çalıştığı. Kişi başına tek seçim
+-- tutulur; değişiklik yeni satır biriktirmek yerine güncel durumu temsil eder.
+CREATE TABLE IF NOT EXISTS person_active_work (
+  person_id  TEXT PRIMARY KEY REFERENCES people(id) ON DELETE CASCADE,
+  brand_id   TEXT NOT NULL REFERENCES brands(id) ON DELETE CASCADE,
+  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
 CREATE TABLE IF NOT EXISTS content_items (
   id          TEXT PRIMARY KEY,
   brand_id    TEXT NOT NULL REFERENCES brands(id) ON DELETE CASCADE,
@@ -80,8 +88,23 @@ CREATE TABLE IF NOT EXISTS tasks (
   -- Tekrar eden görev: kaç günde bir. NULL/0 = tekrar yok. Görev "Yayınlandı"
   -- durumuna alınınca bir sonraki örneği otomatik açılır (lib/actions/tasks.ts).
   repeat_days     INTEGER,
+  -- Raporlama için gerçek tamamlanma bilgisi. Eski DB'lerde migration,
+  -- yayınlanmış görevlerin updated_at değerini başlangıç olarak kullanır.
+  completed_at    TEXT,
+  completed_by    TEXT REFERENCES people(id) ON DELETE SET NULL,
   created_at      TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at      TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+-- Durumların ne zaman değiştiğini append-only saklar. Böylece yalnızca son
+-- durumu değil, işin hangi aşamada ne kadar beklediğini de ileride ölçebiliriz.
+CREATE TABLE IF NOT EXISTS task_status_events (
+  id          TEXT PRIMARY KEY,
+  task_id     TEXT NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
+  from_status TEXT NOT NULL,
+  to_status   TEXT NOT NULL,
+  actor_id    TEXT,
+  created_at  TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
 -- Görev şablonları: aynı iş akışı (Reel → brief/çekim/kurgu/kapak/yayın) her
@@ -169,11 +192,15 @@ CREATE TABLE IF NOT EXISTS notifications (
 
 CREATE INDEX IF NOT EXISTS idx_brands_cluster      ON brands(cluster);
 CREATE INDEX IF NOT EXISTS idx_clusters_sort       ON clusters(sort_order);
+CREATE INDEX IF NOT EXISTS idx_person_active_work_brand ON person_active_work(brand_id);
 CREATE INDEX IF NOT EXISTS idx_content_items_brand    ON content_items(brand_id);
 CREATE INDEX IF NOT EXISTS idx_content_items_assignee ON content_items(assignee_id);
 CREATE INDEX IF NOT EXISTS idx_tasks_content_item  ON tasks(content_item_id);
 CREATE INDEX IF NOT EXISTS idx_tasks_assignee      ON tasks(assignee_id);
 CREATE INDEX IF NOT EXISTS idx_tasks_due_date      ON tasks(due_date);
+CREATE INDEX IF NOT EXISTS idx_tasks_completed_at  ON tasks(completed_at);
+CREATE INDEX IF NOT EXISTS idx_task_status_events_task
+  ON task_status_events(task_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_comments_task       ON comments(task_id);
 CREATE INDEX IF NOT EXISTS idx_template_items_template ON task_template_items(template_id);
 CREATE INDEX IF NOT EXISTS idx_comment_attachments_comment ON comment_attachments(comment_id);

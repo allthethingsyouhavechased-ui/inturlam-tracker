@@ -8,6 +8,10 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --motion-ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --motion-quick: 140ms;
+  --motion-standard: 240ms;
+  --motion-slow: 360ms;
   /* Sticky header'ın yüksekliği (py-3 + 32px içerik + 1px alt çizgi).
      Sidebar ve toplu işlem çubuğu gibi header'ın altına yapışan her şey bunu
      kullanır — üç ayrı dosyaya 57px yazıp birinin unutulmasını önler. */
@@ -56,6 +60,59 @@ body {
     radial-gradient(circle at 50% 0%, rgb(37 99 235 / 0.055), transparent 34rem),
     radial-gradient(circle at 100% 0%, rgb(168 85 247 / 0.035), transparent 28rem);
   background-attachment: fixed;
+}
+
+.ui-press,
+.ui-surface {
+  transition-duration: var(--motion-standard);
+  transition-timing-function: var(--motion-ease-standard);
+}
+
+.ui-press {
+  transition-property: color, background-color, border-color, box-shadow, opacity, transform;
+}
+
+.ui-surface {
+  transition-property: color, background-color, border-color, box-shadow, opacity, transform;
+}
+
+.ui-enter {
+  animation: ui-enter var(--motion-slow) var(--motion-ease-standard) both;
+}
+
+@keyframes ui-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+@media (hover: hover) {
+  .ui-surface:hover {
+    transform: translateY(-2px);
+  }
+}
+
+.ui-surface[data-dragging="true"] {
+  transform: scale(0.98);
+}
+
+.ui-press:active {
+  transform: scale(0.98);
+  transition-duration: var(--motion-quick);
+}
+
+/* Tarih alanlarında kutunun tamamı ve tarayıcının takvim ikonu rahatça
+   tıklanabilir. Formlar için ortak alt sınır 44px'tir. */
+input[type="date"] {
+  min-height: 44px;
+  cursor: pointer;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  padding: 8px;
+  margin: -8px -4px -8px 0;
 }
 
 .dark body {

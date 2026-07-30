@@ -23,6 +23,7 @@ import {
   TASK_PRIORITY_BORDER,
   TASK_PRIORITY_FLAG_THRESHOLD,
   TASK_PRIORITY_ICON,
+  TASK_STATUS_BADGE,
   TASK_STATUS_BORDER_TOP,
   TASK_STATUS_DOT,
   TASK_STATUS_LABEL,
@@ -49,7 +50,13 @@ function TaskCard({
       ref={overlay ? undefined : setNodeRef}
       {...(overlay ? {} : listeners)}
       {...(overlay ? {} : attributes)}
-      className={`touch-none space-y-2 rounded-lg border border-l-4 border-black/10 bg-white p-3 shadow-sm transition-shadow dark:border-white/10 dark:bg-zinc-900 ${TASK_PRIORITY_BORDER[task.priority]} ${overlay ? "cursor-grabbing shadow-lg" : "cursor-grab hover:shadow-md"} ${isDragging && !overlay ? "opacity-30" : ""}`}
+      data-dnd-card={overlay ? undefined : ""}
+      data-dragging={isDragging || undefined}
+      className={`ui-surface touch-none space-y-2 rounded-xl border-2 bg-white p-3 shadow-sm dark:bg-zinc-900 ${TASK_PRIORITY_BORDER[task.priority]} ${
+        overlay
+          ? "rotate-[1deg] scale-[1.02] cursor-grabbing shadow-2xl"
+          : "cursor-grab active:cursor-grabbing hover:shadow-md"
+      } ${isDragging && !overlay ? "scale-[0.98] opacity-25" : ""}`}
     >
       <Link
         href={`/tasks/${task.id}`}
@@ -95,20 +102,45 @@ function Column({
   return (
     <div
       ref={setNodeRef}
-      className={`space-y-2 rounded-xl border-t-2 bg-slate-50/60 p-2 transition-colors dark:bg-white/[0.02] ${TASK_STATUS_BORDER_TOP[status]} ${isOver ? "bg-brand-50/60 dark:bg-brand-950/20" : ""}`}
+      data-drop-column={status}
+      data-drop-active={isOver || undefined}
+      className={`min-h-40 space-y-2 rounded-2xl border border-black/5 border-t-2 bg-slate-50/60 p-3 transition-[background-color,border-color,box-shadow,transform] duration-200 dark:border-white/5 dark:bg-white/[0.02] ${TASK_STATUS_BORDER_TOP[status]} ${
+        isOver
+          ? "scale-[1.01] border-brand-400 bg-brand-50/80 shadow-md ring-2 ring-brand-500/20 dark:border-brand-700 dark:bg-brand-950/30"
+          : ""
+      }`}
     >
-      <div className="flex items-center gap-2 px-1 text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+      <div
+        className={`flex min-h-10 items-center gap-2 rounded-lg px-2 text-xs font-semibold uppercase tracking-wider ${TASK_STATUS_BADGE[status]}`}
+      >
         <span className={`h-2 w-2 rounded-full ${TASK_STATUS_DOT[status]}`} />
         {TASK_STATUS_LABEL[status]}
-        <span className="text-zinc-500 dark:text-zinc-400">{tasks.length}</span>
+        <span className="ml-auto rounded-full bg-white/60 px-1.5 py-0.5 tabular-nums dark:bg-black/20">
+          {tasks.length}
+        </span>
       </div>
-      <div className="min-h-16 space-y-2">
+      <div className="min-h-20 space-y-2">
         {tasks.map((task) => (
           <TaskCard key={task.id} task={task} people={people} />
         ))}
         {tasks.length === 0 && (
-          <div className="rounded-lg border border-dashed border-black/10 py-3 text-center text-xs text-zinc-500 dark:border-white/10 dark:text-zinc-400">
-            —
+          <div
+            className={`flex min-h-20 items-center justify-center rounded-xl border border-dashed text-center text-xs font-medium transition-colors ${
+              isOver
+                ? "border-brand-400 bg-white/70 text-brand-700 dark:border-brand-600 dark:bg-black/10 dark:text-brand-300"
+                : "border-black/10 text-zinc-500 dark:border-white/10 dark:text-zinc-400"
+            }`}
+          >
+            {isOver ? (
+              "Buraya bırak"
+            ) : (
+              <span>
+                Bu aşamada görev yok
+                <span className="mt-1 block font-normal opacity-75">
+                  Kartı buraya sürükleyebilirsin
+                </span>
+              </span>
+            )}
           </div>
         )}
       </div>
@@ -169,6 +201,7 @@ export default function KanbanBoard({
       sensors={sensors}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
+      onDragCancel={() => setActiveId(null)}
     >
       <div className="grid gap-4 lg:grid-cols-5">
         {TASK_STATUSES.map((status) => (

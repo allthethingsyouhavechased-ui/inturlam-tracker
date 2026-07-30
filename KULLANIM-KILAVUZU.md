@@ -20,8 +20,8 @@ onlarla ilgilenen zaten Yunus Emre. Burada sadece **günlük olarak nasıl kulla
 - **"Bugün ne yapmalıyım" derken:** Panom, Görevler, Takvim sayfaları — tüm
   markalardaki görevleri tek ekranda, farklı süzgeçlerle gösterir.
 
-Uygulama şu an **boş başlıyor** — deneme amaçlı açılmış içerik/görevler temizlendi.
-Gerçek işler buradan itibaren eklenecek.
+Görev ve aktivite geçmişi temizlendi. Marka, ekip, içerik/proje ve görev şablonları
+korundu; gerçek görevler buradan itibaren eklenebilir.
 
 ---
 
@@ -66,7 +66,7 @@ Kendi adını değiştirmek/çıkış yapmak istersen: sağ üstteki adının ya
 | **Takvim** | Görevleri teslim tarihine göre ay ay gör |
 | **Raporlar** | Kim/hangi marka ne kadar iş tamamladı |
 | **Aktivite** | Portföydeki tüm hareketlerin (kim ne yaptı) kronolojik akışı |
-| **Ekip** | Kullanıcı/kişi listesi yönetimi |
+| **Ekip** | Aktif marka kanbanı ve kullanıcı/kişi listesi yönetimi |
 | **Şablonlar** | Tekrarlayan görev grupları (brief→çekim→kurgu→onay→yayın gibi) |
 | **Panom** | Sana özel: senin görevlerin, gecikmişler, bu hafta teslimler |
 
@@ -78,27 +78,18 @@ Menünün yanında ayrıca:
 
 ---
 
-## 5. Ana sayfa: Markalar
+## 5. Ana sayfa: Günün özeti
 
-Girince karşına 19 marka, kümelerine göre gruplanmış gelir (Balık & Deniz, Kahve &
-Gıda, B2B / Yapı, Hamam, Gayrimenkul, Diğer). Her markanın yanında:
+Ana sayfa günlük operasyonun kısa özetidir:
 
-- Küçük logosu
-- Kaç tane **açık** (bitmemiş) görevi olduğunu gösteren bir sayı — sayı yoksa "boş"
-  yazar, o markada bekleyen iş yok demektir.
+- Aktif marka, açık görev, gecikmiş görev ve bu hafta teslim sayıları
+- **Kritik ve gecikmiş** görevler
+- **Bu hafta teslim** edilecek görevler
+- Kimliğini seçtiysen **Sende açık** görevler
+- **Son hareketler**
 
-Bir markaya tıklayınca o markanın sayfasına gidersin.
-
-Üstteki **"Yeni marka ekle"** kutusundan yeni bir marka açabilirsin: ad, kategori,
-Instagram kullanıcı adı ve isteğe bağlı bir **logo** (📎 "Logo ekle"ye basıp görsel
-seç, önizlemesini gör, sonra "Ekle"ye bas).
-
-Bir markayı listeden kaldırmak istersen **arşivle** — silinmez, sayfanın altında
-ayrı bir "Arşivlenenler" listesinde durur, istersen oradan **arşivden çıkar**
-diyip geri getirirsin. Arşivdeki bir markayı **kalıcı olarak silmek** de mümkün
-(dikkat, geri gelmez — altındaki tüm içerik/görev/yorum da gider); bu düğme
-kasıtlı olarak yalnızca arşivlenmiş markalarda çıkar, aktif bir markayı yanlışlıkla
-tek tıkla silemezsin.
+Markalara sol menüden veya üstteki **Markalar** bağlantısından ulaşabilirsin. Sol
+menüde marka adının yanındaki sayı o markadaki açık görev sayısını gösterir.
 
 ---
 
@@ -208,7 +199,10 @@ listede, üstte filtrelerle:
 - **Pano** / **Liste** görünüm anahtarı (sağ üstte)
 
 **Pano görünümü**: içerik sayfasındaki gibi Kanban, ama tüm markalar bir arada.
-Sütun başlıklarına tıklayarak (Marka/Durum/Öncelik/Atanan) sıralayabilirsin.
+Filtreler düğmesini açarak marka, durum, öncelik ve atanana göre süzebilirsin.
+Kartın tüm çerçevesi önceliği gösterir: düşük gri, normal camgöbeği, yüksek turuncu,
+acil pembe/kırmızı. Durum başlıkları ise ayrı bir dil kullanır: beklemede gri,
+devam ediyor mavi, incelemede mor, onaylandı kehribar, yayınlandı yeşil.
 
 **Liste görünümü** — satırların üzerinden değiştirebileceğin alanlar:
 - **Öncelik / Durum / Atanan** hücrelerine tıkla, açılan listeden seç — göreve
@@ -258,13 +252,13 @@ listesinden otomatik düşer (artık açık görev sayılmaz).
 
 ## 14. Raporlar sayfası
 
-Üstteki menüden **"Raporlar"**a tıkla. Kim ne kadar iş tamamlamış, hangi markada
-ne kadar iş bitmiş — kişi bazında ve marka bazında iki ayrı tablo.
+Üstteki menüden **"Raporlar"**a tıkla. Sayfanın üstünde açılan, tamamlanan, açık,
+geciken ve zamanında tamamlanan görevlerin operasyon özeti görünür. Altında aktif
+iş akışının durum dağılımı ile kişi ve marka tabloları bulunur.
 
-Üstteki tarih aralığı seçiciyle **bu hafta / bu ay / özel tarih aralığı** arasında
-geçiş yapabilirsin (varsayılan: tüm zamanlar). Bir kişiye/markaya tıklayınca o
-kişinin/markanın hangi markalarda/kişilerle kaç görev tamamladığının dökümünü
-görürsün.
+**Tümü / Bu hafta / Bu ay / Özel aralık** seçenekleriyle dönemi değiştirebilirsin.
+En yoğun kişi ve marka ayrıca işaretlenir. Kişi veya marka satırını açarak ayrıntılı
+dökümü görebilir, tabloları gizleyebilir veya CSV olarak indirebilirsin.
 
 ---
 
@@ -281,6 +275,10 @@ görev sayfasındaki "Hareketler" bölümleri bu akışın o markaya/göreve ait
 
 Üstteki menüden **"Ekip"**e tıkla. Buradan:
 
+- **Aktif marka kanbanı:** Her ekip üyesi bir sütundur. Önce sağ üstten kimliğini
+  seç; sonra kendi sütunundaki listeden o an çalıştığın markayı seç. O markada sana
+  atanmış açık görevler sütununda görünür. Diğer ekip üyelerinin seçimini herkes
+  görebilir; değişiklikler en geç yaklaşık 15 saniyede yansır.
 - **Yeni ekip üyesi ekle** — isim yaz, ekle. O kişi artık "Sen kimsin?" listesinde
   ve atanan/etiketleme seçeneklerinde görünür.
 - Bir kişiyi **çıkar** (pasif yap) — geçmiş görev/yorum kayıtları silinmez, sadece

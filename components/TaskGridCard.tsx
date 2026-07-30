@@ -4,9 +4,10 @@ import PersonAvatar from "@/components/PersonAvatar";
 import TaskStatusSelect from "@/components/TaskStatusSelect";
 import { hashColor } from "@/lib/colorHash";
 import {
+  TASK_PRIORITY_BADGE,
   TASK_PRIORITY_BORDER,
-  TASK_PRIORITY_FLAG_THRESHOLD,
   TASK_PRIORITY_ICON,
+  TASK_PRIORITY_LABEL,
 } from "@/lib/constants";
 import { formatDateShort, isOverdue } from "@/lib/date";
 import type { TaskCardBadge, TaskWithContext } from "@/lib/types";
@@ -35,7 +36,7 @@ export default function TaskGridCard({
   // kayıyordu.
   return (
     <div
-      className={`flex min-w-0 flex-col gap-2 rounded-lg border border-l-4 border-black/10 bg-white p-3 shadow-sm transition-shadow hover:shadow-md dark:border-white/10 dark:bg-zinc-900 ${TASK_PRIORITY_BORDER[task.priority]}`}
+      className={`flex min-w-0 flex-col gap-2.5 rounded-xl border-2 bg-white p-3 shadow-sm transition-[box-shadow,transform] duration-200 hover:shadow-md dark:bg-zinc-900 ${TASK_PRIORITY_BORDER[task.priority]}`}
     >
       <div className="flex items-start justify-between gap-2">
         <span
@@ -62,17 +63,16 @@ export default function TaskGridCard({
 
       <Link
         href={`/tasks/${task.id}`}
-        className="text-sm font-medium leading-snug hover:text-brand-600 dark:hover:text-brand-400 dark:hover:text-brand-400"
+        className="text-sm font-semibold leading-snug text-zinc-900 hover:text-brand-600 dark:text-zinc-100 dark:hover:text-brand-400"
       >
-        {TASK_PRIORITY_FLAG_THRESHOLD.includes(task.priority) && (
-          <span className="mr-1">{TASK_PRIORITY_ICON[task.priority]}</span>
-        )}
         {task.title}
       </Link>
 
-      <div className="text-xs text-zinc-500 dark:text-zinc-400">{task.brand_name}</div>
+      <div className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
+        {task.brand_name}
+      </div>
 
-      <div className="mt-auto flex items-center justify-between gap-2 pt-1">
+      <div className="mt-auto flex flex-wrap items-center justify-between gap-2 border-t border-black/[0.06] pt-2 dark:border-white/[0.08]">
         {task.due_date ? (
           <span
             className={`text-xs ${isOverdue(task.due_date) ? "font-medium text-rose-600 dark:text-rose-400" : "text-zinc-500 dark:text-zinc-400"}`}
@@ -80,9 +80,17 @@ export default function TaskGridCard({
             📅 {formatDateShort(task.due_date)}
           </span>
         ) : (
-          <span />
+          <span className="text-xs text-zinc-400 dark:text-zinc-500">Tarih yok</span>
         )}
-        {task.assignee_name && <PersonAvatar name={task.assignee_name} size="xs" />}
+        <span className="flex items-center gap-1.5">
+          <span
+            className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold ${TASK_PRIORITY_BADGE[task.priority]}`}
+          >
+            <span aria-hidden="true">{TASK_PRIORITY_ICON[task.priority]}</span>
+            {TASK_PRIORITY_LABEL[task.priority]}
+          </span>
+          {task.assignee_name && <PersonAvatar name={task.assignee_name} size="xs" />}
+        </span>
       </div>
 
       {/* Son yorum. Kartı açmadan "burada bir konuşma dönüyor mu, ne konuşuldu"

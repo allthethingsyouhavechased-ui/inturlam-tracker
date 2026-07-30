@@ -1,15 +1,18 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import EmptyState from "@/components/EmptyState";
 import TaskBoard, { type SortKey } from "@/components/TaskBoard";
 import TaskListView from "@/components/TaskListView";
 import {
   TASK_PRIORITIES,
+  TASK_PRIORITY_BORDER,
+  TASK_PRIORITY_ICON,
   TASK_PRIORITY_LABEL,
   TASK_STATUS_LABEL,
   TASK_STATUSES,
 } from "@/lib/constants";
-import type { Person, TaskWithContext } from "@/lib/types";
+import type { Person, TaskPriority, TaskStatus, TaskWithContext } from "@/lib/types";
 
 const UNASSIGNED = "__unassigned__";
 
@@ -22,7 +25,29 @@ const SORT_LABEL: Record<SortKey, string> = {
 };
 
 const selectClass =
-  "min-h-11 rounded-xl border border-black/5 bg-white px-3 py-2 text-sm shadow-sm outline-none transition-[border-color,box-shadow] focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15 dark:border-white/10 dark:bg-zinc-900";
+  "min-h-11 rounded-xl border border-black/10 bg-white px-3 py-2 text-sm shadow-sm outline-none transition-[border-color,box-shadow] focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15 dark:border-white/15 dark:bg-zinc-950";
+
+function FilterChip({
+  label,
+  onRemove,
+}: {
+  label: string;
+  onRemove: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onRemove}
+      aria-label={`${label} filtresini kaldır`}
+      className="ui-press inline-flex min-h-8 items-center gap-1.5 rounded-full border border-brand-200 bg-brand-50 px-2.5 text-xs font-medium text-brand-700 hover:border-brand-300 dark:border-brand-800 dark:bg-brand-950/40 dark:text-brand-300"
+    >
+      {label}
+      <span className="text-base leading-none" aria-hidden="true">
+        ×
+      </span>
+    </button>
+  );
+}
 
 export default function TaskExplorer({
   tasks,
@@ -40,161 +65,292 @@ export default function TaskExplorer({
   const [q, setQ] = useState("");
   const [sortKey, setSortKey] = useState<SortKey>("varsayilan");
   const [view, setView] = useState<"pano" | "liste">("pano");
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   const filtered = useMemo(() => {
     const needle = q.trim().toLocaleLowerCase("tr-TR");
-    return tasks.filter((t) => {
-      if (brandId && t.brand_id !== brandId) return false;
-      if (statusFilter && t.status !== statusFilter) return false;
-      if (priority && t.priority !== priority) return false;
-      if (assigneeId === UNASSIGNED && t.assignee_id) return false;
-      if (assigneeId && assigneeId !== UNASSIGNED && t.assignee_id !== assigneeId) return false;
-      if (needle && !t.title.toLocaleLowerCase("tr-TR").includes(needle)) return false;
+    return tasks.filter((task) => {
+      if (brandId && task.brand_id !== brandId) return false;
+      if (statusFilter && task.status !== statusFilter) return false;
+      if (priority && task.priority !== priority) return false;
+      if (assigneeId === UNASSIGNED && task.assignee_id) return false;
+      if (
+        assigneeId &&
+        assigneeId !== UNASSIGNED &&
+        task.assignee_id !== assigneeId
+      ) {
+        return false;
+      }
+      if (needle && !task.title.toLocaleLowerCase("tr-TR").includes(needle)) {
+        return false;
+      }
       return true;
     });
   }, [tasks, brandId, statusFilter, priority, assigneeId, q]);
 
   const hasFilter = Boolean(brandId || statusFilter || priority || assigneeId || q);
+  const filterCount = [brandId, statusFilter, priority, assigneeId].filter(Boolean).length;
+  const selectedBrand = brands.find((brand) => brand.id === brandId);
+  const selectedPerson = people.find((person) => person.id === assigneeId);
+
+  function clearFilters() {
+    setBrandId("");
+    setStatusFilter("");
+    setPriority("");
+    setAssigneeId("");
+    setQ("");
+    setSortKey("varsayilan");
+  }
 
   return (
-    <div className="space-y-6">
-      <div className="rounded-2xl border border-black/5 bg-zinc-50/70 p-3 dark:border-white/5 dark:bg-white/[0.025] sm:p-4">
-        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
-          <div className="relative w-full sm:min-w-60 sm:flex-[2]">
+    <div className="space-y-4">
+      <section
+        aria-label="Görev araçları"
+        className="rounded-2xl border border-black/10 bg-zinc-50/80 p-3 shadow-sm dark:border-white/10 dark:bg-white/[0.025]"
+      >
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="relative min-w-64 flex-1">
             <svg
               viewBox="0 0 20 20"
               fill="currentColor"
-              className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400"
+              className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-zinc-400"
               aria-hidden="true"
             >
-              <path fillRule="evenodd" d="M9 3.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11ZM2 9a7 7 0 1 1 12.452 4.391l3.328 3.329a.75.75 0 1 1-1.06 1.06l-3.329-3.328A7 7 0 0 1 2 9Z" clipRule="evenodd" />
+              <path
+                fillRule="evenodd"
+                d="M9 3.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11ZM2 9a7 7 0 1 1 12.452 4.391l3.328 3.329a.75.75 0 1 1-1.06 1.06l-3.329-3.328A7 7 0 0 1 2 9Z"
+                clipRule="evenodd"
+              />
             </svg>
             <input
               value={q}
-              onChange={(e) => setQ(e.target.value)}
+              onChange={(event) => setQ(event.target.value)}
               aria-label="Görev ara"
               placeholder="Görev başlığında ara…"
-              className={`${selectClass} w-full pl-10`}
+              className={`${selectClass} w-full pl-10 ${q ? "pr-10" : ""}`}
             />
+            {q && (
+              <button
+                type="button"
+                onClick={() => setQ("")}
+                aria-label="Aramayı temizle"
+                className="ui-press absolute right-1 top-1/2 grid size-9 -translate-y-1/2 place-items-center rounded-lg text-lg text-zinc-400 hover:bg-black/5 hover:text-zinc-700 dark:hover:bg-white/10 dark:hover:text-zinc-200"
+              >
+                ×
+              </button>
+            )}
           </div>
-        <select
-          aria-label="Marka"
-          value={brandId}
-          onChange={(e) => {
-            setBrandId(e.target.value);
-            setSortKey("marka");
-          }}
-          className={`${selectClass} w-full sm:min-w-36 sm:flex-1`}
-        >
-          <option value="">Tüm markalar</option>
-          {brands.map((b) => (
-            <option key={b.id} value={b.id}>
-              {b.name}
-            </option>
-          ))}
-        </select>
-        <select
-          aria-label="Durum"
-          value={statusFilter}
-          onChange={(e) => {
-            setStatusFilter(e.target.value);
-            setSortKey("durum");
-          }}
-          className={`${selectClass} w-full sm:min-w-36 sm:flex-1`}
-        >
-          <option value="">Tüm durumlar</option>
-          {TASK_STATUSES.map((s) => (
-            <option key={s} value={s}>
-              {TASK_STATUS_LABEL[s]}
-            </option>
-          ))}
-        </select>
-        <select
-          aria-label="Öncelik"
-          value={priority}
-          onChange={(e) => {
-            setPriority(e.target.value);
-            setSortKey("oncelik");
-          }}
-          className={`${selectClass} w-full sm:min-w-36 sm:flex-1`}
-        >
-          <option value="">Tüm öncelikler</option>
-          {TASK_PRIORITIES.map((p) => (
-            <option key={p} value={p}>
-              {TASK_PRIORITY_LABEL[p]}
-            </option>
-          ))}
-        </select>
-        <select
-          aria-label="Atanan"
-          value={assigneeId}
-          onChange={(e) => {
-            setAssigneeId(e.target.value);
-            setSortKey("atanan");
-          }}
-          className={`${selectClass} w-full sm:min-w-36 sm:flex-1`}
-        >
-          <option value="">Herkes</option>
-          <option value={UNASSIGNED}>Atanmamış</option>
-          {people.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.name}
-            </option>
-          ))}
-        </select>
-        {hasFilter && (
+
           <button
             type="button"
-            onClick={() => {
-              setBrandId("");
-              setStatusFilter("");
-              setPriority("");
-              setAssigneeId("");
-              setQ("");
-              setSortKey("varsayilan");
-            }}
-            className="min-h-11 rounded-xl px-3 py-2 text-xs font-bold uppercase tracking-wide text-rose-600 transition-colors hover:bg-rose-50 hover:text-rose-700 dark:text-rose-400 dark:hover:bg-rose-500/10"
+            onClick={() => setFiltersOpen((open) => !open)}
+            aria-expanded={filtersOpen}
+            className={`ui-press inline-flex min-h-11 items-center gap-2 rounded-xl border px-3 text-sm font-medium ${
+              filtersOpen || filterCount > 0
+                ? "border-brand-300 bg-brand-50 text-brand-700 dark:border-brand-700 dark:bg-brand-950/40 dark:text-brand-300"
+                : "border-black/10 bg-white text-zinc-600 hover:bg-black/5 dark:border-white/15 dark:bg-zinc-950 dark:text-zinc-300 dark:hover:bg-white/10"
+            }`}
           >
-            Sıfırla
+            <svg viewBox="0 0 20 20" fill="none" className="size-4" stroke="currentColor">
+              <path d="M3 5h14M6 10h8M8.5 15h3" strokeWidth="1.7" strokeLinecap="round" />
+            </svg>
+            Filtreler
+            {filterCount > 0 && (
+              <span className="grid size-5 place-items-center rounded-full bg-brand-600 text-[10px] font-bold text-white">
+                {filterCount}
+              </span>
+            )}
           </button>
-        )}
-        </div>
-      </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-xs text-zinc-500 dark:text-zinc-400">
-          {filtered.length} / {tasks.length} görev
-          {view === "pano" && sortKey !== "varsayilan" && (
-            <span className="text-zinc-500 dark:text-zinc-400"> · sıralama: {SORT_LABEL[sortKey]}</span>
-          )}
-          {view === "liste" && (
-            <span className="text-zinc-500 dark:text-zinc-400">
-              {" "}
-              · sütun başlığına tıklayıp sırala, satırları seçip toplu işlem yap
+          <div className="inline-flex overflow-hidden rounded-xl border border-black/10 bg-white p-0.5 text-xs shadow-sm dark:border-white/15 dark:bg-zinc-950">
+            {(["pano", "liste"] as const).map((nextView) => (
+              <button
+                key={nextView}
+                type="button"
+                onClick={() => setView(nextView)}
+                aria-pressed={view === nextView}
+                className={`ui-press min-h-10 rounded-lg px-3 font-medium ${
+                  view === nextView
+                    ? "bg-brand-600 text-white"
+                    : "text-zinc-600 hover:bg-black/5 dark:text-zinc-300 dark:hover:bg-white/10"
+                }`}
+              >
+                {nextView === "pano" ? "Pano" : "Liste"}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {filtersOpen && (
+          <div className="ui-enter mt-3 grid gap-2 border-t border-black/[0.07] pt-3 md:grid-cols-2 xl:grid-cols-4 dark:border-white/10">
+            <label className="grid gap-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">
+              Marka
+              <select
+                value={brandId}
+                onChange={(event) => {
+                  setBrandId(event.target.value);
+                  setSortKey("marka");
+                }}
+                className={selectClass}
+              >
+                <option value="">Tüm markalar</option>
+                {brands.map((brand) => (
+                  <option key={brand.id} value={brand.id}>
+                    {brand.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="grid gap-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">
+              Durum
+              <select
+                value={statusFilter}
+                onChange={(event) => {
+                  setStatusFilter(event.target.value);
+                  setSortKey("durum");
+                }}
+                className={selectClass}
+              >
+                <option value="">Tüm durumlar</option>
+                {TASK_STATUSES.map((status) => (
+                  <option key={status} value={status}>
+                    {TASK_STATUS_LABEL[status]}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="grid gap-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">
+              Öncelik
+              <select
+                value={priority}
+                onChange={(event) => {
+                  setPriority(event.target.value);
+                  setSortKey("oncelik");
+                }}
+                className={selectClass}
+              >
+                <option value="">Tüm öncelikler</option>
+                {TASK_PRIORITIES.map((taskPriority) => (
+                  <option key={taskPriority} value={taskPriority}>
+                    {TASK_PRIORITY_LABEL[taskPriority]}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="grid gap-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">
+              Atanan
+              <select
+                value={assigneeId}
+                onChange={(event) => {
+                  setAssigneeId(event.target.value);
+                  setSortKey("atanan");
+                }}
+                className={selectClass}
+              >
+                <option value="">Herkes</option>
+                <option value={UNASSIGNED}>Atanmamış</option>
+                {people.map((person) => (
+                  <option key={person.id} value={person.id}>
+                    {person.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+        )}
+
+        {hasFilter && (
+          <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-black/[0.07] pt-3 dark:border-white/10">
+            <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
+              Aktif:
             </span>
-          )}
-        </p>
-        <div className="inline-flex overflow-hidden rounded-xl border border-black/10 bg-white p-0.5 text-xs shadow-sm dark:border-white/15 dark:bg-zinc-900">
-          {(["pano", "liste"] as const).map((v) => (
+            {selectedBrand && (
+              <FilterChip label={selectedBrand.name} onRemove={() => setBrandId("")} />
+            )}
+            {statusFilter && (
+              <FilterChip
+                label={TASK_STATUS_LABEL[statusFilter as TaskStatus]}
+                onRemove={() => setStatusFilter("")}
+              />
+            )}
+            {priority && (
+              <FilterChip
+                label={TASK_PRIORITY_LABEL[priority as TaskPriority]}
+                onRemove={() => setPriority("")}
+              />
+            )}
+            {assigneeId && (
+              <FilterChip
+                label={
+                  assigneeId === UNASSIGNED
+                    ? "Atanmamış"
+                    : (selectedPerson?.name ?? "Kişi")
+                }
+                onRemove={() => setAssigneeId("")}
+              />
+            )}
+            {q && <FilterChip label={`Arama: ${q}`} onRemove={() => setQ("")} />}
             <button
-              key={v}
               type="button"
-              onClick={() => setView(v)}
-              aria-pressed={view === v}
-              className={`min-h-9 rounded-lg px-3 py-1 font-medium transition-colors ${
-                view === v
-                  ? "bg-brand-600 text-white"
-                  : "text-zinc-600 hover:bg-black/5 dark:text-zinc-300 dark:hover:bg-white/10"
-              }`}
+              onClick={clearFilters}
+              className="ui-press ml-auto min-h-8 rounded-lg px-2.5 text-xs font-semibold text-rose-600 hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-500/10"
             >
-              {v === "pano" ? "Pano" : "Liste"}
+              Tümünü temizle
             </button>
+          </div>
+        )}
+      </section>
+
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <p className="text-xs text-zinc-500 dark:text-zinc-400">
+          <span className="font-semibold text-zinc-700 dark:text-zinc-200">
+            {filtered.length}
+          </span>{" "}
+          / {tasks.length} görev
+          {view === "pano" && sortKey !== "varsayilan" && (
+            <span> · {SORT_LABEL[sortKey]} sıralaması</span>
+          )}
+          {view === "liste" && <span> · sütun başlıklarından sıralanabilir</span>}
+        </p>
+
+        <div
+          className="flex flex-wrap items-center gap-2 text-[11px] text-zinc-500 dark:text-zinc-400"
+          aria-label="Kart çerçevesi öncelik renkleri"
+        >
+          <span className="font-medium">Kart çerçevesi = öncelik:</span>
+          {TASK_PRIORITIES.map((taskPriority) => (
+            <span key={taskPriority} className="inline-flex items-center gap-1">
+              <span
+                className={`size-3 rounded border-2 bg-white dark:bg-zinc-900 ${TASK_PRIORITY_BORDER[taskPriority]}`}
+                aria-hidden="true"
+              />
+              <span aria-hidden="true">{TASK_PRIORITY_ICON[taskPriority]}</span>
+              {TASK_PRIORITY_LABEL[taskPriority]}
+            </span>
           ))}
         </div>
       </div>
 
       {filtered.length === 0 ? (
-        <p className="text-sm text-zinc-500 dark:text-zinc-400">Bu filtrelerle eşleşen görev yok.</p>
+        <EmptyState
+          title={hasFilter ? "Bu filtrelerle eşleşen görev yok" : "Henüz görev yok"}
+          description={
+            hasFilter
+              ? "Filtrelerden birini kaldırabilir veya arama metnini değiştirebilirsin."
+              : "Yeni bir görev oluşturulduğunda pano burada dolmaya başlayacak."
+          }
+          action={
+            hasFilter ? (
+              <button
+                type="button"
+                onClick={clearFilters}
+                className="ui-press min-h-11 rounded-xl bg-brand-600 px-4 text-sm font-medium text-white hover:bg-brand-500"
+              >
+                Filtreleri temizle
+              </button>
+            ) : undefined
+          }
+        />
       ) : view === "pano" ? (
         <TaskBoard tasks={filtered} sortKey={sortKey} boardId="gorevler" />
       ) : (

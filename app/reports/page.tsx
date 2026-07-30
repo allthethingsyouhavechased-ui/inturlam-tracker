@@ -5,10 +5,12 @@ import ReportsClient, {
 } from "@/components/ReportsClient";
 import { currentMonthRange, currentWeekRange, todayISO } from "@/lib/date";
 import {
+  getReportSummary,
   listBrandPersonBreakdown,
   listBrandReport,
   listPersonBrandBreakdown,
   listPersonReport,
+  listWorkflowReport,
   type DateRange,
 } from "@/lib/repositories/reports";
 
@@ -40,20 +42,23 @@ export default async function ReportsPage({
   const range = resolveRange(rangeKey, sp.start, sp.end);
   const today = todayISO();
 
+  const summary = getReportSummary(range, today);
+  const workflow = listWorkflowReport();
   const personRows = listPersonReport(range, today);
   const personBrandRows = listPersonBrandBreakdown(range);
-  const brandRows = listBrandReport(range);
+  const brandRows = listBrandReport(range, today);
   const brandPersonRows = listBrandPersonBreakdown(range);
 
   const personViews: PersonReportView[] = personRows.map((p) => ({
     ...p,
     brands: personBrandRows
       .filter((b) => b.person_id === p.person_id)
-      .map(({ brand_id, brand_name, total_tasks, completed_tasks }) => ({
+      .map(({ brand_id, brand_name, total_tasks, completed_tasks, open_tasks }) => ({
         brand_id,
         brand_name,
         total_tasks,
         completed_tasks,
+        open_tasks,
       })),
   }));
 
@@ -61,11 +66,12 @@ export default async function ReportsPage({
     ...b,
     people: brandPersonRows
       .filter((p) => p.brand_id === b.brand_id)
-      .map(({ person_id, person_name, total_tasks, completed_tasks }) => ({
+      .map(({ person_id, person_name, total_tasks, completed_tasks, open_tasks }) => ({
         person_id,
         person_name,
         total_tasks,
         completed_tasks,
+        open_tasks,
       })),
   }));
 
@@ -73,6 +79,8 @@ export default async function ReportsPage({
     <div className="space-y-6">
       <h1 className="text-2xl font-semibold tracking-tight">Raporlar</h1>
       <ReportsClient
+        summary={summary}
+        workflow={workflow}
         people={personViews}
         brands={brandViews}
         rangeKey={rangeKey}
