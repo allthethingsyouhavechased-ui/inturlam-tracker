@@ -12,6 +12,8 @@
   --motion-quick: 140ms;
   --motion-standard: 240ms;
   --motion-slow: 360ms;
+  --scrollbar-thumb: rgb(113 113 122 / 0.52);
+  --scrollbar-thumb-hover: rgb(82 82 91 / 0.75);
   /* Sticky header'ın yüksekliği (py-3 + 32px içerik + 1px alt çizgi).
      Sidebar ve toplu işlem çubuğu gibi header'ın altına yapışan her şey bunu
      kullanır — üç ayrı dosyaya 57px yazıp birinin unutulmasını önler. */
@@ -21,6 +23,8 @@
 .dark {
   --background: #0a0a0a;
   --foreground: #ededed;
+  --scrollbar-thumb: rgb(161 161 170 / 0.42);
+  --scrollbar-thumb-hover: rgb(212 212 216 / 0.62);
 }
 
 @theme inline {
@@ -60,6 +64,41 @@ body {
     radial-gradient(circle at 50% 0%, rgb(37 99 235 / 0.055), transparent 34rem),
     radial-gradient(circle at 100% 0%, rgb(168 85 247 / 0.035), transparent 28rem);
   background-attachment: fixed;
+}
+
+/* Ekip panosu kişi bulmaya yönelik, veri yoğun bir yüzey. Standart sayfaların
+   okuma genişliğini bozmadan yalnızca bu sayfada kabuğu genişletir; 1920px
+   ekranda kalan sağ-sol boşluğu kişi gridine kazandırır. */
+.page-shell:has(> .team-page-wide) {
+  max-width: 1600px;
+}
+
+/* Windows'un açık renkli sistem scrollbar'ı koyu arayüzde parlak bir şerit
+   oluşturuyordu. Tüm kaydırma bağlamları aynı ince, nötr ve yuvarlak dili
+   kullanır; track şeffaf kaldığı için sidebar zemini bölünmez. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background-color: var(--scrollbar-thumb);
+  background-clip: padding-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-color: var(--scrollbar-thumb-hover);
 }
 
 .ui-press,
@@ -198,5 +237,79 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     animation-iteration-count: 1 !important;
     transition-duration: 1ms !important;
     scroll-behavior: auto !important;
+  }
+}
+
+/* --- Profesyonel rapor çıktısı -------------------------------------------
+   Rapor ekranı yazdırıldığında uygulama kabuğu, filtreler ve dekoratif arka
+   plan kalkar; içerik A4 yatay sayfada okunabilir bir yönetim raporuna dönüşür. */
+@media print {
+  @page {
+    size: A4 landscape;
+    margin: 10mm;
+  }
+
+  html,
+  body {
+    background: #fff !important;
+    color: #18181b !important;
+  }
+
+  body {
+    background-image: none !important;
+  }
+
+  body > header,
+  .sidebar-panel {
+    display: none !important;
+  }
+
+  main,
+  main > div {
+    width: 100% !important;
+    max-width: none !important;
+    padding: 0 !important;
+  }
+
+  .report-page {
+    color: #18181b !important;
+    font-size: 9pt;
+  }
+
+  .report-page section,
+  .report-page .report-surface {
+    break-inside: avoid-page;
+  }
+
+  .report-page .report-surface {
+    border-color: #d4d4d8 !important;
+    background: #fff !important;
+    box-shadow: none !important;
+  }
+
+  .report-page .report-surface p,
+  .report-page .report-surface span,
+  .report-page .report-surface dt,
+  .report-page .report-surface dd,
+  .report-page .report-surface th,
+  .report-page .report-surface td,
+  .report-page .report-surface h2 {
+    color: #18181b !important;
+  }
+
+  .report-page table {
+    font-size: 8pt;
+  }
+
+  .report-page thead {
+    display: table-header-group;
+  }
+
+  .report-page tr {
+    break-inside: avoid;
+  }
+
+  .report-page .ui-enter {
+    animation: none !important;
   }
 }

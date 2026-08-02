@@ -58,16 +58,35 @@ function TaskCard({
           : "cursor-grab active:cursor-grabbing hover:shadow-md"
       } ${isDragging && !overlay ? "scale-[0.98] opacity-25" : ""}`}
     >
-      <Link
-        href={`/tasks/${task.id}`}
-        className="block text-sm font-medium hover:text-brand-600 dark:hover:text-brand-400 dark:hover:text-brand-400"
-        onPointerDown={(e) => e.stopPropagation()}
-      >
-        {TASK_PRIORITY_FLAG_THRESHOLD.includes(task.priority) && (
-          <span className="mr-1">{TASK_PRIORITY_ICON[task.priority]}</span>
-        )}
-        {task.title}
-      </Link>
+      <div className="flex items-start gap-2">
+        <Link
+          href={`/tasks/${task.id}`}
+          className="min-w-0 flex-1 text-sm font-medium hover:text-brand-600 dark:hover:text-brand-400"
+          onPointerDown={(e) => e.stopPropagation()}
+        >
+          {TASK_PRIORITY_FLAG_THRESHOLD.includes(task.priority) && (
+            <span className="mr-1">{TASK_PRIORITY_ICON[task.priority]}</span>
+          )}
+          {task.title}
+        </Link>
+        <Link
+          href={`/tasks/${task.id}`}
+          aria-label={`“${task.title}” görevini düzenle`}
+          title="Görevi düzenle"
+          className="touch-target shrink-0 rounded-md p-1 text-zinc-400 transition-colors hover:bg-black/5 hover:text-brand-600 dark:text-zinc-500 dark:hover:bg-white/10 dark:hover:text-brand-400"
+          onPointerDown={(e) => e.stopPropagation()}
+        >
+          <svg viewBox="0 0 20 20" fill="none" className="h-4 w-4" aria-hidden>
+            <path
+              d="m13.8 3.7 2.5 2.5M4 16l.7-3.2L13.6 4a1.4 1.4 0 0 1 2 0l.4.4a1.4 1.4 0 0 1 0 2l-8.8 8.9L4 16Z"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </Link>
+      </div>
       {task.due_date && (
         <div
           className={`text-xs ${isOverdue(task.due_date) ? "font-medium text-rose-600 dark:text-rose-400" : "text-zinc-500 dark:text-zinc-400"}`}
@@ -79,7 +98,13 @@ function TaskCard({
         className="flex flex-wrap items-center gap-1.5"
         onPointerDown={(e) => e.stopPropagation()}
       >
-        {task.assignee_name && <PersonAvatar name={task.assignee_name} size="xs" />}
+        {task.assignee_name && (
+          <PersonAvatar
+            name={task.assignee_name}
+            avatarPath={task.assignee_avatar_path}
+            size="xs"
+          />
+        )}
         <AssigneeSelect taskId={task.id} assigneeId={task.assignee_id} people={people} />
         <TaskStatusSelect taskId={task.id} status={task.status} />
         <TaskPrioritySelect taskId={task.id} priority={task.priority} />

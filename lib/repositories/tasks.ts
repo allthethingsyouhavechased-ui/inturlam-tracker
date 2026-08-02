@@ -16,6 +16,7 @@ const LAST_COMMENT_ORDER = "ORDER BY c.created_at DESC, c.rowid DESC LIMIT 1";
 
 const WITH_CONTEXT_SELECT = `
   SELECT t.*, p.name AS assignee_name,
+         p.avatar_path AS assignee_avatar_path,
          ci.title AS content_title,
          b.id AS brand_id, b.name AS brand_name,
          (SELECT COUNT(*) FROM comments c WHERE c.task_id = t.id) AS comment_count,
@@ -257,14 +258,15 @@ export function updateTaskAssignee(id: string, assigneeId: string | null): void 
 
 export function updateTaskDetails(input: {
   id: string;
+  title: string;
   dueDate: string | null;
   notes: string | null;
 }): void {
   getDb()
     .prepare(
-      "UPDATE tasks SET due_date = ?, notes = ?, updated_at = datetime('now') WHERE id = ?",
+      "UPDATE tasks SET title = ?, due_date = ?, notes = ?, updated_at = datetime('now') WHERE id = ?",
     )
-    .run(input.dueDate, input.notes, input.id);
+    .run(input.title, input.dueDate, input.notes, input.id);
 }
 
 export function deleteTask(id: string): Task | undefined {

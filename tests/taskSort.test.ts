@@ -25,6 +25,7 @@ function task(over: Partial<TaskWithContext> = {}): TaskWithContext {
     created_at: "2026-07-01 10:00:00",
     updated_at: "2026-07-01 10:00:00",
     assignee_name: "Arman",
+    assignee_avatar_path: null,
     content_title: "Ağustos Reel Serisi",
     brand_id: "b1",
     brand_name: "Sihirli Olta",

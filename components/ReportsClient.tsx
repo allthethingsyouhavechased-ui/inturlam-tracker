@@ -4,14 +4,23 @@ import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import EmptyState from "@/components/EmptyState";
 import {
+  CycleTimePanel,
+  DueHealthPanel,
+  TrendChart,
+  WorkloadComparison,
+} from "@/components/reports/ReportVisuals";
+import {
   TASK_STATUS_LABEL,
   TASK_STATUS_PROGRESS,
 } from "@/lib/constants";
 import { downloadCSV, toCSV } from "@/lib/csv";
 import type {
   BrandReportRow,
+  CycleTimeReport,
+  DueHealthRow,
   PersonReportRow,
   ReportSummary,
+  TrendReport,
   WorkflowReportRow,
 } from "@/lib/repositories/reports";
 
@@ -85,7 +94,7 @@ function MetricCard({
 
   return (
     <div
-      className={`min-w-0 border-t-2 px-4 py-4 last:col-span-2 sm:px-5 xl:last:col-span-1 ${surfaceClass}`}
+      className={`min-w-0 border-t-2 px-4 py-4 sm:px-5 ${surfaceClass}`}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
@@ -99,22 +108,41 @@ function MetricCard({
   );
 }
 
+function comparePeriod(current: number, previous: number | null | undefined): string {
+  if (previous == null) return "Tüm kayıtlar";
+  const difference = current - previous;
+  if (difference === 0) return "Önceki dönemle aynı";
+  return `Önceki döneme göre ${difference > 0 ? "+" : ""}${difference}`;
+}
+
 export default function ReportsClient({
   summary,
+  previousSummary,
   workflow,
+  trend,
+  cycleTime,
+  dueHealth,
   people,
   brands,
   rangeKey,
   customStart,
   customEnd,
+  reportLabel,
+  generatedAt,
 }: {
   summary: ReportSummary;
+  previousSummary: ReportSummary | null;
   workflow: WorkflowReportRow[];
+  trend: TrendReport;
+  cycleTime: CycleTimeReport;
+  dueHealth: DueHealthRow[];
   people: PersonReportView[];
   brands: BrandReportView[];
   rangeKey: RangeKey;
   customStart: string;
   customEnd: string;
+  reportLabel: string;
+  generatedAt: string;
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -139,6 +167,14 @@ export default function ReportsClient({
   );
   const maxPersonOpen = Math.max(1, ...people.map((person) => person.open_tasks));
   const maxBrandOpen = Math.max(1, ...visibleBrands.map((brand) => brand.open_tasks));
+  const completionCoverage =
+    summary.opened_tasks === 0
+      ? null
+      : Math.round((summary.completed_tasks / summary.opened_tasks) * 100);
+  const netFlow = summary.completed_tasks - summary.opened_tasks;
+  const dueTotal = dueHealth.reduce((total, row) => total + row.task_count, 0);
+  const unscheduled = dueHealth.find((row) => row.bucket === "unscheduled")?.task_count ?? 0;
+  const dueCoverage = dueTotal === 0 ? null : Math.round(((dueTotal - unscheduled) / dueTotal) * 100);
 
   function setRange(key: RangeKey) {
     if (key === "custom") {
@@ -200,10 +236,22 @@ export default function ReportsClient({
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
+      <div className="hidden items-start justify-between border-b border-zinc-300 pb-4 print:flex">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-500">İNTURLAM · OPERASYON RAPORU</p>
+          <h1 className="mt-1 text-2xl font-semibold">Yönetim özeti</h1>
+          <p className="mt-1 text-sm text-zinc-600">{reportLabel}</p>
+        </div>
+        <div className="text-right text-xs text-zinc-500">
+          <p>Hazırlanma tarihi</p>
+          <p className="mt-1 font-medium text-zinc-800">{generatedAt}</p>
+        </div>
+      </div>
+
       <section
         aria-label="Rapor filtreleri"
-        className="flex flex-wrap items-center gap-2 rounded-2xl border border-black/10 bg-white p-3 print:hidden dark:border-white/10 dark:bg-zinc-900"
+        className="sticky top-[calc(var(--header-h)+0.75rem)] z-20 flex flex-wrap items-center gap-2 rounded-2xl border border-black/10 bg-white/95 p-3 shadow-sm backdrop-blur print:hidden dark:border-white/10 dark:bg-zinc-900/95"
       >
         <span className="mr-1 text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
           Dönem
@@ -264,9 +312,12 @@ export default function ReportsClient({
           <button
             type="button"
             onClick={() => window.print()}
-            className="inline-flex min-h-11 items-center gap-2 rounded-xl px-3 text-sm font-medium text-zinc-600 transition hover:bg-black/5 dark:text-zinc-300 dark:hover:bg-white/10"
+            className="ui-press inline-flex min-h-11 items-center gap-2 rounded-xl border border-black/10 px-3 text-sm font-medium text-zinc-700 hover:bg-black/5 dark:border-white/10 dark:text-zinc-200 dark:hover:bg-white/10"
           >
-            Yazdır
+            <svg viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4" aria-hidden="true">
+              <path fillRule="evenodd" d="M5 2.75A.75.75 0 0 1 5.75 2h8.5a.75.75 0 0 1 .75.75V6h.75A2.25 2.25 0 0 1 18 8.25v5.5A2.25 2.25 0 0 1 15.75 16H15v1.25a.75.75 0 0 1-.75.75h-8.5a.75.75 0 0 1-.75-.75V16h-.75A2.25 2.25 0 0 1 2 13.75v-5.5A2.25 2.25 0 0 1 4.25 6H5V2.75ZM6.5 6h7V3.5h-7V6Zm0 7.5v3h7v-3h-7Z" clipRule="evenodd" />
+            </svg>
+            PDF / Yazdır
           </button>
         </div>
       </section>
@@ -281,22 +332,34 @@ export default function ReportsClient({
             yükünü gösterir.
           </p>
         </div>
-        <div className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-black/10 bg-black/10 dark:border-white/10 dark:bg-white/10 xl:grid-cols-5">
+        <div className="report-surface grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-black/10 bg-black/10 dark:border-white/10 dark:bg-white/10 md:grid-cols-4 xl:grid-cols-8">
           <MetricCard
             label="Dönemde açılan"
             value={summary.opened_tasks}
-            note="Yeni görev"
+            note={comparePeriod(summary.opened_tasks, previousSummary?.opened_tasks)}
           />
           <MetricCard
             label="Tamamlanan"
             value={summary.completed_tasks}
-            note={`Ort. ${formatDays(summary.average_cycle_days)}`}
+            note={comparePeriod(summary.completed_tasks, previousSummary?.completed_tasks)}
             tone="success"
+          />
+          <MetricCard
+            label="Akış dengesi"
+            value={netFlow > 0 ? `+${netFlow}` : netFlow}
+            note="Tamamlanan − açılan"
+            tone={netFlow >= 0 ? "success" : "danger"}
+          />
+          <MetricCard
+            label="Karşılama"
+            value={completionCoverage == null ? "—" : `%${completionCoverage}`}
+            note="Tamamlanan / açılan"
+            tone={completionCoverage != null && completionCoverage >= 100 ? "success" : "neutral"}
           />
           <MetricCard
             label="Açık iş yükü"
             value={summary.open_tasks}
-            note="Şu an devam eden"
+            note="Güncel iş yükü"
           />
           <MetricCard
             label="Geciken"
@@ -307,14 +370,19 @@ export default function ReportsClient({
           <MetricCard
             label="Zamanında"
             value={formatRate(summary.on_time_rate)}
-            note="Teslim tarihi olan işler"
+            note="Tamamlanan tarihli işler"
             tone="success"
+          />
+          <MetricCard
+            label="Tarih kapsamı"
+            value={dueCoverage == null ? "—" : `%${dueCoverage}`}
+            note="Açık işlerde teslim tarihi"
           />
         </div>
       </section>
 
       <section aria-label="Rapor öne çıkanları" className="grid gap-3 lg:grid-cols-3">
-        <div className="rounded-2xl border border-black/10 bg-white p-4 dark:border-white/10 dark:bg-zinc-900">
+        <div className="report-surface rounded-2xl border border-black/10 bg-white p-4 dark:border-white/10 dark:bg-zinc-900">
           <p className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
             En yoğun kişi
           </p>
@@ -325,7 +393,7 @@ export default function ReportsClient({
             {busiestPerson ? `${busiestPerson.open_tasks} açık görev` : "Henüz iş yükü oluşmadı"}
           </p>
         </div>
-        <div className="rounded-2xl border border-black/10 bg-white p-4 dark:border-white/10 dark:bg-zinc-900">
+        <div className="report-surface rounded-2xl border border-black/10 bg-white p-4 dark:border-white/10 dark:bg-zinc-900">
           <p className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
             En yoğun marka
           </p>
@@ -357,9 +425,18 @@ export default function ReportsClient({
         </div>
       </section>
 
+      <TrendChart report={trend} />
+
+      <section aria-label="Süre ve teslim analizi" className="grid gap-4 xl:grid-cols-2">
+        <CycleTimePanel report={cycleTime} />
+        <DueHealthPanel rows={dueHealth} />
+      </section>
+
+      <WorkloadComparison people={people} brands={visibleBrands} />
+
       <section
         aria-labelledby="workflow-title"
-        className="rounded-2xl border border-black/10 bg-white p-5 dark:border-white/10 dark:bg-zinc-900"
+        className="report-surface rounded-2xl border border-black/10 bg-white p-5 dark:border-white/10 dark:bg-zinc-900"
       >
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <div>
@@ -440,7 +517,7 @@ export default function ReportsClient({
         </div>
         {showPeopleTable &&
           (people.length > 0 ? (
-        <div className="ui-enter overflow-x-auto rounded-2xl border border-black/10 bg-white dark:border-white/10 dark:bg-zinc-900">
+        <div className="report-surface ui-enter overflow-x-auto rounded-2xl border border-black/10 bg-white dark:border-white/10 dark:bg-zinc-900">
           <table className="w-full min-w-[820px] text-sm">
             <thead className="bg-zinc-50/90 dark:bg-zinc-950/70">
               <tr className="border-b border-black/10 text-left text-xs uppercase tracking-wider text-zinc-500 dark:border-white/10 dark:text-zinc-400">
@@ -573,7 +650,7 @@ export default function ReportsClient({
         </div>
         {showBrandTable &&
           (visibleBrands.length > 0 ? (
-        <div className="ui-enter overflow-x-auto rounded-2xl border border-black/10 bg-white dark:border-white/10 dark:bg-zinc-900">
+        <div className="report-surface ui-enter overflow-x-auto rounded-2xl border border-black/10 bg-white dark:border-white/10 dark:bg-zinc-900">
           <table className="w-full min-w-[960px] text-sm">
             <thead className="bg-zinc-50/90 dark:bg-zinc-950/70">
               <tr className="border-b border-black/10 text-left text-xs uppercase tracking-wider text-zinc-500 dark:border-white/10 dark:text-zinc-400">

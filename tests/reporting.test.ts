@@ -10,13 +10,16 @@ process.env.INTURLAM_DB_PATH = TMP_DB;
 
 const { getDb } = await import("@/lib/db/client");
 const {
+  getCycleTimeReport,
   getReportSummary,
+  getTrendReport,
   listBrandReport,
+  listDueHealthReport,
   listPersonBrandBreakdown,
   listPersonReport,
   listWorkflowReport,
 } = await import("@/lib/repositories/reports");
-const { bulkUpdateTaskStatus, updateTaskStatus } =
+const { bulkUpdateTaskStatus, listAllTasks, updateTaskDetails, updateTaskStatus } =
   await import("@/lib/repositories/tasks");
 
 function resetDb(): void {
@@ -33,7 +36,11 @@ function seedBase(db: DatabaseSync): void {
     "Test Marka",
     "tek",
   );
-  db.prepare("INSERT INTO people (id, name) VALUES (?, ?)").run("p1", "Ayşe");
+  db.prepare("INSERT INTO people (id, name, avatar_path) VALUES (?, ?, ?)").run(
+    "p1",
+    "Ayşe",
+    "/uploads/people/ayse.png",
+  );
   db.prepare("INSERT INTO people (id, name) VALUES (?, ?)").run("p2", "Bora");
   db.prepare(
     `INSERT INTO content_items
@@ -249,6 +256,51 @@ describe("görev durum geçmişi", () => {
   });
 });
 
+describe("görev detay düzenleme", () => {
+  it("başlık, teslim tarihi ve notları birlikte güncelliyor", () => {
+    const db = getDb();
+    seedBase(db);
+    insertTask(db, {
+      id: "t-edit",
+      status: "Beklemede",
+      createdAt: "2026-07-01 00:00:00",
+    });
+
+    updateTaskDetails({
+      id: "t-edit",
+      title: "Revize görev başlığı",
+      dueDate: "2026-08-10",
+      notes: "Yeni brief notu",
+    });
+
+    const stored = db
+      .prepare("SELECT title, due_date, notes FROM tasks WHERE id = 't-edit'")
+      .get();
+    assert.deepEqual({ ...(stored as Record<string, unknown>) }, {
+      title: "Revize görev başlığı",
+      due_date: "2026-08-10",
+      notes: "Yeni brief notu",
+    });
+  });
+});
+
+describe("görev atanan profili", () => {
+  it("atanan kişinin profil fotoğrafını görev bağlamına taşıyor", () => {
+    const db = getDb();
+    seedBase(db);
+    insertTask(db, {
+      id: "t-avatar",
+      status: "Beklemede",
+      createdAt: "2026-07-01 00:00:00",
+    });
+
+    const task = listAllTasks().find((row) => row.id === "t-avatar");
+    assert.ok(task);
+    assert.equal(task.assignee_name, "Ayşe");
+    assert.equal(task.assignee_avatar_path, "/uploads/people/ayse.png");
+  });
+});
+
 describe("rapor hesapları", () => {
   it("dönemi tamamlanma tarihine göre, iş yükünü bugünkü duruma göre hesaplıyor", () => {
     const db = getDb();
@@ -330,5 +382,48 @@ describe("rapor hesapları", () => {
       completed_tasks: 2,
       open_tasks: 2,
     });
+
+    const trend = getTrendReport(range);
+    assert.equal(trend.granularity, "day");
+    assert.equal(trend.points.length, 31);
+    assert.deepEqual(
+      trend.points.find((point) => point.key === "2026-07-01"),
+      {
+        key: "2026-07-01",
+        label: "1 Tem",
+        opened_tasks: 1,
+        completed_tasks: 0,
+      },
+    );
+    assert.equal(
+      trend.points.find((point) => point.key === "2026-07-15")?.completed_tasks,
+      1,
+    );
+    const allTrend = getTrendReport(null);
+    assert.equal(allTrend.granularity, "week");
+    assert.ok(allTrend.points.some((point) => point.opened_tasks > 0));
+    assert.ok(allTrend.points.some((point) => point.completed_tasks > 0));
+
+    assert.deepEqual(getCycleTimeReport(range), {
+      sample_size: 2,
+      average_days: 26.5,
+      median_days: 26.5,
+      p75_days: 35.3,
+      buckets: [
+        { key: "one_day", label: "0–1 gün", task_count: 0 },
+        { key: "two_three", label: "2–3 gün", task_count: 0 },
+        { key: "four_seven", label: "4–7 gün", task_count: 0 },
+        { key: "eight_fourteen", label: "8–14 gün", task_count: 1 },
+        { key: "fifteen_plus", label: "15+ gün", task_count: 1 },
+      ],
+    });
+
+    assert.deepEqual(listDueHealthReport("2026-07-30"), [
+      { bucket: "overdue", label: "Gecikmiş", task_count: 1 },
+      { bucket: "today", label: "Bugün", task_count: 0 },
+      { bucket: "next_seven", label: "Önümüzdeki 7 gün", task_count: 1 },
+      { bucket: "later", label: "Daha sonra", task_count: 0 },
+      { bucket: "unscheduled", label: "Tarihsiz", task_count: 0 },
+    ]);
   });
 });

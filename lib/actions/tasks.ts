@@ -181,7 +181,10 @@ export async function setTaskDueDateAction(taskId: string, dueDate: string | nul
 
 export async function updateTaskDetailsAction(formData: FormData) {
   const id = String(formData.get("taskId") ?? "").trim();
+  const title = String(formData.get("title") ?? "").trim();
   if (!id) throw new Error("Görev bulunamadı.");
+  if (!title) throw new Error("Görev başlığı zorunlu.");
+  if (title.length > 200) throw new Error("Görev başlığı en fazla 200 karakter olabilir.");
   const task = getTask(id);
 
   const images = extractImageFiles(formData);
@@ -189,6 +192,7 @@ export async function updateTaskDetailsAction(formData: FormData) {
 
   updateTaskDetails({
     id,
+    title,
     dueDate: cleanText(formData.get("dueDate")),
     notes: cleanText(formData.get("notes")),
   });
@@ -203,7 +207,7 @@ export async function updateTaskDetailsAction(formData: FormData) {
     entityType: "task",
     entityId: id,
     brandId: task?.brand_id ?? null,
-    summary: `“${task?.title ?? "Görev"}” görev detaylarını güncelledi`,
+    summary: `“${title}” görev detaylarını güncelledi`,
   });
   revalidatePath("/", "layout");
 }

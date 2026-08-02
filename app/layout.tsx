@@ -53,7 +53,7 @@ export default function RootLayout({
                   ekranda tablo sıkışırken sağ-sol boş kalıyordu. Uzun metin
                   okunan yerler (marka denetim metni, yorumlar) kendi içinde
                   max-w-3xl ile sınırlanıyor — satır uzunluğu bozulmasın. */}
-              <div className="mx-auto max-w-7xl px-4 py-6">{children}</div>
+              <div className="page-shell mx-auto max-w-7xl px-4 py-6">{children}</div>
             </main>
           </div>
         </SidebarProvider>

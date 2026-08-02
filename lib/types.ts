@@ -52,6 +52,9 @@ export interface Brand {
 export interface Person {
   id: string;
   name: string;
+  title: string | null;
+  bio: string | null;
+  avatar_path: string | null;
   active: number;
 }
 
@@ -183,6 +186,7 @@ export interface TaskCardBadge {
 
 export interface TaskWithContext extends Task {
   assignee_name: string | null;
+  assignee_avatar_path: string | null;
   content_title: string;
   brand_id: string;
   brand_name: string;

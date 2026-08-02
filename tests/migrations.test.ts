@@ -316,3 +316,37 @@ describe("brands migration zinciri", () => {
     );
   });
 });
+
+describe("people profil migration'ı", () => {
+  it("eski kişi tablosuna profil alanlarını veri kaybetmeden ekliyor", () => {
+    const legacy = new DatabaseSync(TMP_DB);
+    legacy.exec(`
+      CREATE TABLE people (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        active INTEGER NOT NULL DEFAULT 1
+      );
+      INSERT INTO people (id, name, active) VALUES ('p1', 'Ayşe', 1);
+    `);
+    legacy.close();
+
+    const db = getDb();
+    const row = db.prepare("SELECT * FROM people WHERE id = 'p1'").get() as
+      | Record<string, unknown>
+      | undefined;
+
+    assert.deepEqual({ ...row }, {
+      id: "p1",
+      name: "Ayşe",
+      active: 1,
+      title: null,
+      bio: null,
+      avatar_path: null,
+    });
+    assert.equal(
+      (db.prepare("PRAGMA integrity_check").get() as { integrity_check: string })
+        .integrity_check,
+      "ok",
+    );
+  });
+});

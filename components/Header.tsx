@@ -3,6 +3,7 @@ import Logo from "@/components/Logo";
 import MobileMenuButton from "@/components/MobileMenuButton";
 import NavLinks from "@/components/NavLinks";
 import NotificationBell from "@/components/NotificationBell";
+import PersonAvatar from "@/components/PersonAvatar";
 import QuickAddModal from "@/components/QuickAddModal";
 import SidebarToggle from "@/components/SidebarToggle";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -26,7 +27,7 @@ export default async function Header() {
   return (
     <header className="sticky top-0 z-30 border-b border-black/5 bg-white/75 backdrop-blur-xl dark:border-white/5 dark:bg-zinc-950/75">
       <div className="mx-auto flex h-[var(--header-h)] max-w-[1600px] items-center justify-between gap-2 px-3 sm:gap-4 sm:px-4">
-        <nav className="flex min-w-0 items-center gap-0.5 text-sm sm:gap-1">
+        <nav className="flex min-w-0 items-center gap-0.5 text-sm sm:gap-1 md:pl-12">
           <MobileMenuButton />
           <SidebarToggle />
           <Link
@@ -63,12 +64,23 @@ export default async function Header() {
             <>
               {/* Dar ekranda ismin ortadan bölünmemesi için: iki kelimelik
                   isimler (Yunus Emre) alt satıra kaçıp header'ı yükseltiyordu. */}
-              <span className="max-w-16 truncate whitespace-nowrap text-zinc-500 dark:text-zinc-400 sm:max-w-32">
-                <span className="hidden sm:inline">Giriş: </span>
-                <span className="font-medium text-zinc-800 dark:text-zinc-100">
-                  {person.name}
+              <Link
+                href={`/team/${person.id}`}
+                aria-label={`${person.name} profilini aç`}
+                className="flex min-h-11 min-w-0 cursor-pointer items-center gap-1.5 rounded-full py-1 pl-1 pr-0.5 transition-colors duration-200 hover:bg-black/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:hover:bg-white/10 dark:focus-visible:ring-offset-zinc-950"
+              >
+                <PersonAvatar
+                  name={person.name}
+                  avatarPath={person.avatar_path}
+                  size="sm"
+                />
+                <span className="max-w-16 truncate whitespace-nowrap text-zinc-500 dark:text-zinc-400 sm:max-w-32">
+                  <span className="hidden sm:inline">Giriş: </span>
+                  <span className="font-medium text-zinc-800 dark:text-zinc-100">
+                    {person.name}
+                  </span>
                 </span>
-              </span>
+              </Link>
               <form action={clearIdentity}>
                 <button
                   type="submit"

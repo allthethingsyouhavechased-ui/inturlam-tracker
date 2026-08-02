@@ -104,7 +104,11 @@ function TaskRow({ task, overdue }: { task: TaskWithContext; overdue?: boolean }
             {formatDateShort(task.due_date)}
           </span>
           {task.assignee_name ? (
-            <PersonAvatar name={task.assignee_name} size="xs" />
+            <PersonAvatar
+              name={task.assignee_name}
+              avatarPath={task.assignee_avatar_path}
+              size="xs"
+            />
           ) : (
             <span
               className="h-5 w-5 rounded-full border border-dashed border-zinc-300 dark:border-zinc-700"

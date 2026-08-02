@@ -97,6 +97,16 @@ export default async function TaskPage({
       >
         <input type="hidden" name="taskId" value={task.id} />
         <label className="grid gap-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">
+          Görev başlığı
+          <input
+            name="title"
+            required
+            maxLength={200}
+            defaultValue={task.title}
+            className={inputClass}
+          />
+        </label>
+        <label className="grid gap-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">
           Teslim tarihi
           <input
             type="date"

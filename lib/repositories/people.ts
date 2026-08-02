@@ -25,6 +25,22 @@ export function createPerson(name: string): string {
   return id;
 }
 
+export function updatePersonProfile(input: {
+  id: string;
+  name: string;
+  title: string | null;
+  bio: string | null;
+  avatarPath: string | null;
+}): void {
+  getDb()
+    .prepare(
+      `UPDATE people
+          SET name = ?, title = ?, bio = ?, avatar_path = ?
+        WHERE id = ?`,
+    )
+    .run(input.name, input.title, input.bio, input.avatarPath, input.id);
+}
+
 export function setPersonActive(id: string, active: boolean): void {
   getDb()
     .prepare("UPDATE people SET active = ? WHERE id = ?")

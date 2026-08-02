@@ -89,7 +89,13 @@ export default function TaskGridCard({
             <span aria-hidden="true">{TASK_PRIORITY_ICON[task.priority]}</span>
             {TASK_PRIORITY_LABEL[task.priority]}
           </span>
-          {task.assignee_name && <PersonAvatar name={task.assignee_name} size="xs" />}
+          {task.assignee_name && (
+            <PersonAvatar
+              name={task.assignee_name}
+              avatarPath={task.assignee_avatar_path}
+              size="xs"
+            />
+          )}
         </span>
       </div>
 

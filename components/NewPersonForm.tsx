@@ -8,7 +8,11 @@ import SubmitButton from "./SubmitButton";
 const inputClass =
   "min-h-11 w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-sm outline-none focus:border-brand-500 dark:border-white/15 dark:bg-zinc-900";
 
-export default function NewPersonForm() {
+export default function NewPersonForm({
+  onSuccess,
+}: {
+  onSuccess?: () => void;
+} = {}) {
   const ref = useRef<HTMLFormElement>(null);
   const [error, setError] = useState<string | null>(null);
   return (
@@ -19,6 +23,7 @@ export default function NewPersonForm() {
         try {
           await createPersonAction(fd);
           ref.current?.reset();
+          onSuccess?.();
         } catch (e) {
           setError(getActionErrorMessage(e));
         }

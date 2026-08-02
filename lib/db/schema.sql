@@ -50,9 +50,12 @@ CREATE TABLE IF NOT EXISTS brand_audits (
 );
 
 CREATE TABLE IF NOT EXISTS people (
-  id     TEXT PRIMARY KEY,
-  name   TEXT NOT NULL,
-  active INTEGER NOT NULL DEFAULT 1
+  id          TEXT PRIMARY KEY,
+  name        TEXT NOT NULL,
+  title       TEXT,
+  bio         TEXT,
+  avatar_path TEXT,
+  active      INTEGER NOT NULL DEFAULT 1
 );
 
 -- Ekipte kimin şu anda hangi marka üzerinde çalıştığı. Kişi başına tek seçim

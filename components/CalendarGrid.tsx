@@ -4,7 +4,7 @@ import { formatDateLong, WEEKDAY_LABELS, type CalendarGridDay } from "@/lib/date
 import type { TaskWithContext } from "@/lib/types";
 
 // sm+ ekranda hücre başına gösterilecek pill sayısı; mobilde nokta sayısı.
-const MAX_PILLS = 3;
+const MAX_PILLS = 2;
 const MAX_DOTS = 6;
 
 function cellToneClass(inMonth: boolean, isSelected: boolean): string {
@@ -66,7 +66,7 @@ export default function CalendarGrid({
         return (
           <div
             key={day.date}
-            className={`ui-surface group relative flex min-h-20 min-w-0 flex-col gap-1 rounded-xl border p-1 sm:min-h-32 sm:p-1.5 ${cellToneClass(day.inMonth, isSelected)} ${
+            className={`ui-surface group relative flex min-h-20 min-w-0 flex-col gap-0.5 rounded-xl border p-1 sm:min-h-[104px] sm:p-1.5 ${cellToneClass(day.inMonth, isSelected)} ${
               isSelected ? "shadow-md" : "hover:border-brand-300 hover:shadow-md dark:hover:border-brand-800"
             }`}
           >
@@ -74,7 +74,7 @@ export default function CalendarGrid({
               href={dayHref}
               aria-current={isToday ? "date" : undefined}
               aria-label={dayTasks.length > 0 ? `${dayLabel} — ${dayTasks.length} görev` : dayLabel}
-              className="ui-press absolute inset-0 z-0 inline-flex w-full shrink-0 items-start justify-start rounded-xl p-1 text-xs font-semibold hover:bg-black/[0.035] sm:static sm:min-h-11 sm:items-center sm:rounded-lg sm:px-1 sm:py-0 dark:hover:bg-white/[0.06]"
+              className="ui-press absolute inset-0 z-0 inline-flex w-full shrink-0 items-start justify-start rounded-xl p-1 text-xs font-semibold hover:bg-black/[0.035] sm:static sm:min-h-8 sm:items-center sm:rounded-lg sm:px-1 sm:py-0 dark:hover:bg-white/[0.06]"
             >
               <span
                 className={`grid size-8 place-items-center rounded-full ${dateNumberClass(isToday, day.inMonth)}`}
@@ -90,7 +90,7 @@ export default function CalendarGrid({
                   key={t.id}
                   href={`/tasks/${t.id}`}
                   title={t.title}
-                  className={`ui-press flex min-h-7 items-center truncate rounded-md px-2 py-1 text-[10px] font-medium leading-tight hover:translate-x-0.5 ${TASK_PRIORITY_BADGE[t.priority]}`}
+                  className={`ui-press flex min-h-5 items-center truncate rounded-md px-2 py-0.5 text-[10px] font-medium leading-tight hover:translate-x-0.5 ${TASK_PRIORITY_BADGE[t.priority]}`}
                 >
                   {t.title}
                 </Link>
@@ -98,7 +98,7 @@ export default function CalendarGrid({
               {dayTasks.length > MAX_PILLS && (
                 <Link
                   href={dayHref}
-                  className="ui-press flex min-h-7 items-center truncate rounded-md px-2 text-[10px] font-medium text-zinc-500 hover:bg-black/[0.035] hover:text-brand-600 dark:text-zinc-400 dark:hover:bg-white/[0.06] dark:hover:text-brand-400"
+                  className="ui-press flex min-h-5 items-center truncate rounded-md px-2 text-[10px] font-medium text-zinc-500 hover:bg-black/[0.035] hover:text-brand-600 dark:text-zinc-400 dark:hover:bg-white/[0.06] dark:hover:text-brand-400"
                 >
                   +{dayTasks.length - MAX_PILLS} daha
                 </Link>

@@ -41,6 +41,7 @@ function createConnection(): DatabaseSync {
   migrateTasksTableIfNeeded(db);
   migrateTasksRepeatIfNeeded(db);
   migrateTasksReportingIfNeeded(db);
+  migratePeopleProfilesIfNeeded(db);
   // SIRA ÖNEMLİ: yukarıdaki iki brands migration'ı tabloyu SABİT bir sütun
   // listesiyle yeniden kuruyor; bu ALTER onlardan sonra çalışmalı, yoksa
   // eklediği sütun rebuild sırasında düşer.
@@ -75,6 +76,27 @@ function migrateTasksRepeatIfNeeded(db: DatabaseSync): void {
   const columns = db.prepare(`PRAGMA table_info(tasks)`).all() as { name: string }[];
   if (columns.some((c) => c.name === "repeat_days")) return;
   db.exec(`ALTER TABLE tasks ADD COLUMN repeat_days INTEGER`);
+}
+
+// people profil alanları düz ve nullable sütunlardır. Eski LAN veritabanlarında
+// yalnızca id/name/active bulunduğu için tabloyu yeniden kurmadan, veri kaybı
+// riski taşımayan idempotent ALTER'larla eklenir.
+function migratePeopleProfilesIfNeeded(db: DatabaseSync): void {
+  const peopleExists = db
+    .prepare(`SELECT 1 FROM sqlite_master WHERE type='table' AND name='people'`)
+    .get();
+  if (!peopleExists) return;
+
+  const columns = db.prepare(`PRAGMA table_info(people)`).all() as { name: string }[];
+  for (const [name, definition] of [
+    ["title", "TEXT"],
+    ["bio", "TEXT"],
+    ["avatar_path", "TEXT"],
+  ] as const) {
+    if (!columns.some((column) => column.name === name)) {
+      db.exec(`ALTER TABLE people ADD COLUMN ${name} ${definition}`);
+    }
+  }
 }
 
 // Raporların oluşturulma tarihi yerine gerçek tamamlanma zamanını kullanabilmesi

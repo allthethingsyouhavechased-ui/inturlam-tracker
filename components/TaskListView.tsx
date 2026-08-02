@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useMemo, useState, useTransition } from "react";
 import AssigneeSelect from "@/components/AssigneeSelect";
 import CommentIcon from "@/components/CommentIcon";
+import PersonAvatar from "@/components/PersonAvatar";
 import TaskCommentsPanel from "@/components/TaskCommentsPanel";
 import TaskDueDateEdit from "@/components/TaskDueDateEdit";
 import TaskPrioritySelect from "@/components/TaskPrioritySelect";
@@ -311,7 +312,20 @@ export default function TaskListView({
                     <TaskStatusSelect taskId={t.id} status={t.status} />
                   </td>
                   <td className="px-3 py-2">
-                    <AssigneeSelect taskId={t.id} assigneeId={t.assignee_id} people={people} />
+                    <div className="flex items-center gap-2">
+                      {t.assignee_name && (
+                        <PersonAvatar
+                          name={t.assignee_name}
+                          avatarPath={t.assignee_avatar_path}
+                          size="xs"
+                        />
+                      )}
+                      <AssigneeSelect
+                        taskId={t.id}
+                        assigneeId={t.assignee_id}
+                        people={people}
+                      />
+                    </div>
                   </td>
                   <td className="px-3 py-2">
                     <TaskDueDateEdit taskId={t.id} dueDate={t.due_date} />

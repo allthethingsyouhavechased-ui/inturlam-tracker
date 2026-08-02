@@ -101,27 +101,38 @@ export default function ClusterManager({ clusters }: { clusters: ClusterItem[] }
   const newFormRef = useRef<HTMLFormElement>(null);
 
   return (
-    <div className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm dark:border-white/5 dark:bg-zinc-900">
+    <div className="relative">
       <button
         type="button"
         onClick={() => setOpen(!open)}
         aria-expanded={open}
-        className="flex min-h-11 w-full items-center gap-1.5 text-sm font-semibold"
+        className={`ui-press flex min-h-11 items-center gap-2 rounded-xl border px-3 text-sm font-semibold transition-colors ${
+          open
+            ? "border-brand-300 bg-brand-50 text-brand-700 dark:border-brand-800 dark:bg-brand-950/35 dark:text-brand-300"
+            : "border-black/10 bg-white text-zinc-700 hover:bg-zinc-50 dark:border-white/10 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-white/[0.06]"
+        }`}
       >
         <svg
           viewBox="0 0 16 16"
           className={`h-3 w-3 fill-current text-zinc-500 dark:text-zinc-400 transition-transform ${open ? "rotate-90" : ""}`}
+          aria-hidden="true"
         >
           <path d="M4 2l8 6-8 6V2z" />
         </svg>
         Kategoriler
-        <span className="ml-auto text-xs font-normal text-zinc-500 dark:text-zinc-400">
+        <span className="rounded-full bg-black/5 px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-zinc-500 dark:bg-white/10 dark:text-zinc-400">
           {clusters.length}
         </span>
       </button>
 
       {open && (
-        <div className="mt-3 space-y-2">
+        <div className="ui-enter absolute right-0 top-[calc(100%+0.5rem)] z-30 w-[min(36rem,calc(100vw-2rem))] space-y-2 rounded-2xl border border-black/10 bg-white p-4 shadow-xl dark:border-white/10 dark:bg-zinc-900">
+          <div className="mb-2">
+            <p className="text-sm font-semibold">Kategori yönetimi</p>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              Marka gruplarını yeniden adlandır, sil veya yenisini ekle.
+            </p>
+          </div>
           <div className="space-y-0.5">
             {clusters.map((c) => (
               <ClusterRow key={c.id} cluster={c} onError={setError} />

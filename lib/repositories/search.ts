@@ -60,7 +60,9 @@ export function searchAll(query: string): SearchResults {
   const allTasks = plainList<TaskWithContext>(
     db
       .prepare(
-        `SELECT t.*, p.name AS assignee_name, ci.title AS content_title,
+        `SELECT t.*, p.name AS assignee_name,
+                p.avatar_path AS assignee_avatar_path,
+                ci.title AS content_title,
                 b.id AS brand_id, b.name AS brand_name
          FROM tasks t
          JOIN content_items ci ON ci.id = t.content_item_id

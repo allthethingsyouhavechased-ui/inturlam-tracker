@@ -60,26 +60,25 @@ export default async function CalendarPage({
   const dayTasks = selectedDay ? (tasksByDate.get(selectedDay) ?? []) : [];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <AutoRefresh />
-      <h1 className="text-2xl font-semibold tracking-tight">Takvim</h1>
-
-      <div className="flex flex-wrap items-center justify-between gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-2xl font-semibold tracking-tight">Takvim</h1>
         <div className="flex items-center gap-1">
           <Link
             href={`/calendar?month=${prevMonthParam}`}
             aria-label="Önceki ay"
-            className="ui-press inline-flex size-11 items-center justify-center rounded-xl text-2xl leading-none text-zinc-600 hover:bg-black/5 dark:text-zinc-300 dark:hover:bg-white/10"
+            className="ui-press inline-flex size-10 items-center justify-center rounded-xl text-xl leading-none text-zinc-600 hover:bg-black/5 dark:text-zinc-300 dark:hover:bg-white/10"
           >
             ‹
           </Link>
-          <h2 className="min-w-[12ch] text-center text-lg font-semibold">
+          <h2 className="min-w-[12ch] text-center text-base font-semibold sm:text-lg">
             {formatMonthLabel(monthDate)}
           </h2>
           <Link
             href={`/calendar?month=${nextMonthParam}`}
             aria-label="Sonraki ay"
-            className="ui-press inline-flex size-11 items-center justify-center rounded-xl text-2xl leading-none text-zinc-600 hover:bg-black/5 dark:text-zinc-300 dark:hover:bg-white/10"
+            className="ui-press inline-flex size-10 items-center justify-center rounded-xl text-xl leading-none text-zinc-600 hover:bg-black/5 dark:text-zinc-300 dark:hover:bg-white/10"
           >
             ›
           </Link>
@@ -87,7 +86,7 @@ export default async function CalendarPage({
         {!isCurrentMonth && (
           <Link
             href="/calendar"
-            className="ui-press inline-flex min-h-11 items-center rounded-xl px-3 text-sm font-medium text-brand-600 hover:bg-brand-50 dark:text-brand-400 dark:hover:bg-brand-950/30"
+            className="ui-press ml-1 inline-flex min-h-10 items-center rounded-xl px-3 text-sm font-medium text-brand-600 hover:bg-brand-50 dark:text-brand-400 dark:hover:bg-brand-950/30"
           >
             Bugün
           </Link>

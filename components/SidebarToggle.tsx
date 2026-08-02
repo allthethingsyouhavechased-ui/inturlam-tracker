@@ -15,7 +15,7 @@ export default function SidebarToggle() {
       title={collapsed ? "Marka panelini genişlet" : "Marka panelini daralt"}
       aria-expanded={!collapsed}
       aria-controls="app-sidebar"
-      className="hidden h-10 w-10 items-center justify-center rounded-xl text-zinc-600 transition-colors hover:bg-black/5 active:scale-95 md:inline-flex dark:text-zinc-300 dark:hover:bg-white/10"
+      className="absolute left-2 top-1/2 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-xl text-zinc-600 transition-[color,background-color,transform] hover:bg-black/5 active:scale-95 md:inline-flex dark:text-zinc-300 dark:hover:bg-white/10"
     >
       <svg viewBox="0 0 20 20" className="h-5 w-5 fill-current">
         {/* Panel ikonu: dış çerçeve + sol sütun. Daraltılmışken sütun boş

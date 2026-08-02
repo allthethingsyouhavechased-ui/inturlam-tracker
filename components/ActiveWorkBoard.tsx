@@ -7,6 +7,10 @@ import PersonAvatar from "@/components/PersonAvatar";
 import TaskGridCard from "@/components/TaskGridCard";
 import { setActiveBrandAction } from "@/lib/actions/activeWork";
 import { hashColor } from "@/lib/colorHash";
+import {
+  groupPeopleByWorkstream,
+  type TeamWorkstreamId,
+} from "@/lib/teamWorkstreams";
 import type {
   Brand,
   Person,
@@ -24,6 +28,32 @@ function formatUpdatedAt(value: string): string {
     timeZone: "Europe/Istanbul",
   }).format(new Date(isoValue));
 }
+
+const workstreamTone: Record<
+  TeamWorkstreamId | "other",
+  { dot: string; badge: string }
+> = {
+  video: {
+    dot: "bg-sky-500",
+    badge: "bg-sky-500/10 text-sky-700 dark:text-sky-300",
+  },
+  design: {
+    dot: "bg-violet-500",
+    badge: "bg-violet-500/10 text-violet-700 dark:text-violet-300",
+  },
+  social: {
+    dot: "bg-emerald-500",
+    badge: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
+  },
+  management: {
+    dot: "bg-amber-500",
+    badge: "bg-amber-500/10 text-amber-700 dark:text-amber-300",
+  },
+  other: {
+    dot: "bg-zinc-400",
+    badge: "bg-zinc-500/10 text-zinc-700 dark:text-zinc-300",
+  },
+};
 
 export default function ActiveWorkBoard({
   people,
@@ -57,14 +87,10 @@ export default function ActiveWorkBoard({
     setSelectedBrandId(serverBrandId);
   }
 
-  const orderedPeople = useMemo(() => {
-    if (!currentPersonId) return people;
-    return [...people].sort((a, b) => {
-      if (a.id === currentPersonId) return -1;
-      if (b.id === currentPersonId) return 1;
-      return a.name.localeCompare(b.name, "tr");
-    });
-  }, [people, currentPersonId]);
+  const workstreamRows = useMemo(
+    () => groupPeopleByWorkstream(people),
+    [people],
+  );
 
   function changeBrand(nextBrandId: string) {
     const previousBrandId = selectedBrandId;
@@ -96,11 +122,11 @@ export default function ActiveWorkBoard({
               id="active-work-title"
               className="text-lg font-semibold text-zinc-900 dark:text-zinc-100"
             >
-              Aktif marka kanbanı
+              Disiplin bazlı ekip kanbanı
             </h2>
           </div>
           <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-            Her ekip üyesinin şu anda odaklandığı marka ve o markadaki açık işleri.
+            Ekip üyeleri çalışma alanlarına göre satırlarda; aktif marka ve açık işleri kişi kartında.
           </p>
         </div>
         <p className="text-xs text-zinc-500 dark:text-zinc-400">
@@ -129,8 +155,35 @@ export default function ActiveWorkBoard({
         </p>
       )}
 
-      <div className="-mx-1 flex snap-x gap-3 overflow-x-auto px-1 pb-3">
-        {orderedPeople.map((person) => {
+      <div className="space-y-3">
+        {workstreamRows.map((workstream) => {
+          const tone = workstreamTone[workstream.id];
+
+          return (
+            <section
+              key={workstream.id}
+              aria-labelledby={`workstream-${workstream.id}`}
+              className="rounded-2xl border border-black/10 bg-white/55 p-3 dark:border-white/10 dark:bg-white/[0.018]"
+            >
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <span className={`size-2.5 rounded-full ${tone.dot}`} />
+                  <h3
+                    id={`workstream-${workstream.id}`}
+                    className="text-sm font-semibold text-zinc-900 dark:text-zinc-100"
+                  >
+                    {workstream.label}
+                  </h3>
+                </div>
+                <span
+                  className={`rounded-full px-2.5 py-1 text-[10px] font-semibold tabular-nums ${tone.badge}`}
+                >
+                  {workstream.people.length} kişi
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 items-start gap-2.5 sm:grid-cols-2 lg:grid-cols-[repeat(auto-fit,minmax(210px,1fr))]">
+                {workstream.people.map((person) => {
           const isCurrent = person.id === currentPersonId;
           const storedSelection = selections.find(
             (selection) => selection.person_id === person.id,
@@ -148,17 +201,21 @@ export default function ActiveWorkBoard({
               )
             : [];
 
-          return (
+                  return (
             <article
               key={person.id}
-              className={`w-[292px] shrink-0 snap-start rounded-2xl border bg-zinc-50/80 p-2.5 dark:bg-white/[0.025] ${
+              className={`min-w-0 rounded-2xl border bg-zinc-50/80 p-2.5 dark:bg-white/[0.025] ${
                 isCurrent
                   ? "border-brand-400 ring-2 ring-brand-500/15 dark:border-brand-700"
                   : "border-black/10 dark:border-white/10"
               }`}
             >
               <header className="flex min-h-12 items-center gap-2.5 px-1">
-                <PersonAvatar name={person.name} size="md" />
+                <PersonAvatar
+                  name={person.name}
+                  avatarPath={person.avatar_path}
+                  size="md"
+                />
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-sm font-semibold text-zinc-900 dark:text-zinc-100">
                     {person.name}
@@ -230,29 +287,27 @@ export default function ActiveWorkBoard({
               )}
 
               <div className="mt-3 space-y-2">
-                {personTasks.slice(0, 6).map((task) => (
+                {personTasks.slice(0, 3).map((task) => (
                   <TaskGridCard key={task.id} task={task} showStatus />
                 ))}
 
                 {selectedBrand && personTasks.length === 0 && (
-                  <div className="flex min-h-32 items-center justify-center rounded-xl border border-dashed border-black/10 bg-white/60 px-4 text-center text-xs leading-relaxed text-zinc-500 dark:border-white/10 dark:bg-zinc-900/60 dark:text-zinc-400">
+                  <div className="flex min-h-20 items-center justify-center rounded-xl border border-dashed border-black/10 bg-white/60 px-4 text-center text-xs leading-relaxed text-zinc-500 dark:border-white/10 dark:bg-zinc-900/60 dark:text-zinc-400">
                     Bu marka için {person.name} üzerine atanmış açık görev yok.
                   </div>
                 )}
 
-                {!selectedBrand && (
-                  <div className="flex min-h-32 items-center justify-center px-4 text-center text-xs leading-relaxed text-zinc-400 dark:text-zinc-500">
-                    Marka seçildiğinde açık görevler bu kolonda görünecek.
-                  </div>
-                )}
-
-                {personTasks.length > 6 && (
+                {personTasks.length > 3 && (
                   <p className="rounded-lg bg-black/5 px-3 py-2 text-center text-xs font-medium text-zinc-600 dark:bg-white/10 dark:text-zinc-300">
-                    +{personTasks.length - 6} görev daha
+                    +{personTasks.length - 3} görev daha
                   </p>
                 )}
               </div>
-            </article>
+                    </article>
+                  );
+                })}
+              </div>
+            </section>
           );
         })}
       </div>

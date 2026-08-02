@@ -63,6 +63,40 @@ export interface BrandPersonRow {
   open_tasks: number;
 }
 
+export type TrendGranularity = "day" | "week" | "month";
+
+export interface TrendReportPoint {
+  key: string;
+  label: string;
+  opened_tasks: number;
+  completed_tasks: number;
+}
+
+export interface TrendReport {
+  granularity: TrendGranularity;
+  points: TrendReportPoint[];
+}
+
+export interface CycleTimeBucket {
+  key: "one_day" | "two_three" | "four_seven" | "eight_fourteen" | "fifteen_plus";
+  label: string;
+  task_count: number;
+}
+
+export interface CycleTimeReport {
+  sample_size: number;
+  average_days: number | null;
+  median_days: number | null;
+  p75_days: number | null;
+  buckets: CycleTimeBucket[];
+}
+
+export interface DueHealthRow {
+  bucket: "overdue" | "today" | "next_seven" | "later" | "unscheduled";
+  label: string;
+  task_count: number;
+}
+
 function periodCondition(column: string, range: DateRange | null): string {
   return range ? `date(${column}) BETWEEN :start AND :end` : "1 = 1";
 }
@@ -75,6 +109,184 @@ function allForRange<T>(sql: string, range: DateRange | null): T[] {
   const statement = getDb().prepare(sql);
   const params = rangeParams(range);
   return plainList<T>(params ? statement.all(params) : statement.all());
+}
+
+function parseISODate(value: string): Date {
+  return new Date(`${value.slice(0, 10)}T12:00:00`);
+}
+
+function toISODate(value: Date): string {
+  const year = value.getFullYear();
+  const month = String(value.getMonth() + 1).padStart(2, "0");
+  const day = String(value.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function addDays(value: Date, amount: number): Date {
+  const next = new Date(value);
+  next.setDate(next.getDate() + amount);
+  return next;
+}
+
+function startOfWeek(value: Date): Date {
+  const day = value.getDay();
+  return addDays(value, -(day === 0 ? 6 : day - 1));
+}
+
+function trendBucketKey(value: Date, granularity: TrendGranularity): string {
+  if (granularity === "month") return toISODate(value).slice(0, 7);
+  if (granularity === "week") return toISODate(startOfWeek(value));
+  return toISODate(value);
+}
+
+function trendLabel(key: string, granularity: TrendGranularity): string {
+  const date = parseISODate(granularity === "month" ? `${key}-01` : key);
+  if (granularity === "month") {
+    return new Intl.DateTimeFormat("tr-TR", { month: "short", year: "2-digit" }).format(date);
+  }
+  return new Intl.DateTimeFormat("tr-TR", { day: "numeric", month: "short" }).format(date);
+}
+
+function quantile(sortedValues: number[], percentile: number): number | null {
+  if (sortedValues.length === 0) return null;
+  const position = (sortedValues.length - 1) * percentile;
+  const lower = Math.floor(position);
+  const upper = Math.ceil(position);
+  const value =
+    lower === upper
+      ? sortedValues[lower]
+      : sortedValues[lower] + (sortedValues[upper] - sortedValues[lower]) * (position - lower);
+  return Math.round(value * 10) / 10;
+}
+
+export function getTrendReport(range: DateRange | null): TrendReport {
+  const rangeClause = range ? "WHERE event_date BETWEEN :start AND :end" : "";
+  const statement = getDb().prepare(`
+    SELECT event_date, event_type, COUNT(*) AS task_count
+      FROM (
+        SELECT date(created_at) AS event_date, 'opened' AS event_type
+          FROM tasks
+        UNION ALL
+        SELECT date(completed_at) AS event_date, 'completed' AS event_type
+          FROM tasks
+         WHERE status = 'Yayinlandi' AND completed_at IS NOT NULL
+      ) events
+      ${rangeClause}
+     WHERE event_date IS NOT NULL
+     GROUP BY event_date, event_type
+     ORDER BY event_date
+  `.replace(`${rangeClause}\n     WHERE`, range ? `${rangeClause}\n       AND` : "WHERE"));
+  const rows = plainList<{
+    event_date: string;
+    event_type: "opened" | "completed";
+    task_count: number;
+  }>(range ? statement.all({ start: range.start, end: range.end }) : statement.all());
+
+  const startValue = range?.start ?? rows[0]?.event_date;
+  const endValue = range?.end ?? rows[rows.length - 1]?.event_date;
+  if (!startValue || !endValue) return { granularity: "day", points: [] };
+
+  const start = parseISODate(startValue);
+  const end = parseISODate(endValue);
+  const dayCount = Math.max(1, Math.round((end.getTime() - start.getTime()) / 86_400_000) + 1);
+  const granularity: TrendGranularity = dayCount <= 35 ? "day" : dayCount <= 210 ? "week" : "month";
+  const totals = new Map<string, { opened: number; completed: number }>();
+
+  for (const row of rows) {
+    const key = trendBucketKey(parseISODate(row.event_date), granularity);
+    const value = totals.get(key) ?? { opened: 0, completed: 0 };
+    value[row.event_type] += row.task_count;
+    totals.set(key, value);
+  }
+
+  const points: TrendReportPoint[] = [];
+  let cursor = granularity === "week" ? startOfWeek(start) : start;
+  while (cursor <= end) {
+    const key = trendBucketKey(cursor, granularity);
+    const value = totals.get(key) ?? { opened: 0, completed: 0 };
+    points.push({
+      key,
+      label: trendLabel(key, granularity),
+      opened_tasks: value.opened,
+      completed_tasks: value.completed,
+    });
+    if (granularity === "month") {
+      cursor = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1, 12);
+    } else {
+      cursor = addDays(cursor, granularity === "week" ? 7 : 1);
+    }
+  }
+
+  return { granularity, points };
+}
+
+export function getCycleTimeReport(range: DateRange | null): CycleTimeReport {
+  const completed = periodCondition("t.completed_at", range);
+  const rows = allForRange<{ duration_days: number }>(
+    `SELECT MAX(julianday(t.completed_at) - julianday(t.created_at), 0) AS duration_days
+       FROM tasks t
+      WHERE t.status = 'Yayinlandi'
+        AND t.completed_at IS NOT NULL
+        AND ${completed}
+      ORDER BY duration_days`,
+    range,
+  );
+  const durations = rows.map((row) => row.duration_days).sort((a, b) => a - b);
+  const bucketDefinitions: Array<{
+    key: CycleTimeBucket["key"];
+    label: string;
+    matches: (value: number) => boolean;
+  }> = [
+    { key: "one_day", label: "0–1 gün", matches: (value) => value <= 1 },
+    { key: "two_three", label: "2–3 gün", matches: (value) => value > 1 && value <= 3 },
+    { key: "four_seven", label: "4–7 gün", matches: (value) => value > 3 && value <= 7 },
+    { key: "eight_fourteen", label: "8–14 gün", matches: (value) => value > 7 && value <= 14 },
+    { key: "fifteen_plus", label: "15+ gün", matches: (value) => value > 14 },
+  ];
+
+  return {
+    sample_size: durations.length,
+    average_days:
+      durations.length === 0
+        ? null
+        : Math.round((durations.reduce((sum, value) => sum + value, 0) / durations.length) * 10) / 10,
+    median_days: quantile(durations, 0.5),
+    p75_days: quantile(durations, 0.75),
+    buckets: bucketDefinitions.map(({ key, label, matches }) => ({
+      key,
+      label,
+      task_count: durations.filter(matches).length,
+    })),
+  };
+}
+
+export function listDueHealthReport(today: string): DueHealthRow[] {
+  return plainList<DueHealthRow>(
+    getDb()
+      .prepare(
+        `WITH buckets(bucket, label, sort_order) AS (
+           VALUES ('overdue', 'Gecikmiş', 1),
+                  ('today', 'Bugün', 2),
+                  ('next_seven', 'Önümüzdeki 7 gün', 3),
+                  ('later', 'Daha sonra', 4),
+                  ('unscheduled', 'Tarihsiz', 5)
+         )
+         SELECT buckets.bucket, buckets.label, COUNT(t.id) AS task_count
+           FROM buckets
+           LEFT JOIN tasks t
+             ON t.status != 'Yayinlandi'
+            AND CASE buckets.bucket
+              WHEN 'overdue' THEN t.due_date IS NOT NULL AND t.due_date < :today
+              WHEN 'today' THEN t.due_date = :today
+              WHEN 'next_seven' THEN t.due_date > :today AND t.due_date <= date(:today, '+7 day')
+              WHEN 'later' THEN t.due_date > date(:today, '+7 day')
+              WHEN 'unscheduled' THEN t.due_date IS NULL
+            END
+          GROUP BY buckets.bucket, buckets.label, buckets.sort_order
+          ORDER BY buckets.sort_order`,
+      )
+      .all({ today }),
+  );
 }
 
 export function getReportSummary(
