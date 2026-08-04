@@ -1,4 +1,5 @@
 import { getDb, plainList, plainOne } from "@/lib/db/client";
+import { ARCHIVE_AFTER_DAYS } from "@/lib/taskArchive";
 import type { Task, TaskPriority, TaskStatus, TaskWithContext } from "@/lib/types";
 
 // Acil→Düşük sıralaması için ORDER BY'da kullanılan CASE ifadesi.
@@ -31,11 +32,31 @@ const WITH_CONTEXT_SELECT = `
   LEFT JOIN people p ON p.id = t.assignee_id
 `;
 
+// Arşivlenmemiş görevler için ortak koşul. Arşiv damgası YALNIZCA yayınlanmış
+// işlere konur (bkz. lib/taskArchive.ts), bu yüzden "açık iş" sorgularının
+// ayrıca bunu yazması gerekmez — ama pano/liste gibi yayınlananları da gösteren
+// sorgular bunu EKLEMEK ZORUNDA, yoksa arşiv hiçbir yerde gizlenmez.
+const NOT_ARCHIVED = "t.archived_at IS NULL";
+
 export function listTasksByContent(contentItemId: string): TaskWithContext[] {
   return plainList<TaskWithContext>(
     getDb()
       .prepare(
-        `${WITH_CONTEXT_SELECT} WHERE t.content_item_id = ? ORDER BY ${PRIORITY_ORDER_SQL}, t.created_at`,
+        `${WITH_CONTEXT_SELECT} WHERE t.content_item_id = ? AND ${NOT_ARCHIVED}
+         ORDER BY ${PRIORITY_ORDER_SQL}, t.created_at`,
+      )
+      .all(contentItemId),
+  );
+}
+
+// İçerik sayfasındaki katlanabilir "Arşiv" bölümü: kanban'dan düşmüş ama
+// silinmemiş işler. En son arşivlenen en üstte.
+export function listArchivedTasksByContent(contentItemId: string): TaskWithContext[] {
+  return plainList<TaskWithContext>(
+    getDb()
+      .prepare(
+        `${WITH_CONTEXT_SELECT} WHERE t.content_item_id = ? AND t.archived_at IS NOT NULL
+         ORDER BY t.archived_at DESC, t.rowid DESC`,
       )
       .all(contentItemId),
   );
@@ -49,11 +70,18 @@ export function getTask(id: string): TaskWithContext | undefined {
 
 // "/tasks" (Görevler) sayfası için — portföydeki tüm görevler, istemci
 // tarafında filtrelenmek üzere tek seferde çekilir.
-export function listAllTasks(): TaskWithContext[] {
+//
+// `includeArchived` varsayılan olarak FALSE: arşiv, panoyu ve sayaçları
+// kirletmesin. Görevler sayfası ise TRUE ile çağırıp arşivi de indiriyor —
+// "Arşivi göster" düğmesi istemci tarafında çalışsın, tıklayınca sunucuya
+// gidilmesin diye (aynı sayfadaki diğer filtreler de böyle).
+export function listAllTasks(includeArchived = false): TaskWithContext[] {
   return plainList<TaskWithContext>(
     getDb()
       .prepare(
-        `${WITH_CONTEXT_SELECT} ORDER BY ${PRIORITY_ORDER_SQL}, (t.due_date IS NULL), t.due_date, b.name`,
+        `${WITH_CONTEXT_SELECT}
+         ${includeArchived ? "" : `WHERE ${NOT_ARCHIVED}`}
+         ORDER BY ${PRIORITY_ORDER_SQL}, (t.due_date IS NULL), t.due_date, b.name`,
       )
       .all(),
   );
@@ -107,12 +135,15 @@ export function listOverdueTasks(today: string): TaskWithContext[] {
   );
 }
 
-export function listOpenTasksByAssignee(personId: string): TaskWithContext[] {
+// Panom'un board'u. Durum FİLTRELENMİYOR: yayınlanan iş, arşivlenene kadar
+// "Yayınlandı" sütununda durur — yanlışlıkla oraya sürüklenen kart geri
+// sürüklenebilsin diye. Arşivlenenler düşer (`NOT_ARCHIVED`).
+export function listBoardTasksByAssignee(personId: string): TaskWithContext[] {
   return plainList<TaskWithContext>(
     getDb()
       .prepare(
         `${WITH_CONTEXT_SELECT}
-         WHERE t.assignee_id = ? AND t.status != 'Yayinlandi'
+         WHERE t.assignee_id = ? AND ${NOT_ARCHIVED}
          ORDER BY (t.due_date IS NULL), t.due_date, b.name`,
       )
       .all(personId),
@@ -244,6 +275,10 @@ function applyTaskStatusChanges(
   if (changed.length === 0) return 0;
 
   const db = getDb();
+  // `archived_at = NULL`: HER durum değişikliği görevi panoya geri koyar ve
+  // arşiv sayacını sıfırlar. İki yönü de gerekli — arşivlenmiş bir iş yeniden
+  // açıldığında görünmez kalmamalı, yeniden yayınlandığında da hemen arşive
+  // düşmemeli (yeni `completed_at` zaten sayacı baştan başlatır).
   const update = db.prepare(`
     UPDATE tasks
        SET status = ?,
@@ -255,6 +290,7 @@ function applyTaskStatusChanges(
              WHEN ? = 'Yayinlandi' THEN ?
              ELSE NULL
            END,
+           archived_at = NULL,
            updated_at = datetime('now')
      WHERE id = ?
   `);
@@ -323,6 +359,48 @@ export function updateTaskDetails(input: {
       "UPDATE tasks SET title = ?, due_date = ?, notes = ?, updated_at = datetime('now') WHERE id = ?",
     )
     .run(input.title, input.dueDate, input.notes, input.id);
+}
+
+// ---- Arşiv ----
+// Görev SİLİNMEZ, yalnızca `archived_at` damgalanır: rapor/takvim okumaya devam
+// eder, tek tıkla geri alınır.
+
+/**
+ * Tamamlanmasının üzerinden `days` gün geçmiş yayınlanmış işleri arşivler.
+ * Kaç görevin damgalandığını döner.
+ *
+ * Cron/arka plan işi yok: görev listeleyen sayfalar (`force-dynamic` olduğu için
+ * her istekte) render'dan ÖNCE bunu çağırır. Tek `UPDATE`, `idx_tasks_archived_at`
+ * üzerinden çalışır ve arşivlenecek iş yoksa hiçbir satıra dokunmaz — sayfa
+ * başına maliyeti ihmal edilebilir.
+ */
+export function sweepArchivablePublishedTasks(days = ARCHIVE_AFTER_DAYS): number {
+  return Number(
+    getDb()
+      .prepare(
+        `UPDATE tasks
+            SET archived_at = datetime('now')
+          WHERE archived_at IS NULL
+            AND status = 'Yayinlandi'
+            AND completed_at IS NOT NULL
+            AND julianday('now') - julianday(completed_at) >= ?`,
+      )
+      .run(days).changes,
+  );
+}
+
+// Elle arşivleme / arşivden çıkarma. Durum DEĞİŞMEZ: arşivden çıkan görev hâlâ
+// "Yayınlandı"dır, sadece panoda yeniden görünür (yanlış işaretlemeyi düzeltmek
+// için kullanıcı durumu ayrıca geri alır).
+export function setTaskArchived(id: string, archived: boolean): void {
+  getDb()
+    .prepare(
+      `UPDATE tasks
+          SET archived_at = CASE WHEN ? = 1 THEN datetime('now') ELSE NULL END,
+              updated_at = datetime('now')
+        WHERE id = ?`,
+    )
+    .run(archived ? 1 : 0, id);
 }
 
 export function deleteTask(id: string): Task | undefined {

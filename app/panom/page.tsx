@@ -6,10 +6,12 @@ import { getCurrentPerson } from "@/lib/identity";
 import { listBrandsWithOpenCounts } from "@/lib/repositories/brands";
 import { listActivePeople } from "@/lib/repositories/people";
 import {
-  listOpenTasksByAssignee,
+  listBoardTasksByAssignee,
   listOverdueTasks,
   listTasksDueThisWeek,
+  sweepArchivablePublishedTasks,
 } from "@/lib/repositories/tasks";
+import { daysUntilArchive } from "@/lib/taskArchive";
 import type { TaskCardBadge, TaskWithContext } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -22,13 +24,25 @@ const BADGE_THIS_WEEK: TaskCardBadge = {
   label: "Bu hafta",
   className: "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300",
 };
+// Yayınlanan iş panodan hemen düşmüyor; ne zaman düşeceği kartın üzerinde yazsın
+// ki "kayboldu" hissi yerine "arşive gidecek" bilgisi olsun.
+function archiveBadge(daysLeft: number): TaskCardBadge {
+  return {
+    label: daysLeft === 0 ? "Arşive gidiyor" : `${daysLeft} gün sonra arşiv`,
+    className: "bg-zinc-200 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300",
+  };
+}
 
 export default async function PanomPage() {
   const me = await getCurrentPerson();
   const today = todayISO();
   const weekEnd = currentWeekRange().end;
 
-  const myTasks = me ? listOpenTasksByAssignee(me.id) : [];
+  // Süresi dolan yayınlanmış işleri okumadan ÖNCE arşive al — yoksa bu render'da
+  // bir kez daha "Yayınlandı" sütununda görünürlerdi.
+  sweepArchivablePublishedTasks();
+
+  const myTasks = me ? listBoardTasksByAssignee(me.id) : [];
   const overdue = listOverdueTasks(today);
   const thisWeek = listTasksDueThisWeek(today, weekEnd);
   const brands = listBrandsWithOpenCounts();
@@ -44,16 +58,19 @@ export default async function PanomPage() {
   // Rozetler sunucuda düz veri olarak task'a iliştirilir: Server Component'ten
   // Client Component'e fonksiyon geçirilemediği için (RSC kısıtı) callback
   // yerine bunu tercih ediyoruz.
-  function badgesFor(taskId: string): TaskCardBadge[] {
+  function badgesFor(task: TaskWithContext): TaskCardBadge[] {
     const badges: TaskCardBadge[] = [];
-    if (overdueIds.has(taskId)) badges.push(BADGE_OVERDUE);
-    if (thisWeekIds.has(taskId)) badges.push(BADGE_THIS_WEEK);
+    if (overdueIds.has(task.id)) badges.push(BADGE_OVERDUE);
+    if (thisWeekIds.has(task.id)) badges.push(BADGE_THIS_WEEK);
+    if (task.status === "Yayinlandi") {
+      badges.push(archiveBadge(daysUntilArchive(task.completed_at)));
+    }
     return badges;
   }
 
   const myBoardTasks: TaskWithContext[] = myTasks.map((t) => ({
     ...t,
-    badges: badgesFor(t.id),
+    badges: badgesFor(t),
   }));
 
   // İkinci bölüm: bana atanmamış ama portföyde gecikmiş / bu hafta teslim olan
@@ -62,7 +79,7 @@ export default async function PanomPage() {
   const othersMap = new Map<string, TaskWithContext>();
   for (const t of [...overdue, ...thisWeek]) {
     if (myIds.has(t.id)) continue;
-    othersMap.set(t.id, { ...t, badges: badgesFor(t.id) });
+    othersMap.set(t.id, { ...t, badges: badgesFor(t) });
   }
   const otherTasks = [...othersMap.values()].sort((a, b) =>
     (a.due_date ?? "").localeCompare(b.due_date ?? ""),

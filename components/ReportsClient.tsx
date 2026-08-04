@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import EmptyState from "@/components/EmptyState";
 import RangeFilterBar, {
+  ExcelDownloadLink,
   PrintButton,
   type RangeKey,
 } from "@/components/reports/RangeFilterBar";
@@ -273,6 +274,11 @@ export default function ReportsClient({
       </div>
 
       <RangeFilterBar rangeKey={rangeKey} customStart={customStart} customEnd={customEnd}>
+        <ExcelDownloadLink
+          rangeKey={rangeKey}
+          customStart={customStart}
+          customEnd={customEnd}
+        />
         <PrintButton />
       </RangeFilterBar>
 

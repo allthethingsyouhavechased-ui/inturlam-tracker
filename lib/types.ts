@@ -93,6 +93,10 @@ export interface Task {
   repeat_days: number | null;
   completed_at: string | null;
   completed_by: string | null;
+  // Arşive düşme damgası (SQLite UTC). null = pano/listelerde görünür.
+  // "Yayınlandı" görevler ARCHIVE_AFTER_DAYS gün sonra damgalanır — bkz.
+  // lib/taskArchive.ts. Kayıt silinmez, arşivden çıkarmak tek tıktır.
+  archived_at: string | null;
   created_at: string;
   updated_at: string;
 }

@@ -11,6 +11,7 @@ import {
   listAllTasks,
   listOverdueTasks,
   listTasksDueThisWeek,
+  sweepArchivablePublishedTasks,
 } from "@/lib/repositories/tasks";
 import type { TaskWithContext } from "@/lib/types";
 
@@ -178,6 +179,8 @@ export default async function HomePage() {
   const today = todayISO();
   const weekEnd = currentWeekRange().end;
   const me = await getCurrentPerson();
+
+  sweepArchivablePublishedTasks();
 
   const brands = listBrandsWithOpenCounts();
   const allTasks = listAllTasks();

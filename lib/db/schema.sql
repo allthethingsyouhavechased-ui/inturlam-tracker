@@ -99,6 +99,11 @@ CREATE TABLE IF NOT EXISTS tasks (
   -- yayınlanmış görevlerin updated_at değerini başlangıç olarak kullanır.
   completed_at    TEXT,
   completed_by    TEXT REFERENCES people(id) ON DELETE SET NULL,
+  -- Arşivlenme damgası. NULL = pano/listelerde görünür. "Yayınlandı" bir görevi
+  -- ANINDA gizlemez; yalnızca tamamlanmasının üzerinden ARCHIVE_AFTER_DAYS geçen
+  -- (ya da elle arşivlenen) görev buradan damgalanıp panodan çekilir — yanlışlıkla
+  -- yayınlandı işaretlenen iş kaybolmuş gibi görünmesin (lib/taskArchive.ts).
+  archived_at     TEXT,
   created_at      TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at      TEXT NOT NULL DEFAULT (datetime('now'))
 );
@@ -206,6 +211,7 @@ CREATE INDEX IF NOT EXISTS idx_tasks_content_item  ON tasks(content_item_id);
 CREATE INDEX IF NOT EXISTS idx_tasks_assignee      ON tasks(assignee_id);
 CREATE INDEX IF NOT EXISTS idx_tasks_due_date      ON tasks(due_date);
 CREATE INDEX IF NOT EXISTS idx_tasks_completed_at  ON tasks(completed_at);
+CREATE INDEX IF NOT EXISTS idx_tasks_archived_at   ON tasks(archived_at);
 CREATE INDEX IF NOT EXISTS idx_task_status_events_task
   ON task_status_events(task_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_comments_task       ON comments(task_id);

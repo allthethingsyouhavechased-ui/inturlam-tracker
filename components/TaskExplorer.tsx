@@ -78,6 +78,14 @@ export default function TaskExplorer({
   const [sortKey, setSortKey] = useState<SortKey>("varsayilan");
   const [view, setView] = useState<"pano" | "liste">("pano");
   const [filtersOpen, setFiltersOpen] = useState(false);
+  // Arşiv varsayılan olarak KAPALI. Sunucu arşivi de gönderiyor (bkz.
+  // `listAllTasks(true)`) — böylece açıp kapatmak sunucuya gitmiyor.
+  const [showArchived, setShowArchived] = useState(false);
+
+  const archivedCount = useMemo(
+    () => tasks.filter((task) => task.archived_at !== null).length,
+    [tasks],
+  );
 
   // Departman görevin değil, görevi üstlenen kişinin özelliği: filtre
   // atanan üzerinden dolaylı çalışıyor. Bu yüzden atanmamış görevler bir
@@ -100,6 +108,7 @@ export default function TaskExplorer({
   const withoutDepartment = useMemo(() => {
     const needle = q.trim().toLocaleLowerCase("tr-TR");
     return tasks.filter((task) => {
+      if (!showArchived && task.archived_at !== null) return false;
       if (brandId && task.brand_id !== brandId) return false;
       if (statusFilter && task.status !== statusFilter) return false;
       if (priority && task.priority !== priority) return false;
@@ -116,7 +125,7 @@ export default function TaskExplorer({
       }
       return true;
     });
-  }, [tasks, brandId, statusFilter, priority, assigneeId, q]);
+  }, [tasks, showArchived, brandId, statusFilter, priority, assigneeId, q]);
 
   const departmentCounts = useMemo(() => {
     const counts = new Map<string, number>();
@@ -231,6 +240,27 @@ export default function TaskExplorer({
               </span>
             )}
           </button>
+
+          {/* Yayınlanan görevler panoda kalır, ARCHIVE_AFTER_DAYS gün sonra
+              arşive düşer. Arşiv silinmediği için buradan geri çağrılabilir —
+              hiç arşivlenmiş iş yoksa düğme de görünmez. */}
+          {archivedCount > 0 && (
+            <button
+              type="button"
+              onClick={() => setShowArchived((shown) => !shown)}
+              aria-pressed={showArchived}
+              className={`ui-press inline-flex min-h-11 items-center gap-2 rounded-xl border px-3 text-sm font-medium ${
+                showArchived
+                  ? "border-brand-300 bg-brand-50 text-brand-700 dark:border-brand-700 dark:bg-brand-950/40 dark:text-brand-300"
+                  : "border-black/10 bg-white text-zinc-600 hover:bg-black/5 dark:border-white/15 dark:bg-zinc-950 dark:text-zinc-300 dark:hover:bg-white/10"
+              }`}
+            >
+              Arşiv
+              <span className="tabular-nums text-zinc-500 dark:text-zinc-400">
+                {archivedCount}
+              </span>
+            </button>
+          )}
 
           <div className="inline-flex overflow-hidden rounded-xl border border-black/10 bg-white p-0.5 text-xs shadow-sm dark:border-white/15 dark:bg-zinc-950">
             {(["pano", "liste"] as const).map((nextView) => (
@@ -437,7 +467,8 @@ export default function TaskExplorer({
           <span className="font-semibold text-zinc-700 dark:text-zinc-200">
             {filtered.length}
           </span>{" "}
-          / {tasks.length} görev
+          / {showArchived ? tasks.length : tasks.length - archivedCount} görev
+          {showArchived && <span> · arşiv dahil</span>}
           {view === "pano" && sortKey !== "varsayilan" && (
             <span> · {SORT_LABEL[sortKey]} sıralaması</span>
           )}

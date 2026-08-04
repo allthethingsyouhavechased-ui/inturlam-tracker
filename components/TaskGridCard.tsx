@@ -48,9 +48,16 @@ export default function TaskGridCard({
         {showStatus && <TaskStatusSelect taskId={task.id} status={task.status} />}
       </div>
 
-      {badges && badges.length > 0 && (
+      {/* Arşiv rozeti her yerde çıkar (rozet listesi verilmese bile): arşivi
+          gösteren bir filtrede kartın neden orada olduğu belli olsun. */}
+      {(task.archived_at !== null || (badges && badges.length > 0)) && (
         <div className="flex flex-wrap gap-1">
-          {badges.map((b) => (
+          {task.archived_at !== null && (
+            <span className="rounded-full bg-zinc-200 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
+              Arşiv
+            </span>
+          )}
+          {badges?.map((b) => (
             <span
               key={b.label}
               className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${b.className}`}

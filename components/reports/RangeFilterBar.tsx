@@ -111,6 +111,46 @@ export default function RangeFilterBar({
   );
 }
 
+// Excel dökümü indirme bağlantısı. Buton değil `<a download>`: dosyayı sunucu
+// üretiyor (`/reports/export`), istemcide blob kurmaya gerek yok — ve `xlsx`
+// yazıcısı (node:zlib) istemci paketine hiç girmiyor.
+export function ExcelDownloadLink({
+  rangeKey,
+  customStart,
+  customEnd,
+  personId,
+}: {
+  rangeKey: RangeKey;
+  customStart: string;
+  customEnd: string;
+  /** Verilirse döküm yalnızca o kişinin işlerini kapsar. */
+  personId?: string;
+}) {
+  const params = new URLSearchParams();
+  if (rangeKey !== "all") params.set("range", rangeKey);
+  if (rangeKey === "custom" && customStart && customEnd) {
+    params.set("start", customStart);
+    params.set("end", customEnd);
+  }
+  if (personId) params.set("person", personId);
+  const query = params.toString();
+
+  return (
+    <a
+      href={`/reports/export${query ? `?${query}` : ""}`}
+      // Sunucu Content-Disposition gönderiyor; `download` yalnızca ipucu.
+      download
+      className="ui-press inline-flex min-h-11 items-center gap-2 rounded-xl border border-black/10 px-3 text-sm font-medium text-zinc-700 hover:bg-black/5 dark:border-white/10 dark:text-zinc-200 dark:hover:bg-white/10"
+    >
+      <svg viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4" aria-hidden="true">
+        <path d="M10.75 2.75a.75.75 0 0 0-1.5 0v7.19L6.53 7.22a.75.75 0 0 0-1.06 1.06l3.75 3.75a.75.75 0 0 0 1.06 0l3.75-3.75a.75.75 0 1 0-1.06-1.06l-2.72 2.72V2.75Z" />
+        <path d="M3.5 12.75a.75.75 0 0 0-1.5 0v1.5A2.75 2.75 0 0 0 4.75 17h10.5A2.75 2.75 0 0 0 18 14.25v-1.5a.75.75 0 0 0-1.5 0v1.5c0 .69-.56 1.25-1.25 1.25H4.75c-.69 0-1.25-.56-1.25-1.25v-1.5Z" />
+      </svg>
+      Excel dökümü
+    </a>
+  );
+}
+
 export function PrintButton() {
   return (
     <button

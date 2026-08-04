@@ -150,6 +150,10 @@ Bir içeriğin içine girince görev panosunu (Kanban) görürsün — 5 sütun:
   **görsel ekleyebilir**, **yorum** bırakabilir, gerekirse görevi silebilirsin (§9).
 - İçeriğin kendisinin de bir **durumu** vardır (Planlandı / Üretimde / Tamamlandı /
   İptal Edildi) — üstteki etikete tıklayıp değiştirebilirsin.
+- **Yayınlanan görevler silinmez.** "Yayınlandı" yaptığın iş panoda **7 gün** daha
+  durur, sonra panonun altındaki **"Arşiv"** bölümüne düşer. Yanlışlıkla
+  işaretlediysen kartı geri sürüklemen yeterli; arşive düşmüşse arşiv bölümündeki
+  **"Arşivden çıkar"** ile panoya geri alırsın.
 
 ---
 
@@ -168,10 +172,15 @@ Bir görevin başlığına tıklayınca detay sayfası açılır:
   bir ya da birden fazla görsel seç, önizlemesini gör, istersen kaldır, sonra
   **"Kaydet"**e bastığında görseller görevin notuna kalıcı olarak eklenir. Daha
   sonra tek tek silebilirsin.
+- **Yayın/arşiv bilgisi**: görev "Yayınlandı" durumundaysa sayfanın üstünde kaç gün
+  sonra arşive düşeceği yazar; arşivdeyse bunu söyler. Yanındaki **"Arşivle" /
+  "Arşivden çıkar"** düğmesi beklemeden elle yapmanı sağlar. Arşivlemek görevi
+  SİLMEZ, durumunu da değiştirmez — yalnızca panolardan ve görev listesinden gizler.
 - **Yorumlar**: en altta, bkz. §10.
 - **Hareketler**: bu göreve özel, kim ne zaman ne değiştirmiş (durum, öncelik,
   atanan, teslim tarihi…) — kronolojik günlük.
-- **Görevi sil**: dikkat, geri gelmez.
+- **Görevi sil**: dikkat, geri gelmez. (Bir işi görünürden kaldırmak istiyorsan
+  silmek yerine **arşivle** — geri alınabilir olan tek yol budur.)
 
 ---
 
@@ -203,6 +212,10 @@ listede, üstte filtrelerle:
   **video ekibinin** görevlerini görürsün. Her sekmenin yanındaki sayı o ekipte
   kaç görev olduğunu gösterir ve diğer filtrelere göre güncellenir.
 - Marka, Durum, Öncelik, Atanan (Herkes / Atanmamış / kişi) süzgeçleri
+- **Arşiv** düğmesi — yanındaki sayı kaç görevin arşivde olduğunu gösterir. Basılı
+  değilken arşiv gizlidir; basınca arşivlenmiş görevler de listeye katılır ve
+  kartlarında gri **"Arşiv"** rozetiyle görünür. (Hiç arşivlenmiş iş yoksa düğme
+  çıkmaz.)
 - **Pano** / **Liste** görünüm anahtarı (sağ üstte)
 
 Departman sekmesi seçiliyken **"Atanan" listesi de o ekibe daralır** — yani önce
@@ -249,7 +262,7 @@ kendi günlerinde küçük renkli etiketler (öncelik rengine göre) olarak gör
 
 Üstteki menüden **"Panom"**a tıkla. Burada:
 
-- **Benim görevlerim:** sana atanmış, henüz bitmemiş tüm görevler
+- **Bana atanmış görevler:** sana atanmış tüm görevler — 5 sütunlu pano
 - **Gecikmiş:** son tarihi geçmiş görevler
 - **Bu hafta teslim:** bu hafta içinde teslim tarihi olan görevler
 - **Markalara göre açık görevler:** hangi markada kaç iş bekliyor
@@ -258,8 +271,11 @@ Sabah işe başlarken önce buraya bakmak günü planlamayı kolaylaştırır.
 
 Buradaki listeler de §11'deki liste görünümünü kullanır — yani öncelik, durum,
 atanan, teslim tarihini satırdan değiştirebilir, yorum sayısına tıklayıp panelden
-okuyabilirsin. Görevi tamamlayıp **"Yayınlandı"** yaptığında "Benim görevlerim"
-listesinden otomatik düşer (artık açık görev sayılmaz).
+okuyabilirsin.
+
+Görevi tamamlayıp **"Yayınlandı"** yaptığında panodan **kaybolmaz**: "Yayınlandı"
+sütununa geçer ve kartında *"3 gün sonra arşiv"* gibi bir rozet çıkar. 7 gün sonra
+arşive düşer. Yanlış sütuna sürüklediysen kartı geri sürüklemen yeterli.
 
 ---
 
@@ -276,6 +292,27 @@ dökümü görebilir, tabloları gizleyebilir veya CSV olarak indirebilirsin.
 **Ekip görünümü** tablosunun üstünde **departman sekmeleri** var: tabloyu sadece
 Video / Tasarım / Sosyal Medya / Yönetim ekibine daraltabilirsin. CSV indirmesi de
 o an ekranda görünen kişileri (ve departman sütununu) içerir.
+
+### Excel dökümü
+
+Dönem düğmelerinin sağındaki **"Excel dökümü"** tek bir `.xlsx` dosyası indirir ve
+o dosya **sadece sayı değil, işin kendisini** taşır. Seçtiğin dönem neyse döküm de
+onu kapsar. Dosyanın içinde 4 sayfa var:
+
+| Sayfa | İçindekiler |
+|---|---|
+| **Özet** | Ekranda gördüğün görünümün kendisi: operasyon özeti, iş akışı dağılımı, teslim sağlığı, tamamlanma süresi ve trend tablosu |
+| **Görev dökümü** | Satır satır her görev: **adı**, markası, **kategorisi**, içeriği, içerik türü, sorumlusu, departmanı, durumu, önceliği, teslim/açılış/tamamlanma tarihleri, kaç günde bittiği, gecikmiş mi, yorum sayısı, arşivde mi |
+| **Ekip** | Kişi tablosunun tamamı |
+| **Marka** | Marka tablosunun tamamı (kategori sütunuyla) |
+
+"Görev dökümü" sayfasındaki **"Dönemde açıldı"** ve **"Dönemde tamamlandı"**
+sütunları, hangi satırın Özet sayfasındaki hangi sayıya katkı verdiğini gösterir —
+Excel'de süzüp sayıları birebir doğrulayabilirsin. Başlık satırı donduruludur,
+sütun genişlikleri hazır gelir.
+
+CSV düğmeleri duruyor: onlar yalnızca o an ekranda gördüğün tek tabloyu verir,
+Excel dökümü ise raporun tamamını.
 
 ### Kişi bazlı detaylı rapor
 
@@ -296,8 +333,9 @@ kişiye ait tam bir rapor açar. Seçtiğin dönem korunarak açılır. İçinde
 - **Gerçek görev listeleri:** *Gecikmiş işler* (kaç gün geciktiği ile), *Önümüzdeki
   7 gün* ve *Son tamamladıkları*. Her satır ilgili görevin sayfasına gider — yani
   rapordaki sayının arkasındaki işi tek tıkla açabilirsin.
-- Sağ üstte **"Görevlerini aç"** (o kişiye filtrelenmiş Görevler sayfası), **CSV**
-  ve **PDF / Yazdır**.
+- Sağ üstte **"Görevlerini aç"** (o kişiye filtrelenmiş Görevler sayfası), **CSV**,
+  **Excel dökümü** ve **PDF / Yazdır**. Buradaki Excel dökümü yalnızca o kişinin
+  işlerini kapsar (Özet + Görev dökümü sayfaları).
 
 > Bu rapor bir performans puanı değildir; iş yükünün nerede biriktiğini ve neyin
 > geciktiğini göstermek için var.

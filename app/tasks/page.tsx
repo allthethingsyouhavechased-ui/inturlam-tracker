@@ -3,7 +3,7 @@ import TaskExplorer from "@/components/TaskExplorer";
 import { isDepartmentId, NO_DEPARTMENT } from "@/lib/departments";
 import { listBrands } from "@/lib/repositories/brands";
 import { listActivePeople } from "@/lib/repositories/people";
-import { listAllTasks } from "@/lib/repositories/tasks";
+import { listAllTasks, sweepArchivablePublishedTasks } from "@/lib/repositories/tasks";
 
 export const dynamic = "force-dynamic";
 
@@ -17,7 +17,13 @@ export default async function AllTasksPage({
   searchParams: Promise<{ assignee?: string; department?: string }>;
 }) {
   const sp = await searchParams;
-  const tasks = listAllTasks();
+  // Okumadan ÖNCE süpür, yoksa süresi dolmuş işler bu render'da bir kez daha
+  // arşivlenmemiş görünürdü.
+  sweepArchivablePublishedTasks();
+  // Arşiv de indiriliyor (`true`): "Arşivi göster" düğmesi sayfadaki diğer
+  // filtreler gibi tamamen istemci tarafında çalışsın, tıklayınca sunucuya
+  // gidilmesin diye.
+  const tasks = listAllTasks(true);
   const brands = listBrands();
   const people = listActivePeople();
 

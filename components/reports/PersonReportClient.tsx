@@ -3,6 +3,7 @@
 import Link from "next/link";
 import EmptyState from "@/components/EmptyState";
 import RangeFilterBar, {
+  ExcelDownloadLink,
   PrintButton,
   type RangeKey,
 } from "@/components/reports/RangeFilterBar";
@@ -323,6 +324,12 @@ export default function PersonReportClient({
         >
           CSV
         </button>
+        <ExcelDownloadLink
+          rangeKey={rangeKey}
+          customStart={customStart}
+          customEnd={customEnd}
+          personId={personId}
+        />
         <PrintButton />
       </RangeFilterBar>
 

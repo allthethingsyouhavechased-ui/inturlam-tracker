@@ -22,6 +22,7 @@ function task(over: Partial<TaskWithContext> = {}): TaskWithContext {
     repeat_days: null,
     completed_at: null,
     completed_by: null,
+    archived_at: null,
     created_at: "2026-07-01 10:00:00",
     updated_at: "2026-07-01 10:00:00",
     assignee_name: "Arman",

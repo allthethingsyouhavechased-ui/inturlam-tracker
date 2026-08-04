@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import ActivityFeed from "@/components/ActivityFeed";
+import ArchiveTaskButton from "@/components/ArchiveTaskButton";
 import AssigneeSelect from "@/components/AssigneeSelect";
 import AutoRefresh from "@/components/AutoRefresh";
 import CommentForm from "@/components/CommentForm";
@@ -18,6 +19,7 @@ import { listCommentsByTask } from "@/lib/repositories/comments";
 import { listActivePeople } from "@/lib/repositories/people";
 import { listAttachmentsByTask } from "@/lib/repositories/taskAttachments";
 import { getTask } from "@/lib/repositories/tasks";
+import { ARCHIVE_AFTER_DAYS, daysUntilArchive } from "@/lib/taskArchive";
 
 export const dynamic = "force-dynamic";
 
@@ -83,6 +85,33 @@ export default async function TaskPage({
         </label>
         <TaskRepeatSelect taskId={task.id} repeatDays={task.repeat_days} />
       </div>
+
+      {/* Yayınlanan iş panodan hemen düşmüyor; ne olacağı burada açıkça yazıyor
+          ki yanlışlıkla işaretleyen kişi "görev silindi" sanmasın. */}
+      {(task.status === "Yayinlandi" || task.archived_at !== null) && (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-black/10 bg-zinc-50 p-4 text-sm dark:border-white/10 dark:bg-white/[0.03]">
+          <p className="text-zinc-600 dark:text-zinc-300">
+            {task.archived_at !== null ? (
+              <>
+                Bu görev <strong className="font-semibold">arşivde</strong> — panoda ve
+                görev listesinde görünmüyor, ama silinmedi. Yanlışlıkla kapatıldıysa
+                arşivden çıkarıp durumunu geri alabilirsin.
+              </>
+            ) : (
+              <>
+                Yayınlandı olarak işaretli. Panoda{" "}
+                <strong className="font-semibold">
+                  {daysUntilArchive(task.completed_at)} gün
+                </strong>{" "}
+                daha durup sonra arşive düşecek (yayından {ARCHIVE_AFTER_DAYS} gün
+                sonra). Yanlışlıkla işaretlediysen yukarıdan durumunu değiştirmen
+                yeterli.
+              </>
+            )}
+          </p>
+          <ArchiveTaskButton taskId={task.id} archived={task.archived_at !== null} />
+        </div>
+      )}
 
       {(task.repeat_days ?? 0) > 0 && (
         <p className="text-xs text-zinc-500 dark:text-zinc-400">

@@ -27,6 +27,7 @@ import {
   createTask,
   deleteTask,
   getTask,
+  setTaskArchived,
   updateTaskAssignee,
   updateTaskDetails,
   updateTaskDueDate,
@@ -208,6 +209,27 @@ export async function updateTaskDetailsAction(formData: FormData) {
     entityId: id,
     brandId: task?.brand_id ?? null,
     summary: `“${title}” görev detaylarını güncelledi`,
+  });
+  revalidatePath("/", "layout");
+}
+
+// Elle arşivleme / arşivden çıkarma. Görevin DURUMU değişmez — arşiv yalnızca
+// "panoda görünsün mü" sorusunu cevaplar. Yayınlanan işler zaten
+// ARCHIVE_AFTER_DAYS gün sonra kendiliğinden arşivlenir; bu action iki uç durum
+// için: işi erken temizlemek ve yanlışlıkla arşivleneni geri getirmek.
+export async function setTaskArchivedAction(taskId: string, archived: boolean) {
+  const task = getTask(taskId);
+  if (!task) throw new Error("Görev bulunamadı.");
+
+  setTaskArchived(taskId, archived);
+  await recordActivity({
+    action: archived ? "task.archive" : "task.unarchive",
+    entityType: "task",
+    entityId: taskId,
+    brandId: task.brand_id,
+    summary: archived
+      ? `“${task.title}” görevini arşivledi`
+      : `“${task.title}” görevini arşivden çıkardı`,
   });
   revalidatePath("/", "layout");
 }

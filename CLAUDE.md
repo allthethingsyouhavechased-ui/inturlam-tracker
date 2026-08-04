@@ -37,6 +37,16 @@ kategorilere (`clusters` tablosu) ayrılır. Her markanın ayrıca Instagram ara
   Varsayılan 3 şablon `seedTaskTemplatesIfNeeded()` ile **yalnızca tablo boşken** yazılır —
   `DEFAULT_CLUSTERS`'ın `INSERT OR IGNORE` deseninden bilinçli olarak farklı: kullanıcı bir şablonu
   silince her sunucu açılışında geri gelmesin diye.
+- Görev arşivi: `tasks.archived_at` + `lib/taskArchive.ts`. "Yayınlandı" bir görev panodan
+  ANINDA düşmez — `ARCHIVE_AFTER_DAYS` (7) gün sonra `sweepArchivablePublishedTasks()`
+  damgalar. Süpürme cron değil: görev listeleyen `force-dynamic` sayfalar (`/`, `/tasks`,
+  `/panom`, içerik detayı, rapor export'u) okumadan ÖNCE çağırır. Damga SİLME değil —
+  rapor/takvim okumaya devam eder, `setTaskArchived(id, false)` geri alır. Yeni bir
+  "yayınlananları da gösteren" sorgu yazarken `archived_at IS NULL` koşulunu EKLE
+  (`NOT_ARCHIVED` sabiti); "açık iş" sorgularının buna ihtiyacı yok çünkü arşiv yalnızca
+  yayınlanmış işlere konur. `applyTaskStatusChanges` HER durum değişikliğinde
+  `archived_at`'i NULL'lar: arşivdeki iş yeniden açılınca görünmez kalmasın, yeniden
+  yayınlanınca da hemen arşive düşmesin.
 - Tekrar eden görev: `tasks.repeat_days`. `setTaskStatusAction` içinde durum `Yayinlandi` olunca
   `createNextOccurrence()` çağrılır; yeni görev `Beklemede` başladığı için dal tekrar tetiklenmez
   (sonsuz döngü yok). Yeni tarih **eski görevin `due_date`'ine** göre kayar, bugüne göre değil —
@@ -51,6 +61,13 @@ kategorilere (`clusters` tablosu) ayrılır. Her markanın ayrıca Instagram ara
   `groupPeopleByDepartment()`. Departman GÖREVİN değil KİŞİNİN alanı: görev/rapor
   ekranlarındaki departman filtresi atanan üzerinden dolaylı çalışır, bu yüzden bir
   departman seçiliyken **atanmamış görevler listeden düşer**.
+- Excel dökümü: `/reports/export` route handler → `lib/reportWorkbook.ts` (veri → sayfa) →
+  `lib/xlsx.ts` (bağımlılıksız XLSX yazıcı, `node:zlib` ile elle ZIP). Rapor EKRANLARI
+  yalnızca sayı gösteriyor; döküm ayrıca `listTaskDetailReport()` ile satır satır işleri
+  taşır (ad, marka, KATEGORİ, içerik, sorumlu, tarihler). `lib/xlsx.ts` Server Action'dan
+  değil route handler'dan çağrılır — `node:zlib` istemci paketine girmesin diye.
+  Sayfa/hücre yapısı `tests/xlsx.test.ts`'te ZIP'i merkezi dizinden okuyarak (Excel'in
+  izlediği yol) doğrulanıyor; offset hesabını değiştirirsen o test tutar.
 - Raporlar iki kapsamda çalışır: `lib/repositories/reports.ts`'teki sayaç fonksiyonlarının
   hepsi isteğe bağlı bir `scope: PersonScope` (kişi id'si) parametresi alır. `null` →
   portföy geneli (`/reports`), id → tek kişi (`/reports/kisi/[personId]`). Aynı SQL'i

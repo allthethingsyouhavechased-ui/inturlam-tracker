@@ -41,6 +41,7 @@ function createConnection(): DatabaseSync {
   migrateTasksTableIfNeeded(db);
   migrateTasksRepeatIfNeeded(db);
   migrateTasksReportingIfNeeded(db);
+  migrateTasksArchivedAtIfNeeded(db);
   migratePeopleProfilesIfNeeded(db);
   migratePeopleDepartmentIfNeeded(db);
   // SIRA ÖNEMLİ: yukarıdaki iki brands migration'ı tabloyu SABİT bir sütun
@@ -172,6 +173,21 @@ function migrateTasksReportingIfNeeded(db: DatabaseSync): void {
        SET completed_at = updated_at
      WHERE status = 'Yayinlandi' AND completed_at IS NULL
   `);
+}
+
+// tasks.archived_at — "Yayınlandı" görevin panodan ne zaman çekildiği. Düz,
+// nullable, CHECK/FK içermeyen sütun → ALTER yeterli. Idempotent: sütun varsa
+// no-op. Geri doldurma YOK: mevcut yayınlanmış işler bilinçli olarak arşivsiz
+// başlar; ilk süpürme (`sweepArchivablePublishedTasks`) tamamlanma tarihine
+// bakıp eskileri zaten damgalayacak, böylece kural tek yerde kalır.
+function migrateTasksArchivedAtIfNeeded(db: DatabaseSync): void {
+  const tasksExists = db
+    .prepare(`SELECT 1 FROM sqlite_master WHERE type='table' AND name='tasks'`)
+    .get();
+  if (!tasksExists) return;
+  const columns = db.prepare(`PRAGMA table_info(tasks)`).all() as { name: string }[];
+  if (columns.some((c) => c.name === "archived_at")) return;
+  db.exec(`ALTER TABLE tasks ADD COLUMN archived_at TEXT`);
 }
 
 // Ajansın her markada tekrarlayan iş akışları — başlangıç içeriği.

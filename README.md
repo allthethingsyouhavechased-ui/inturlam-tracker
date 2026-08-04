@@ -18,12 +18,18 @@ kurulumu basit bir iç araç.
 - **Departman bazlı görünüm:** Her kişinin bir departmanı var (Video / Tasarım / Sosyal
   Medya / Yönetim). Görevler sayfasındaki ekip sekmeleriyle tek tıkla "sadece video
   ekibinin işleri"ne inilir; ekip kanbanı ve raporlar da aynı ayrımı kullanır.
+- **Yayın → arşiv akışı:** "Yayınlandı" işaretlenen görev panodan anında kaybolmaz;
+  7 gün daha durup arşive düşer. Yanlışlıkla işaretlemek geri alınabilir bir hata olur,
+  arşivdeki iş de silinmez — tek tıkla panoya döner.
 - **Operasyon raporları:** Dönem, ekip ve marka bazında iş yükü, gecikme, tamamlanma
   ve iş akışı dağılımını gösterir.
+- **Excel dökümü:** Raporlardaki "Excel dökümü" düğmesi 4 sayfalık bir `.xlsx` indirir:
+  ekrandaki özet görünümün kendisi + satır satır görev listesi (işin **adı**,
+  **kategorisi**, markası, içeriği, sorumlusu, tarihleri) + ekip ve marka tabloları.
 - **Kişi bazlı detaylı rapor:** Raporlar → ekip tablosundaki "Detaylı rapor" bağlantısı
   bir kişinin tam görünümünü açar — düz Türkçe özet, ekip ortalamasıyla karşılaştırma,
   durum/öncelik/marka dağılımı ve sayının arkasındaki gerçek görev listeleri (gecikmiş,
-  önümüzdeki 7 gün, son tamamlananlar). CSV ve yazdırma dahil.
+  önümüzdeki 7 gün, son tamamlananlar). CSV, Excel ve yazdırma dahil.
 
 Şifre/hesap sistemi yok — açılışta "Sen kimsin?" ile isim seçilir, cookie'de hatırlanır.
 Veri tek bir yerel dosyada tutulur (`data/inturlam.db`, SQLite) — ayrı bir veritabanı
@@ -183,6 +189,22 @@ açılır — aynı başlık, atanan, öncelik ve not; durumu *Beklemede*.
 Yeni teslim tarihi **eski görevin teslim tarihine** göre kayar, bugüne göre değil:
 20 Temmuz teslimli haftalık bir işi 1 Ağustos'ta kapatırsan yenisi 27 Temmuz olur,
 takvim kaymaz. (Teslim tarihi hiç yoksa bugünden itibaren hesaplanır.)
+
+## Görev arşivi
+
+*Yayınlandı* yapılan bir görev panolardan **anında düşmez** — "Yayınlandı" sütununda
+**7 gün** daha durur ve kartında kaç gün sonra arşivleneceği yazar. Süre dolunca
+`tasks.archived_at` damgalanır ve görev pano/listelerden çekilir.
+
+- **Silme değil:** kayıt duruyor. Görevler sayfasındaki **Arşiv** düğmesiyle listeye
+  geri katılır, içerik sayfasında panonun altındaki **Arşiv** bölümünde durur,
+  raporlarda ve takvimde okunmaya devam eder.
+- **Geri alma:** görev detayındaki **"Arşivden çıkar"**, ya da doğrudan durumu
+  değiştirmek. Her durum değişikliği arşiv damgasını siler ve sayacı sıfırlar.
+- **Elle arşivleme:** 7 günü beklemeden temizlemek istersen görev detayındaki
+  **"Arşivle"**. Durumu değiştirmez.
+
+Süre `lib/taskArchive.ts` içindeki `ARCHIVE_AFTER_DAYS` sabitiyle değişir (tek satır).
 
 ## Yedekleme
 

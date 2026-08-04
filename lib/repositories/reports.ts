@@ -59,6 +59,9 @@ export interface PersonBrandRow {
 export interface BrandReportRow {
   brand_id: string;
   brand_name: string;
+  // Kategori id'si (`clusters.id`). Etikete çevirmek çağıranın işi —
+  // `clusterLabelMap()[cluster] ?? UNKNOWN_CLUSTER_LABEL`.
+  cluster: string;
   archived: number;
   total_content: number;
   total_tasks: number;
@@ -517,7 +520,8 @@ export function listBrandReport(
   const taskOpened = periodCondition("t.created_at", range);
   const completed = periodCondition("t.completed_at", range);
   const statement = getDb().prepare(`
-    SELECT b.id AS brand_id, b.name AS brand_name, b.archived AS archived,
+    SELECT b.id AS brand_id, b.name AS brand_name, b.cluster AS cluster,
+      b.archived AS archived,
       COUNT(DISTINCT CASE WHEN ${contentOpened} THEN ci.id END) AS total_content,
       COALESCE(SUM(CASE WHEN ${taskOpened} THEN 1 ELSE 0 END), 0) AS total_tasks,
       COALESCE(SUM(CASE
@@ -560,6 +564,83 @@ export function listBrandReport(
     params.end = range.end;
   }
   return plainList<BrandReportRow>(statement.all(params));
+}
+
+// Excel dökümündeki satır satır görev listesi. Rapor ekranları yalnızca SAYI
+// gösteriyor ("12 tamamlandı"); dışa aktarma o sayıların arkasındaki işleri de
+// taşımalı — hangi görev, hangi marka, hangi kategori, kim, ne zaman.
+export interface TaskDetailRow {
+  task_id: string;
+  title: string;
+  brand_name: string;
+  cluster: string;
+  content_title: string;
+  content_type: string;
+  assignee_name: string | null;
+  department: string | null;
+  status: TaskStatus;
+  priority: TaskPriority;
+  due_date: string | null;
+  created_at: string;
+  completed_at: string | null;
+  archived_at: string | null;
+  cycle_days: number | null;
+  overdue: number;
+  opened_in_period: number;
+  completed_in_period: number;
+  comment_count: number;
+}
+
+/**
+ * Seçili dönemle ilgili TÜM görevler: dönemde açılanlar, dönemde tamamlananlar
+ * ve hâlâ açık olanlar. Üçünün birleşimi, çünkü ekrandaki özet de bu üç sayıyı
+ * yan yana gösteriyor — döküm ile kartlar aynı evreni anlatsın.
+ *
+ * `opened_in_period` / `completed_in_period` sütunları hangi satırın hangi
+ * sayıya katkı verdiğini gösterir; böylece Excel'de filtreleyip özet sayfasıyla
+ * karşılaştırmak mümkün olur. Aralık verilmezse (Tüm zamanlar) her satır
+ * "dönemde" sayılır.
+ */
+export function listTaskDetailReport(
+  range: DateRange | null,
+  today: string,
+  scope: PersonScope = null,
+): TaskDetailRow[] {
+  const opened = periodCondition("t.created_at", range);
+  const completed = periodCondition("t.completed_at", range);
+  const statement = getDb().prepare(
+    `SELECT t.id AS task_id, t.title AS title,
+            b.name AS brand_name, b.cluster AS cluster,
+            ci.title AS content_title, ci.type AS content_type,
+            p.name AS assignee_name, p.department AS department,
+            t.status, t.priority, t.due_date, t.created_at, t.completed_at,
+            t.archived_at,
+            CASE WHEN t.status = 'Yayinlandi' AND t.completed_at IS NOT NULL
+              THEN ROUND(MAX(julianday(t.completed_at) - julianday(t.created_at), 0), 1)
+            END AS cycle_days,
+            CASE WHEN t.status != 'Yayinlandi'
+                  AND t.due_date IS NOT NULL AND t.due_date < :today
+              THEN 1 ELSE 0 END AS overdue,
+            CASE WHEN ${opened} THEN 1 ELSE 0 END AS opened_in_period,
+            CASE WHEN t.status = 'Yayinlandi' AND ${completed}
+              THEN 1 ELSE 0 END AS completed_in_period,
+            (SELECT COUNT(*) FROM comments c WHERE c.task_id = t.id) AS comment_count
+       FROM tasks t
+       JOIN content_items ci ON ci.id = t.content_item_id
+       JOIN brands b ON b.id = ci.brand_id
+       LEFT JOIN people p ON p.id = t.assignee_id
+      WHERE (${opened}
+             OR (t.status = 'Yayinlandi' AND t.completed_at IS NOT NULL AND ${completed})
+             OR t.status != 'Yayinlandi')
+        ${scopeCondition(scope)}
+      ORDER BY b.name, ci.title,
+               CASE t.priority
+                 WHEN 'Acil' THEN 0 WHEN 'Yuksek' THEN 1 WHEN 'Normal' THEN 2 ELSE 3 END,
+               (t.due_date IS NULL), t.due_date, t.title`,
+  );
+  return plainList<TaskDetailRow>(
+    statement.all({ today, ...rangeParams(range), ...scopeParams(scope) }),
+  );
 }
 
 export function listBrandPersonBreakdown(

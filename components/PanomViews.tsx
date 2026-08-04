@@ -51,11 +51,14 @@ export default function PanomViews({
       {hasIdentity && (
         <section className="space-y-2">
           <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-            Bana atanmış açık görevler{" "}
+            Bana atanmış görevler{" "}
             {myTasks.length > 0 && <span>({myTasks.length})</span>}
           </h2>
+          {/* Yayınlananlar da burada: “Yayınlandı” sütununda bir süre daha
+              durup sonra arşive düşerler — yanlışlıkla oraya sürüklenen kart
+              geri sürüklenebilsin diye. */}
           {myTasks.length === 0 ? (
-            <p className="text-sm text-zinc-500 dark:text-zinc-400">Sana atanmış açık görev yok. 🎉</p>
+            <p className="text-sm text-zinc-500 dark:text-zinc-400">Sana atanmış görev yok. 🎉</p>
           ) : view === "pano" ? (
             <TaskBoard tasks={myTasks} boardId="panom" />
           ) : (
