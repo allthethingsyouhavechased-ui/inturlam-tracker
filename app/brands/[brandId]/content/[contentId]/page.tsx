@@ -21,7 +21,7 @@ import {
   sweepArchivablePublishedTasks,
 } from "@/lib/repositories/tasks";
 import { listTemplates } from "@/lib/repositories/templates";
-import { ARCHIVE_AFTER_DAYS } from "@/lib/taskArchive";
+import { ARCHIVE_AFTER_DAYS, archiveCountdownBadge } from "@/lib/taskArchive";
 
 export const dynamic = "force-dynamic";
 
@@ -36,7 +36,10 @@ export default async function ContentPage({
   if (!content || !brand || content.brand_id !== brandId) notFound();
 
   sweepArchivablePublishedTasks();
-  const tasks = listTasksByContent(contentId);
+  const tasks = listTasksByContent(contentId).map((task) => {
+    const countdown = archiveCountdownBadge(task);
+    return countdown ? { ...task, badges: [countdown] } : task;
+  });
   const archivedTasks = listArchivedTasksByContent(contentId);
   const people = listActivePeople();
   const me = await getCurrentPerson();

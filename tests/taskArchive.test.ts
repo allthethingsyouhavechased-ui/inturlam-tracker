@@ -23,8 +23,13 @@ const {
   sweepArchivablePublishedTasks,
   updateTaskStatus,
 } = await import("@/lib/repositories/tasks");
-const { ARCHIVE_AFTER_DAYS, daysSinceCompletion, daysUntilArchive, shouldAutoArchive } =
-  await import("@/lib/taskArchive");
+const {
+  ARCHIVE_AFTER_DAYS,
+  archiveCountdownBadge,
+  daysSinceCompletion,
+  daysUntilArchive,
+  shouldAutoArchive,
+} = await import("@/lib/taskArchive");
 
 function resetDb(): void {
   globalThis.__inturlamDb?.close();
@@ -103,6 +108,44 @@ describe("arşiv kuralı (saf yardımcılar)", () => {
     assert.equal(daysUntilArchive("2026-08-10 12:00:00", now), ARCHIVE_AFTER_DAYS);
     assert.equal(daysUntilArchive("2026-08-08 12:00:00", now), ARCHIVE_AFTER_DAYS - 2);
     assert.equal(daysUntilArchive("2026-06-01 12:00:00", now), 0);
+  });
+
+  it("geri sayım rozetini yalnızca panoda duran yayınlanmış kartlara veriyor", () => {
+    const badge = archiveCountdownBadge(
+      { status: "Yayinlandi", completed_at: "2026-08-08 12:00:00", archived_at: null },
+      now,
+    );
+    assert.equal(badge?.label, `⏳ ${ARCHIVE_AFTER_DAYS - 2} gün sonra arşiv`);
+
+    assert.equal(
+      archiveCountdownBadge(
+        { status: "Yayinlandi", completed_at: "2026-08-03 12:00:00", archived_at: null },
+        now,
+      )?.label,
+      "⏳ Arşive gidiyor",
+      "süresi dolmuş ama henüz süpürülmemiş kart 0 gün göstermeli",
+    );
+
+    // Açık iş ve zaten arşivlenmiş iş rozet almaz — biri henüz bitmedi,
+    // diğeri panoda zaten görünmüyor.
+    assert.equal(
+      archiveCountdownBadge(
+        { status: "DevamEdiyor", completed_at: null, archived_at: null },
+        now,
+      ),
+      null,
+    );
+    assert.equal(
+      archiveCountdownBadge(
+        {
+          status: "Yayinlandi",
+          completed_at: "2026-08-01 12:00:00",
+          archived_at: "2026-08-08 00:00:00",
+        },
+        now,
+      ),
+      null,
+    );
   });
 });
 

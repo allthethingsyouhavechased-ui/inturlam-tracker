@@ -87,6 +87,21 @@ function TaskCard({
           </svg>
         </Link>
       </div>
+      {/* Yayınlanan kart bu panodan da hemen düşmüyor; geri sayım burada da
+          görünsün ki "kayboldu" hissi hiçbir ekranda oluşmasın. Rozet sunucuda
+          hesaplanıp `badges` ile taşınıyor (bkz. archiveCountdownBadge). */}
+      {task.badges && task.badges.length > 0 && (
+        <div className="flex flex-wrap gap-1">
+          {task.badges.map((badge) => (
+            <span
+              key={badge.label}
+              className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${badge.className}`}
+            >
+              {badge.label}
+            </span>
+          ))}
+        </div>
+      )}
       {task.due_date && (
         <div
           className={`text-xs ${isOverdue(task.due_date) ? "font-medium text-rose-600 dark:text-rose-400" : "text-zinc-500 dark:text-zinc-400"}`}

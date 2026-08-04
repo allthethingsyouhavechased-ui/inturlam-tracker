@@ -4,6 +4,7 @@ import { isDepartmentId, NO_DEPARTMENT } from "@/lib/departments";
 import { listBrands } from "@/lib/repositories/brands";
 import { listActivePeople } from "@/lib/repositories/people";
 import { listAllTasks, sweepArchivablePublishedTasks } from "@/lib/repositories/tasks";
+import { archiveCountdownBadge } from "@/lib/taskArchive";
 
 export const dynamic = "force-dynamic";
 
@@ -23,7 +24,13 @@ export default async function AllTasksPage({
   // Arşiv de indiriliyor (`true`): "Arşivi göster" düğmesi sayfadaki diğer
   // filtreler gibi tamamen istemci tarafında çalışsın, tıklayınca sunucuya
   // gidilmesin diye.
-  const tasks = listAllTasks(true);
+  // Geri sayım rozeti SUNUCUDA iliştiriliyor (bkz. `archiveCountdownBadge`):
+  // kart bileşeni istemci tarafında, orada `new Date()` çağırmak gün sınırında
+  // hydration uyuşmazlığı üretebilirdi.
+  const tasks = listAllTasks(true).map((task) => {
+    const countdown = archiveCountdownBadge(task);
+    return countdown ? { ...task, badges: [countdown] } : task;
+  });
   const brands = listBrands();
   const people = listActivePeople();
 

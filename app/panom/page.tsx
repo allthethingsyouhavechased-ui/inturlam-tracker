@@ -11,7 +11,7 @@ import {
   listTasksDueThisWeek,
   sweepArchivablePublishedTasks,
 } from "@/lib/repositories/tasks";
-import { daysUntilArchive } from "@/lib/taskArchive";
+import { archiveCountdownBadge } from "@/lib/taskArchive";
 import type { TaskCardBadge, TaskWithContext } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -24,14 +24,6 @@ const BADGE_THIS_WEEK: TaskCardBadge = {
   label: "Bu hafta",
   className: "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300",
 };
-// Yayınlanan iş panodan hemen düşmüyor; ne zaman düşeceği kartın üzerinde yazsın
-// ki "kayboldu" hissi yerine "arşive gidecek" bilgisi olsun.
-function archiveBadge(daysLeft: number): TaskCardBadge {
-  return {
-    label: daysLeft === 0 ? "Arşive gidiyor" : `${daysLeft} gün sonra arşiv`,
-    className: "bg-zinc-200 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300",
-  };
-}
 
 export default async function PanomPage() {
   const me = await getCurrentPerson();
@@ -62,9 +54,8 @@ export default async function PanomPage() {
     const badges: TaskCardBadge[] = [];
     if (overdueIds.has(task.id)) badges.push(BADGE_OVERDUE);
     if (thisWeekIds.has(task.id)) badges.push(BADGE_THIS_WEEK);
-    if (task.status === "Yayinlandi") {
-      badges.push(archiveBadge(daysUntilArchive(task.completed_at)));
-    }
+    const countdown = archiveCountdownBadge(task);
+    if (countdown) badges.push(countdown);
     return badges;
   }
 

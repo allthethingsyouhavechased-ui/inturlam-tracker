@@ -55,3 +55,28 @@ export function daysUntilArchive(
 ): number {
   return Math.max(0, days - daysSinceCompletion(completedAt, now));
 }
+
+/**
+ * Yayınlanmış bir kartın üzerindeki geri sayım rozeti; yayınlanmamış görevde
+ * `null`.
+ *
+ * SUNUCUDA hesaplanıp `TaskCardBadge` olarak taşınır — kart bileşeni istemci
+ * paketinde olduğu için `new Date()`i orada çağırmak, gün sınırına denk gelen
+ * bir render'da sunucu/istemci farkı (hydration uyuşmazlığı) üretebilirdi.
+ *
+ * Renk bilinçli olarak "Yayınlandı" sütununun yeşiliyle değil kehribarla
+ * çalışıyor: rozetin işi durumu tekrar etmek değil, "bu kart buradan
+ * kaybolacak" uyarısını vermek.
+ */
+export function archiveCountdownBadge(
+  task: { status: string; completed_at: string | null; archived_at: string | null },
+  now: Date = new Date(),
+): { label: string; className: string } | null {
+  if (task.status !== "Yayinlandi" || task.archived_at !== null) return null;
+  const left = daysUntilArchive(task.completed_at, now);
+  return {
+    label: left === 0 ? "⏳ Arşive gidiyor" : `⏳ ${left} gün sonra arşiv`,
+    className:
+      "bg-amber-100 text-amber-900 ring-1 ring-inset ring-amber-400 dark:bg-amber-950 dark:text-amber-200 dark:ring-amber-700",
+  };
+}

@@ -78,9 +78,11 @@ export default function TaskExplorer({
   const [sortKey, setSortKey] = useState<SortKey>("varsayilan");
   const [view, setView] = useState<"pano" | "liste">("pano");
   const [filtersOpen, setFiltersOpen] = useState(false);
-  // Arşiv varsayılan olarak KAPALI. Sunucu arşivi de gönderiyor (bkz.
-  // `listAllTasks(true)`) — böylece açıp kapatmak sunucuya gitmiyor.
-  const [showArchived, setShowArchived] = useState(false);
+  // Arşiv bir "ekle/çıkar" anahtarı DEĞİL, ayrı bir görünüm: kapalıyken arşiv
+  // tamamen gizli, açıkken SADECE arşiv listelenir. Karışık liste denenmişti —
+  // yüzlerce görevin arasına birkaç arşiv kaydı serpiştirmek onları bulunmaz
+  // yapıyordu, düğme de bir işe yaramıyordu.
+  const [archiveOnly, setArchiveOnly] = useState(false);
 
   const archivedCount = useMemo(
     () => tasks.filter((task) => task.archived_at !== null).length,
@@ -108,7 +110,9 @@ export default function TaskExplorer({
   const withoutDepartment = useMemo(() => {
     const needle = q.trim().toLocaleLowerCase("tr-TR");
     return tasks.filter((task) => {
-      if (!showArchived && task.archived_at !== null) return false;
+      // Tek satırda iki mod: arşiv görünümünde yalnızca arşivlenenler,
+      // normal görünümde yalnızca arşivlenmemişler kalır.
+      if (archiveOnly !== (task.archived_at !== null)) return false;
       if (brandId && task.brand_id !== brandId) return false;
       if (statusFilter && task.status !== statusFilter) return false;
       if (priority && task.priority !== priority) return false;
@@ -125,7 +129,7 @@ export default function TaskExplorer({
       }
       return true;
     });
-  }, [tasks, showArchived, brandId, statusFilter, priority, assigneeId, q]);
+  }, [tasks, archiveOnly, brandId, statusFilter, priority, assigneeId, q]);
 
   const departmentCounts = useMemo(() => {
     const counts = new Map<string, number>();
@@ -242,21 +246,33 @@ export default function TaskExplorer({
           </button>
 
           {/* Yayınlanan görevler panoda kalır, ARCHIVE_AFTER_DAYS gün sonra
-              arşive düşer. Arşiv silinmediği için buradan geri çağrılabilir —
-              hiç arşivlenmiş iş yoksa düğme de görünmez. */}
+              arşive düşer. Düğme ayrı bir GÖRÜNÜM açar (bkz. `archiveOnly`) —
+              hiç arşivlenmiş iş yoksa görünmez. */}
           {archivedCount > 0 && (
             <button
               type="button"
-              onClick={() => setShowArchived((shown) => !shown)}
-              aria-pressed={showArchived}
+              onClick={() => setArchiveOnly((only) => !only)}
+              aria-pressed={archiveOnly}
               className={`ui-press inline-flex min-h-11 items-center gap-2 rounded-xl border px-3 text-sm font-medium ${
-                showArchived
-                  ? "border-brand-300 bg-brand-50 text-brand-700 dark:border-brand-700 dark:bg-brand-950/40 dark:text-brand-300"
+                archiveOnly
+                  ? "border-brand-600 bg-brand-600 text-white"
                   : "border-black/10 bg-white text-zinc-600 hover:bg-black/5 dark:border-white/15 dark:bg-zinc-950 dark:text-zinc-300 dark:hover:bg-white/10"
               }`}
             >
-              Arşiv
-              <span className="tabular-nums text-zinc-500 dark:text-zinc-400">
+              <svg viewBox="0 0 20 20" fill="currentColor" className="size-4" aria-hidden="true">
+                <path d="M2 4.25A1.25 1.25 0 0 1 3.25 3h13.5A1.25 1.25 0 0 1 18 4.25v1.5A1.25 1.25 0 0 1 16.75 7H3.25A1.25 1.25 0 0 1 2 5.75v-1.5Z" />
+                <path
+                  fillRule="evenodd"
+                  d="M3 8.5h14v6.25A2.25 2.25 0 0 1 14.75 17h-9.5A2.25 2.25 0 0 1 3 14.75V8.5Zm4.25 2a.75.75 0 0 0 0 1.5h5.5a.75.75 0 0 0 0-1.5h-5.5Z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              {archiveOnly ? "Arşivden çık" : "Arşiv"}
+              <span
+                className={`tabular-nums ${
+                  archiveOnly ? "text-white/75" : "text-zinc-500 dark:text-zinc-400"
+                }`}
+              >
                 {archivedCount}
               </span>
             </button>
@@ -462,13 +478,33 @@ export default function TaskExplorer({
         )}
       </section>
 
+      {/* Arşiv görünümünde neye baktığın ve nasıl geri alacağın açıkça yazsın —
+          bu liste "kayıp görevler" değil, kasıtlı olarak kenara çekilmiş işler. */}
+      {archiveOnly && (
+        <div className="ui-enter flex flex-wrap items-center justify-between gap-3 rounded-xl border border-brand-200 bg-brand-50/70 px-4 py-3 text-sm dark:border-brand-900 dark:bg-brand-950/25">
+          <p className="text-zinc-700 dark:text-zinc-200">
+            <strong className="font-semibold">Arşiv görünümü.</strong> Yayınlandıktan
+            sonra panodan çekilen görevler — silinmediler. Geri almak için kartı
+            başka bir duruma sürükle ya da görevi açıp{" "}
+            <strong className="font-semibold">“Arşivden çıkar”</strong> de.
+          </p>
+          <button
+            type="button"
+            onClick={() => setArchiveOnly(false)}
+            className="ui-press min-h-9 shrink-0 rounded-lg bg-brand-600 px-3 text-xs font-semibold text-white hover:bg-brand-500"
+          >
+            Aktif görevlere dön
+          </button>
+        </div>
+      )}
+
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-xs text-zinc-500 dark:text-zinc-400">
           <span className="font-semibold text-zinc-700 dark:text-zinc-200">
             {filtered.length}
           </span>{" "}
-          / {showArchived ? tasks.length : tasks.length - archivedCount} görev
-          {showArchived && <span> · arşiv dahil</span>}
+          / {archiveOnly ? archivedCount : tasks.length - archivedCount}{" "}
+          {archiveOnly ? "arşivlenmiş görev" : "görev"}
           {view === "pano" && sortKey !== "varsayilan" && (
             <span> · {SORT_LABEL[sortKey]} sıralaması</span>
           )}
@@ -495,7 +531,13 @@ export default function TaskExplorer({
 
       {filtered.length === 0 ? (
         <EmptyState
-          title={hasFilter ? "Bu filtrelerle eşleşen görev yok" : "Henüz görev yok"}
+          title={
+            archiveOnly
+              ? "Bu filtrelerle eşleşen arşiv kaydı yok"
+              : hasFilter
+                ? "Bu filtrelerle eşleşen görev yok"
+                : "Henüz görev yok"
+          }
           description={
             hasFilter
               ? "Filtrelerden birini kaldırabilir veya arama metnini değiştirebilirsin."
