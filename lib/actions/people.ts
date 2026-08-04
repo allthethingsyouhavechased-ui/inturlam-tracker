@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { normalizeDepartment } from "@/lib/departments";
 import {
   createPerson,
   getPerson,
@@ -19,7 +20,7 @@ export async function createPersonAction(formData: FormData) {
   const name = String(formData.get("name") ?? "").trim();
   if (!name) throw new Error("İsim zorunlu.");
 
-  createPerson(name);
+  createPerson(name, normalizeDepartment(formData.get("department")));
   revalidatePath("/", "layout");
 }
 
@@ -38,6 +39,7 @@ export async function updatePersonProfileAction(formData: FormData) {
   const name = String(formData.get("name") ?? "").trim();
   const title = optionalText(formData.get("title"));
   const bio = optionalText(formData.get("bio"));
+  const department = normalizeDepartment(formData.get("department"));
 
   if (!id) throw new Error("Kişi bulunamadı.");
   if (!name) throw new Error("İsim zorunlu.");
@@ -58,6 +60,7 @@ export async function updatePersonProfileAction(formData: FormData) {
     name,
     title,
     bio,
+    department,
     avatarPath: savedAvatar?.filePath ?? person.avatar_path,
   });
   revalidatePath("/", "layout");

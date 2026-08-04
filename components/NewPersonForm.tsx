@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { createPersonAction } from "@/lib/actions/people";
+import { DEPARTMENTS, NO_DEPARTMENT_LABEL } from "@/lib/departments";
 import { getActionErrorMessage } from "@/lib/errorMessage";
 import SubmitButton from "./SubmitButton";
 
@@ -28,14 +29,25 @@ export default function NewPersonForm({
           setError(getActionErrorMessage(e));
         }
       }}
-      className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end"
+      className="grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end"
     >
-      <label className="grid gap-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">
+      <label className="grid min-w-0 gap-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">
         İsim
         <input name="name" required placeholder="Örn. Ada Yılmaz" className={inputClass} />
       </label>
+      <label className="grid min-w-0 gap-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">
+        Departman
+        <select name="department" defaultValue="" className={inputClass}>
+          <option value="">{NO_DEPARTMENT_LABEL}</option>
+          {DEPARTMENTS.map((department) => (
+            <option key={department.id} value={department.id}>
+              {department.label}
+            </option>
+          ))}
+        </select>
+      </label>
       <SubmitButton>Ekip üyesi ekle</SubmitButton>
-      {error && <p role="alert" className="text-xs text-rose-600 dark:text-rose-400 sm:col-span-2">{error}</p>}
+      {error && <p role="alert" className="text-xs text-rose-600 dark:text-rose-400 sm:col-span-3">{error}</p>}
     </form>
   );
 }

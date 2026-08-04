@@ -19,9 +19,11 @@ export function listInactivePeople(): Person[] {
   );
 }
 
-export function createPerson(name: string): string {
+export function createPerson(name: string, department: string | null = null): string {
   const id = crypto.randomUUID();
-  getDb().prepare("INSERT INTO people (id, name) VALUES (?, ?)").run(id, name);
+  getDb()
+    .prepare("INSERT INTO people (id, name, department) VALUES (?, ?, ?)")
+    .run(id, name, department);
   return id;
 }
 
@@ -30,15 +32,23 @@ export function updatePersonProfile(input: {
   name: string;
   title: string | null;
   bio: string | null;
+  department: string | null;
   avatarPath: string | null;
 }): void {
   getDb()
     .prepare(
       `UPDATE people
-          SET name = ?, title = ?, bio = ?, avatar_path = ?
+          SET name = ?, title = ?, bio = ?, department = ?, avatar_path = ?
         WHERE id = ?`,
     )
-    .run(input.name, input.title, input.bio, input.avatarPath, input.id);
+    .run(
+      input.name,
+      input.title,
+      input.bio,
+      input.department,
+      input.avatarPath,
+      input.id,
+    );
 }
 
 export function setPersonActive(id: string, active: boolean): void {

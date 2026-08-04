@@ -198,8 +198,18 @@ olarak gösterilir (tıklayınca büyük hâli açılır).
 listede, üstte filtrelerle:
 
 - Görev adına göre arama kutusu
+- **Ekip (departman) sekmeleri** — arama kutusunun hemen altında, her zaman görünür:
+  **Tümü / Video / Tasarım / Sosyal Medya / Yönetim**. Tek tıkla, örneğin sadece
+  **video ekibinin** görevlerini görürsün. Her sekmenin yanındaki sayı o ekipte
+  kaç görev olduğunu gösterir ve diğer filtrelere göre güncellenir.
 - Marka, Durum, Öncelik, Atanan (Herkes / Atanmamış / kişi) süzgeçleri
 - **Pano** / **Liste** görünüm anahtarı (sağ üstte)
+
+Departman sekmesi seçiliyken **"Atanan" listesi de o ekibe daralır** — yani önce
+"Video" deyip sonra kişi seçerek "Arman'ın video işleri"ne inebilirsin. Bir kişinin
+departmanı **Ekip → kişiye tıkla → Departman** alanından belirlenir; departmanı
+atanmamış kişiler "Diğer" sekmesinde toplanır. **Atanmamış görevler bir departman
+seçiliyken görünmez** — hangi ekibe ait oldukları belli olmadığı için.
 
 **Pano görünümü**: içerik sayfasındaki gibi Kanban, ama tüm markalar bir arada.
 Filtreler düğmesini açarak marka, durum, öncelik ve atanana göre süzebilirsin.
@@ -263,6 +273,35 @@ iş akışının durum dağılımı ile kişi ve marka tabloları bulunur.
 En yoğun kişi ve marka ayrıca işaretlenir. Kişi veya marka satırını açarak ayrıntılı
 dökümü görebilir, tabloları gizleyebilir veya CSV olarak indirebilirsin.
 
+**Ekip görünümü** tablosunun üstünde **departman sekmeleri** var: tabloyu sadece
+Video / Tasarım / Sosyal Medya / Yönetim ekibine daraltabilirsin. CSV indirmesi de
+o an ekranda görünen kişileri (ve departman sütununu) içerir.
+
+### Kişi bazlı detaylı rapor
+
+Ekip görünümü tablosunda her satırın sonundaki **"Detaylı rapor →"** bağlantısı o
+kişiye ait tam bir rapor açar. Seçtiğin dönem korunarak açılır. İçinde:
+
+- **Özet** — en üstte, düz Türkçe bir paragraf: kaç iş tamamladı, kaç açık işi var,
+  kaçı gecikmiş, zamanında teslim oranı ne, ekibin iş yükünün ne kadarı onda.
+- **Rakamlarla [kişi]** — açılan / tamamlanan / açık / geciken / zamanında / ortalama
+  süre. Tamamlanan ve açık kutularının altında **ekip ortalaması** yazar, böylece
+  sayının yüksek mi düşük mü olduğu tek başına havada kalmaz.
+- **Pay çubukları** — ekibin toplam açık iş yükünün ve dönemde tamamlananların
+  yüzde kaçının bu kişide olduğu.
+- **Açık işler hangi aşamada** ve **açık işlerin önceliği** dağılımları.
+- **İş akış trendi**, **tamamlanma süresi** ve **teslim sağlığı** grafikleri —
+  portföy raporundakilerin aynısı, ama yalnızca bu kişi için.
+- **Hangi markalara çalışıyor** — marka başına tamamlanan/açık dağılımı.
+- **Gerçek görev listeleri:** *Gecikmiş işler* (kaç gün geciktiği ile), *Önümüzdeki
+  7 gün* ve *Son tamamladıkları*. Her satır ilgili görevin sayfasına gider — yani
+  rapordaki sayının arkasındaki işi tek tıkla açabilirsin.
+- Sağ üstte **"Görevlerini aç"** (o kişiye filtrelenmiş Görevler sayfası), **CSV**
+  ve **PDF / Yazdır**.
+
+> Bu rapor bir performans puanı değildir; iş yükünün nerede biriktiğini ve neyin
+> geciktiğini göstermek için var.
+
 ---
 
 ## 15. Aktivite sayfası
@@ -282,8 +321,12 @@ görev sayfasındaki "Hareketler" bölümleri bu akışın o markaya/göreve ait
   seç; sonra kendi sütunundaki listeden o an çalıştığın markayı seç. O markada sana
   atanmış açık görevler sütununda görünür. Diğer ekip üyelerinin seçimini herkes
   görebilir; değişiklikler en geç yaklaşık 15 saniyede yansır.
-- **Yeni ekip üyesi ekle** — isim yaz, ekle. O kişi artık "Sen kimsin?" listesinde
-  ve atanan/etiketleme seçeneklerinde görünür.
+- **Yeni ekip üyesi ekle** — isim yaz, **departmanını seç**, ekle. O kişi artık
+  "Sen kimsin?" listesinde ve atanan/etiketleme seçeneklerinde görünür.
+- **Departman** — kişiye tıklayıp profilinden değiştirilir. Bu seçim üç yeri birden
+  belirler: yukarıdaki kanbanda hangi satırda göründüğü, **Görevler** sayfasındaki
+  ekip sekmeleri ve **Raporlar**daki departman filtresi. Departmanı boş bırakılan
+  kişiler her yerde "Diğer" altında toplanır.
 - Bir kişiyi **çıkar** (pasif yap) — geçmiş görev/yorum kayıtları silinmez, sadece
   yeni atama/@etiketleme listelerinden düşer. İstersen tekrar aktif edebilirsin.
 

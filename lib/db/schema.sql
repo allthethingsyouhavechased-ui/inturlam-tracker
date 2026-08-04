@@ -55,6 +55,10 @@ CREATE TABLE IF NOT EXISTS people (
   title       TEXT,
   bio         TEXT,
   avatar_path TEXT,
+  -- Ekip disiplini: lib/departments.ts'teki DEPARTMENTS id'lerinden biri.
+  -- CHECK bilinçli olarak yok — yeni bir departman eklemek tablo yeniden
+  -- kurmayı gerektirmesin; geçersiz/boş değerler arayüzde "Diğer" sayılır.
+  department  TEXT,
   active      INTEGER NOT NULL DEFAULT 1
 );
 

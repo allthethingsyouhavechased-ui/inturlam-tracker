@@ -42,6 +42,7 @@ function createConnection(): DatabaseSync {
   migrateTasksRepeatIfNeeded(db);
   migrateTasksReportingIfNeeded(db);
   migratePeopleProfilesIfNeeded(db);
+  migratePeopleDepartmentIfNeeded(db);
   // SIRA ÖNEMLİ: yukarıdaki iki brands migration'ı tabloyu SABİT bir sütun
   // listesiyle yeniden kuruyor; bu ALTER onlardan sonra çalışmalı, yoksa
   // eklediği sütun rebuild sırasında düşer.
@@ -96,6 +97,55 @@ function migratePeopleProfilesIfNeeded(db: DatabaseSync): void {
     if (!columns.some((column) => column.name === name)) {
       db.exec(`ALTER TABLE people ADD COLUMN ${name} ${definition}`);
     }
+  }
+}
+
+// Departman ataması, `lib/teamWorkstreams.ts` içinde sabit bir ilk-isim listesi
+// olarak duruyordu; artık `people.department` sütununda. Bu liste o eski
+// eşlemenin DONMUŞ bir kopyası: yalnızca sütun ilk eklendiğinde, mevcut ekibin
+// ataması kaybolmasın diye bir kez geri doldurmak için kullanılır.
+// DEPARTMENTS ileride değişse bile buraya dokunma — geçmiş bir veri anlık
+// görüntüsüdür, canlı bir yapılandırma değil. (Kasıtlı olarak lib/departments.ts'i
+// import etmiyor: client.ts, `db/*.mts` script'leri tarafından Node'un native TS
+// çalıştırıcısıyla yükleniyor ve orada `@/` alias'ı çözülmez.)
+const LEGACY_DEPARTMENT_FIRST_NAMES: Record<string, string> = {
+  yunus: "video",
+  emrullah: "video",
+  arman: "video",
+  özgün: "video",
+  erhan: "video",
+  murat: "design",
+  ekin: "design",
+  sıla: "design",
+  cansu: "social",
+  defne: "social",
+  özgür: "management",
+  berkant: "management",
+};
+
+// people.department — düz, nullable, CHECK/FK içermeyen sütun → ALTER yeterli.
+// Idempotent: sütun varsa hem ALTER hem geri doldurma atlanır (kullanıcı sonradan
+// birinin departmanını boşalttıysa her açılışta geri gelmesin).
+function migratePeopleDepartmentIfNeeded(db: DatabaseSync): void {
+  const peopleExists = db
+    .prepare(`SELECT 1 FROM sqlite_master WHERE type='table' AND name='people'`)
+    .get();
+  if (!peopleExists) return;
+
+  const columns = db.prepare(`PRAGMA table_info(people)`).all() as { name: string }[];
+  if (columns.some((column) => column.name === "department")) return;
+
+  db.exec(`ALTER TABLE people ADD COLUMN department TEXT`);
+
+  const rows = db.prepare(`SELECT id, name FROM people`).all() as {
+    id: string;
+    name: string;
+  }[];
+  const update = db.prepare(`UPDATE people SET department = ? WHERE id = ?`);
+  for (const row of rows) {
+    const firstName = row.name.trim().toLocaleLowerCase("tr-TR").split(/\s+/)[0] ?? "";
+    const department = LEGACY_DEPARTMENT_FIRST_NAMES[firstName];
+    if (department) update.run(department, row.id);
   }
 }
 

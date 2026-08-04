@@ -64,8 +64,12 @@ export function TrendChart({ report }: { report: TrendReport }) {
             <path d={pathFor("completed_tasks")} fill="none" className="stroke-emerald-500" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
             {report.points.map((point, index) => (
               <g key={point.key}>
-                <circle cx={x(index)} cy={y(point.opened_tasks)} r="4" className="fill-white stroke-brand-500 dark:fill-zinc-900" strokeWidth="2"><title>{point.label}: {point.opened_tasks} açılan görev</title></circle>
-                <circle cx={x(index)} cy={y(point.completed_tasks)} r="4" className="fill-white stroke-emerald-500 dark:fill-zinc-900" strokeWidth="2"><title>{point.label}: {point.completed_tasks} tamamlanan görev</title></circle>
+                {/* SVG <title>'a TEK bir metin çocuğu verilmeli: `{a}: {b} metin`
+                    biçimi birden çok text node üretiyor, React bunları SSR'da
+                    yorum ayıracıyla yazıp hydration'da eşleştiremiyordu
+                    ("Hydration failed", grafik istemcide baştan çiziliyordu). */}
+                <circle cx={x(index)} cy={y(point.opened_tasks)} r="4" className="fill-white stroke-brand-500 dark:fill-zinc-900" strokeWidth="2"><title>{`${point.label}: ${point.opened_tasks} açılan görev`}</title></circle>
+                <circle cx={x(index)} cy={y(point.completed_tasks)} r="4" className="fill-white stroke-emerald-500 dark:fill-zinc-900" strokeWidth="2"><title>{`${point.label}: ${point.completed_tasks} tamamlanan görev`}</title></circle>
                 {(index % labelStep === 0 || index === report.points.length - 1) && (
                   <text x={x(index)} y={height - 14} textAnchor="middle" className="fill-zinc-500 text-[10px] dark:fill-zinc-400">{point.label}</text>
                 )}

@@ -1,9 +1,23 @@
 import { getDb, plainList, plainOne } from "@/lib/db/client";
-import type { TaskStatus } from "@/lib/types";
+import type { TaskPriority, TaskStatus } from "@/lib/types";
 
 export interface DateRange {
   start: string;
   end: string;
+}
+
+// Raporların çoğu hem portföy geneli hem de tek kişi için çalışıyor. Kapsam
+// null ise sorgu tüm görevleri kapsar; bir kişi id'si verilirse `t.assignee_id`
+// üzerinden daraltılır. Aynı SQL'i iki kez yazmamak için tüm sayaç
+// fonksiyonları bu isteğe bağlı parametreyi alıyor.
+export type PersonScope = string | null;
+
+function scopeCondition(scope: PersonScope): string {
+  return scope ? "AND t.assignee_id = :personId" : "";
+}
+
+function scopeParams(scope: PersonScope): { personId: string } | undefined {
+  return scope ? { personId: scope } : undefined;
 }
 
 export interface ReportSummary {
@@ -23,6 +37,7 @@ export interface WorkflowReportRow {
 export interface PersonReportRow {
   person_id: string;
   person_name: string;
+  department: string | null;
   active: number;
   total_tasks: number;
   completed_tasks: number;
@@ -105,10 +120,12 @@ function rangeParams(range: DateRange | null): { start: string; end: string } | 
   return range ? { start: range.start, end: range.end } : undefined;
 }
 
-function allForRange<T>(sql: string, range: DateRange | null): T[] {
+function allForRange<T>(sql: string, range: DateRange | null, scope: PersonScope = null): T[] {
   const statement = getDb().prepare(sql);
-  const params = rangeParams(range);
-  return plainList<T>(params ? statement.all(params) : statement.all());
+  const params = { ...rangeParams(range), ...scopeParams(scope) };
+  return plainList<T>(
+    Object.keys(params).length > 0 ? statement.all(params) : statement.all(),
+  );
 }
 
 function parseISODate(value: string): Date {
@@ -159,28 +176,30 @@ function quantile(sortedValues: number[], percentile: number): number | null {
   return Math.round(value * 10) / 10;
 }
 
-export function getTrendReport(range: DateRange | null): TrendReport {
-  const rangeClause = range ? "WHERE event_date BETWEEN :start AND :end" : "";
+export function getTrendReport(range: DateRange | null, scope: PersonScope = null): TrendReport {
+  const conditions = ["event_date IS NOT NULL"];
+  if (range) conditions.push("event_date BETWEEN :start AND :end");
+  if (scope) conditions.push("assignee_id = :personId");
   const statement = getDb().prepare(`
     SELECT event_date, event_type, COUNT(*) AS task_count
       FROM (
-        SELECT date(created_at) AS event_date, 'opened' AS event_type
+        SELECT date(created_at) AS event_date, 'opened' AS event_type, assignee_id
           FROM tasks
         UNION ALL
-        SELECT date(completed_at) AS event_date, 'completed' AS event_type
+        SELECT date(completed_at) AS event_date, 'completed' AS event_type, assignee_id
           FROM tasks
          WHERE status = 'Yayinlandi' AND completed_at IS NOT NULL
       ) events
-      ${rangeClause}
-     WHERE event_date IS NOT NULL
+     WHERE ${conditions.join("\n       AND ")}
      GROUP BY event_date, event_type
      ORDER BY event_date
-  `.replace(`${rangeClause}\n     WHERE`, range ? `${rangeClause}\n       AND` : "WHERE"));
+  `);
+  const params = { ...rangeParams(range), ...scopeParams(scope) };
   const rows = plainList<{
     event_date: string;
     event_type: "opened" | "completed";
     task_count: number;
-  }>(range ? statement.all({ start: range.start, end: range.end }) : statement.all());
+  }>(Object.keys(params).length > 0 ? statement.all(params) : statement.all());
 
   const startValue = range?.start ?? rows[0]?.event_date;
   const endValue = range?.end ?? rows[rows.length - 1]?.event_date;
@@ -220,7 +239,10 @@ export function getTrendReport(range: DateRange | null): TrendReport {
   return { granularity, points };
 }
 
-export function getCycleTimeReport(range: DateRange | null): CycleTimeReport {
+export function getCycleTimeReport(
+  range: DateRange | null,
+  scope: PersonScope = null,
+): CycleTimeReport {
   const completed = periodCondition("t.completed_at", range);
   const rows = allForRange<{ duration_days: number }>(
     `SELECT MAX(julianday(t.completed_at) - julianday(t.created_at), 0) AS duration_days
@@ -228,8 +250,10 @@ export function getCycleTimeReport(range: DateRange | null): CycleTimeReport {
       WHERE t.status = 'Yayinlandi'
         AND t.completed_at IS NOT NULL
         AND ${completed}
+        ${scopeCondition(scope)}
       ORDER BY duration_days`,
     range,
+    scope,
   );
   const durations = rows.map((row) => row.duration_days).sort((a, b) => a - b);
   const bucketDefinitions: Array<{
@@ -260,7 +284,10 @@ export function getCycleTimeReport(range: DateRange | null): CycleTimeReport {
   };
 }
 
-export function listDueHealthReport(today: string): DueHealthRow[] {
+export function listDueHealthReport(
+  today: string,
+  scope: PersonScope = null,
+): DueHealthRow[] {
   return plainList<DueHealthRow>(
     getDb()
       .prepare(
@@ -275,6 +302,7 @@ export function listDueHealthReport(today: string): DueHealthRow[] {
            FROM buckets
            LEFT JOIN tasks t
              ON t.status != 'Yayinlandi'
+            ${scopeCondition(scope)}
             AND CASE buckets.bucket
               WHEN 'overdue' THEN t.due_date IS NOT NULL AND t.due_date < :today
               WHEN 'today' THEN t.due_date = :today
@@ -285,13 +313,14 @@ export function listDueHealthReport(today: string): DueHealthRow[] {
           GROUP BY buckets.bucket, buckets.label, buckets.sort_order
           ORDER BY buckets.sort_order`,
       )
-      .all({ today }),
+      .all({ today, ...scopeParams(scope) }),
   );
 }
 
 export function getReportSummary(
   range: DateRange | null,
   today: string,
+  scope: PersonScope = null,
 ): ReportSummary {
   const opened = periodCondition("t.created_at", range);
   const completed = periodCondition("t.completed_at", range);
@@ -327,12 +356,14 @@ export function getReportSummary(
         THEN MAX(julianday(t.completed_at) - julianday(t.created_at), 0)
       END), 1) AS average_cycle_days
     FROM tasks t
+    ${scope ? "WHERE t.assignee_id = :personId" : ""}
   `);
   const params: Record<string, string> = { today };
   if (range) {
     params.start = range.start;
     params.end = range.end;
   }
+  if (scope) params.personId = scope;
   return (
     plainOne<ReportSummary>(statement.get(params)) ?? {
       opened_tasks: 0,
@@ -345,7 +376,7 @@ export function getReportSummary(
   );
 }
 
-export function listWorkflowReport(): WorkflowReportRow[] {
+export function listWorkflowReport(scope: PersonScope = null): WorkflowReportRow[] {
   return plainList<WorkflowReportRow>(
     getDb()
       .prepare(
@@ -355,11 +386,47 @@ export function listWorkflowReport(): WorkflowReportRow[] {
          )
          SELECT workflow.status, COUNT(t.id) AS task_count
            FROM workflow
-           LEFT JOIN tasks t ON t.status = workflow.status
+           LEFT JOIN tasks t ON t.status = workflow.status ${scopeCondition(scope)}
           GROUP BY workflow.status, workflow.sort_order
           ORDER BY workflow.sort_order`,
       )
-      .all(),
+      .all({ ...scopeParams(scope) }),
+  );
+}
+
+export interface PriorityReportRow {
+  priority: TaskPriority;
+  open_tasks: number;
+  overdue_tasks: number;
+}
+
+// Kişinin açık işlerinin öncelik dağılımı — "yoğun mu" sorusunun yanında
+// "yoğunluğu ne kadarı acil" sorusunu cevaplar. Boş öncelikler de 0 ile döner
+// ki grafik her kişide aynı 4 satırı göstersin.
+export function listPriorityReport(
+  today: string,
+  scope: PersonScope = null,
+): PriorityReportRow[] {
+  return plainList<PriorityReportRow>(
+    getDb()
+      .prepare(
+        `WITH levels(priority, sort_order) AS (
+           VALUES ('Acil', 0), ('Yuksek', 1), ('Normal', 2), ('Dusuk', 3)
+         )
+         SELECT levels.priority,
+                COUNT(t.id) AS open_tasks,
+                COALESCE(SUM(CASE
+                  WHEN t.due_date IS NOT NULL AND t.due_date < :today
+                  THEN 1 ELSE 0 END), 0) AS overdue_tasks
+           FROM levels
+           LEFT JOIN tasks t
+             ON t.priority = levels.priority
+            AND t.status != 'Yayinlandi'
+            ${scopeCondition(scope)}
+          GROUP BY levels.priority, levels.sort_order
+          ORDER BY levels.sort_order`,
+      )
+      .all({ today, ...scopeParams(scope) }),
   );
 }
 
@@ -370,7 +437,8 @@ export function listPersonReport(
   const opened = periodCondition("t.created_at", range);
   const completed = periodCondition("t.completed_at", range);
   const statement = getDb().prepare(`
-    SELECT p.id AS person_id, p.name AS person_name, p.active,
+    SELECT p.id AS person_id, p.name AS person_name,
+      p.department AS department, p.active,
       COALESCE(SUM(CASE WHEN ${opened} THEN 1 ELSE 0 END), 0) AS total_tasks,
       COALESCE(SUM(CASE
         WHEN t.status = 'Yayinlandi' AND ${completed} THEN 1 ELSE 0 END), 0
@@ -415,6 +483,7 @@ export function listPersonReport(
 
 export function listPersonBrandBreakdown(
   range: DateRange | null,
+  scope: PersonScope = null,
 ): PersonBrandRow[] {
   const opened = periodCondition("t.created_at", range);
   const completed = periodCondition("t.completed_at", range);
@@ -429,10 +498,12 @@ export function listPersonBrandBreakdown(
        JOIN content_items ci ON ci.id = t.content_item_id
        JOIN brands b ON b.id = ci.brand_id
        JOIN people p ON p.id = t.assignee_id
+      WHERE 1 = 1 ${scopeCondition(scope)}
       GROUP BY p.id, b.id
      HAVING total_tasks > 0 OR completed_tasks > 0 OR open_tasks > 0
       ORDER BY p.name, completed_tasks DESC, open_tasks DESC`,
     range,
+    scope,
   );
 }
 

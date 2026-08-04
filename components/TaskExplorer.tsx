@@ -12,6 +12,13 @@ import {
   TASK_STATUS_LABEL,
   TASK_STATUSES,
 } from "@/lib/constants";
+import {
+  DEPARTMENTS,
+  NO_DEPARTMENT,
+  NO_DEPARTMENT_LABEL,
+  departmentKey,
+  departmentLabel,
+} from "@/lib/departments";
 import type { Person, TaskPriority, TaskStatus, TaskWithContext } from "@/lib/types";
 
 const UNASSIGNED = "__unassigned__";
@@ -53,21 +60,44 @@ export default function TaskExplorer({
   tasks,
   brands,
   people,
+  initialAssigneeId = "",
+  initialDepartment = "",
 }: {
   tasks: TaskWithContext[];
   brands: { id: string; name: string }[];
   people: Person[];
+  initialAssigneeId?: string;
+  initialDepartment?: string;
 }) {
   const [brandId, setBrandId] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [priority, setPriority] = useState("");
-  const [assigneeId, setAssigneeId] = useState("");
+  const [department, setDepartment] = useState(initialDepartment);
+  const [assigneeId, setAssigneeId] = useState(initialAssigneeId);
   const [q, setQ] = useState("");
   const [sortKey, setSortKey] = useState<SortKey>("varsayilan");
   const [view, setView] = useState<"pano" | "liste">("pano");
   const [filtersOpen, setFiltersOpen] = useState(false);
 
-  const filtered = useMemo(() => {
+  // Departman görevin değil, görevi üstlenen kişinin özelliği: filtre
+  // atanan üzerinden dolaylı çalışıyor. Bu yüzden atanmamış görevler bir
+  // departman seçiliyken listeden düşer — hangi ekibe ait oldukları bilinmiyor.
+  const departmentByPerson = useMemo(
+    () => new Map(people.map((person) => [person.id, departmentKey(person.department)])),
+    [people],
+  );
+  const departmentPeople = useMemo(
+    () =>
+      department
+        ? people.filter((person) => departmentKey(person.department) === department)
+        : [],
+    [people, department],
+  );
+
+  // Departman DIŞINDAKİ tüm filtreleri geçen görevler. Departman sekmelerindeki
+  // sayılar buradan geliyor: seçili sekme sayıyı kendi üzerine kilitlemesin,
+  // "diğer ekipte kaç iş var" bilgisi seçim yapınca kaybolmasın.
+  const withoutDepartment = useMemo(() => {
     const needle = q.trim().toLocaleLowerCase("tr-TR");
     return tasks.filter((task) => {
       if (brandId && task.brand_id !== brandId) return false;
@@ -88,15 +118,55 @@ export default function TaskExplorer({
     });
   }, [tasks, brandId, statusFilter, priority, assigneeId, q]);
 
-  const hasFilter = Boolean(brandId || statusFilter || priority || assigneeId || q);
+  const departmentCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const task of withoutDepartment) {
+      if (!task.assignee_id) continue;
+      const key = departmentByPerson.get(task.assignee_id);
+      if (!key) continue;
+      counts.set(key, (counts.get(key) ?? 0) + 1);
+    }
+    return counts;
+  }, [withoutDepartment, departmentByPerson]);
+
+  const filtered = useMemo(() => {
+    if (!department) return withoutDepartment;
+    return withoutDepartment.filter(
+      (task) =>
+        task.assignee_id != null &&
+        departmentByPerson.get(task.assignee_id) === department,
+    );
+  }, [withoutDepartment, department, departmentByPerson]);
+
+  const hasFilter = Boolean(
+    brandId || statusFilter || priority || department || assigneeId || q,
+  );
+  // Rozet, "Filtreler" panelinin içindekileri sayar; departman panelde değil,
+  // her zaman görünen sekme satırında seçiliyor.
   const filterCount = [brandId, statusFilter, priority, assigneeId].filter(Boolean).length;
   const selectedBrand = brands.find((brand) => brand.id === brandId);
   const selectedPerson = people.find((person) => person.id === assigneeId);
+
+  // Departman seçiliyken "Atanan" listesi o ekibe daralır; başka bir departmanın
+  // kişisi seçili kalırsa sonuç hep boş olurdu, o yüzden seçim sıfırlanır.
+  function changeDepartment(nextDepartment: string) {
+    setDepartment(nextDepartment);
+    if (nextDepartment) setSortKey("atanan");
+    if (
+      nextDepartment &&
+      assigneeId &&
+      (assigneeId === UNASSIGNED ||
+        departmentByPerson.get(assigneeId) !== nextDepartment)
+    ) {
+      setAssigneeId("");
+    }
+  }
 
   function clearFilters() {
     setBrandId("");
     setStatusFilter("");
     setPriority("");
+    setDepartment("");
     setAssigneeId("");
     setQ("");
     setSortKey("varsayilan");
@@ -181,9 +251,60 @@ export default function TaskExplorer({
           </div>
         </div>
 
+        <div
+          className="mt-3 flex flex-wrap items-center gap-1.5 border-t border-black/[0.07] pt-3 dark:border-white/10"
+          role="group"
+          aria-label="Departmana göre filtrele"
+        >
+          <span className="mr-1 text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+            Ekip
+          </span>
+          {[
+            { id: "", label: "Tümü", count: withoutDepartment.length },
+            ...DEPARTMENTS.map((option) => ({
+              id: option.id as string,
+              label: option.label,
+              count: departmentCounts.get(option.id) ?? 0,
+            })),
+            {
+              id: NO_DEPARTMENT,
+              label: NO_DEPARTMENT_LABEL,
+              count: departmentCounts.get(NO_DEPARTMENT) ?? 0,
+            },
+          ]
+            // Kimsenin olmadığı departman sekmesi gösterilmez; "Diğer" de ancak
+            // gerçekten departmansız birinin işi varsa çıkar. Seçili sekme,
+            // sayısı sıfıra düşse bile kalır (yoksa filtre kendini gizlerdi).
+            .filter((option) => option.id === "" || option.count > 0 || option.id === department)
+            .map((option) => (
+              <button
+                key={option.id || "all"}
+                type="button"
+                onClick={() => changeDepartment(option.id)}
+                aria-pressed={department === option.id}
+                className={`ui-press inline-flex min-h-9 items-center gap-1.5 rounded-full border px-3 text-xs font-medium ${
+                  department === option.id
+                    ? "border-brand-600 bg-brand-600 text-white"
+                    : "border-black/10 bg-white text-zinc-600 hover:bg-black/5 dark:border-white/15 dark:bg-zinc-950 dark:text-zinc-300 dark:hover:bg-white/10"
+                }`}
+              >
+                {option.label}
+                <span
+                  className={`tabular-nums ${
+                    department === option.id
+                      ? "text-white/75"
+                      : "text-zinc-500 dark:text-zinc-400"
+                  }`}
+                >
+                  {option.count}
+                </span>
+              </button>
+            ))}
+        </div>
+
         {filtersOpen && (
           <div className="ui-enter mt-3 grid gap-2 border-t border-black/[0.07] pt-3 md:grid-cols-2 xl:grid-cols-4 dark:border-white/10">
-            <label className="grid gap-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">
+            <label className="grid min-w-0 gap-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">
               Marka
               <select
                 value={brandId}
@@ -201,7 +322,7 @@ export default function TaskExplorer({
                 ))}
               </select>
             </label>
-            <label className="grid gap-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">
+            <label className="grid min-w-0 gap-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">
               Durum
               <select
                 value={statusFilter}
@@ -219,7 +340,7 @@ export default function TaskExplorer({
                 ))}
               </select>
             </label>
-            <label className="grid gap-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">
+            <label className="grid min-w-0 gap-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">
               Öncelik
               <select
                 value={priority}
@@ -237,7 +358,7 @@ export default function TaskExplorer({
                 ))}
               </select>
             </label>
-            <label className="grid gap-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">
+            <label className="grid min-w-0 gap-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">
               Atanan
               <select
                 value={assigneeId}
@@ -247,9 +368,9 @@ export default function TaskExplorer({
                 }}
                 className={selectClass}
               >
-                <option value="">Herkes</option>
-                <option value={UNASSIGNED}>Atanmamış</option>
-                {people.map((person) => (
+                <option value="">{department ? "Departmandaki herkes" : "Herkes"}</option>
+                {!department && <option value={UNASSIGNED}>Atanmamış</option>}
+                {(department ? departmentPeople : people).map((person) => (
                   <option key={person.id} value={person.id}>
                     {person.name}
                   </option>
@@ -277,6 +398,16 @@ export default function TaskExplorer({
               <FilterChip
                 label={TASK_PRIORITY_LABEL[priority as TaskPriority]}
                 onRemove={() => setPriority("")}
+              />
+            )}
+            {department && (
+              <FilterChip
+                label={
+                  department === NO_DEPARTMENT
+                    ? NO_DEPARTMENT_LABEL
+                    : `${departmentLabel(department)} ekibi`
+                }
+                onRemove={() => setDepartment("")}
               />
             )}
             {assigneeId && (

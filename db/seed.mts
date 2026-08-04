@@ -32,17 +32,20 @@ const BRANDS: { id: string; name: string; cluster: string }[] = [
 ];
 
 // Yeni biri katılırsa buraya ekle, id sabit kalsın diye isim değişse de dursun.
-const PEOPLE: { id: string; name: string }[] = [
-  { id: "yunus", name: "Yunus Emre" },
-  { id: "arman", name: "Arman" },
-  { id: "cansu", name: "Cansu" },
-  { id: "defne", name: "Defne" },
-  { id: "ekin", name: "Ekin" },
-  { id: "emrullah", name: "Emrullah" },
-  { id: "erhan", name: "Erhan" },
-  { id: "murat", name: "Murat" },
-  { id: "ozgun", name: "Özgün" },
-  { id: "sila", name: "Sıla" },
+// `department` değerleri lib/departments.ts'teki DEPARTMENTS id'leridir. Yalnızca
+// kişi ilk kez yazılırken (ve sonradan boş kalmışsa) uygulanır — arayüzden
+// yapılan departman değişikliğini seed geri almaz (bkz. insertPerson).
+const PEOPLE: { id: string; name: string; department: string | null }[] = [
+  { id: "yunus", name: "Yunus Emre", department: "video" },
+  { id: "arman", name: "Arman", department: "video" },
+  { id: "cansu", name: "Cansu", department: "social" },
+  { id: "defne", name: "Defne", department: "social" },
+  { id: "ekin", name: "Ekin", department: "design" },
+  { id: "emrullah", name: "Emrullah", department: "video" },
+  { id: "erhan", name: "Erhan", department: "video" },
+  { id: "murat", name: "Murat", department: "design" },
+  { id: "ozgun", name: "Özgün", department: "video" },
+  { id: "sila", name: "Sıla", department: "design" },
 ];
 
 // Artık kullanılmayan placeholder kişiler — hiçbir görev/yoruma bağlı değillerse
@@ -286,11 +289,16 @@ BRANDS.forEach((b, i) => {
   );
 });
 
+// Departman ÜZERİNE YAZILMAZ: kişi zaten varsa yalnızca adı tazelenir, departman
+// da sadece boşsa doldurulur. Aksi halde arayüzden yapılan her departman
+// değişikliği bir sonraki seed'de sessizce geri alınırdı.
 const insertPerson = db.prepare(
-  `INSERT INTO people (id, name) VALUES (?, ?)
-   ON CONFLICT(id) DO UPDATE SET name = excluded.name`,
+  `INSERT INTO people (id, name, department) VALUES (?, ?, ?)
+   ON CONFLICT(id) DO UPDATE SET
+     name = excluded.name,
+     department = COALESCE(people.department, excluded.department)`,
 );
-for (const p of PEOPLE) insertPerson.run(p.id, p.name);
+for (const p of PEOPLE) insertPerson.run(p.id, p.name, p.department);
 
 const deletePerson = db.prepare(`DELETE FROM people WHERE id = ?`);
 for (const id of REMOVED_PEOPLE_IDS) deletePerson.run(id);

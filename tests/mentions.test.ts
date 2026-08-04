@@ -9,7 +9,7 @@ import { extractMentionedPeople, findMentionMatches } from "@/lib/mentions";
 import type { Person } from "@/lib/types";
 
 function person(id: string, name: string): Person {
-  return { id, name, title: null, bio: null, avatar_path: null, active: 1 };
+  return { id, name, title: null, bio: null, avatar_path: null, department: null, active: 1 };
 }
 
 const CANSU = person("cansu", "Cansu");

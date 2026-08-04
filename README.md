@@ -15,8 +15,15 @@ kurulumu basit bir iç araç.
   değiştirebilir.
 - **Aktif marka kanbanı:** Ekip sayfasında herkes o an çalıştığı markayı seçer; seçilen
   markadaki açık görevleri kişinin sütununda görünür.
+- **Departman bazlı görünüm:** Her kişinin bir departmanı var (Video / Tasarım / Sosyal
+  Medya / Yönetim). Görevler sayfasındaki ekip sekmeleriyle tek tıkla "sadece video
+  ekibinin işleri"ne inilir; ekip kanbanı ve raporlar da aynı ayrımı kullanır.
 - **Operasyon raporları:** Dönem, ekip ve marka bazında iş yükü, gecikme, tamamlanma
   ve iş akışı dağılımını gösterir.
+- **Kişi bazlı detaylı rapor:** Raporlar → ekip tablosundaki "Detaylı rapor" bağlantısı
+  bir kişinin tam görünümünü açar — düz Türkçe özet, ekip ortalamasıyla karşılaştırma,
+  durum/öncelik/marka dağılımı ve sayının arkasındaki gerçek görev listeleri (gecikmiş,
+  önümüzdeki 7 gün, son tamamlananlar). CSV ve yazdırma dahil.
 
 Şifre/hesap sistemi yok — açılışta "Sen kimsin?" ile isim seçilir, cookie'de hatırlanır.
 Veri tek bir yerel dosyada tutulur (`data/inturlam.db`, SQLite) — ayrı bir veritabanı

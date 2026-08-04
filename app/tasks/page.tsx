@@ -1,21 +1,44 @@
 import AutoRefresh from "@/components/AutoRefresh";
 import TaskExplorer from "@/components/TaskExplorer";
+import { isDepartmentId, NO_DEPARTMENT } from "@/lib/departments";
 import { listBrands } from "@/lib/repositories/brands";
 import { listActivePeople } from "@/lib/repositories/people";
 import { listAllTasks } from "@/lib/repositories/tasks";
 
 export const dynamic = "force-dynamic";
 
-export default function AllTasksPage() {
+// Filtreler istemci state'inde tutuluyor; URL yalnızca BAŞLANGIÇ değerini
+// veriyor (rapor sayfasından "Görevlerini aç" / "Ekibin görevleri" linkleri).
+// Kullanıcı sonrasında filtreyi değiştirdiğinde URL güncellenmiyor — bilinçli:
+// her tıklamada sunucu render'ı tetiklemek listeyi yavaşlatırdı.
+export default async function AllTasksPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ assignee?: string; department?: string }>;
+}) {
+  const sp = await searchParams;
   const tasks = listAllTasks();
   const brands = listBrands();
   const people = listActivePeople();
+
+  const initialAssigneeId =
+    sp.assignee && people.some((person) => person.id === sp.assignee) ? sp.assignee : "";
+  const initialDepartment =
+    sp.department && (isDepartmentId(sp.department) || sp.department === NO_DEPARTMENT)
+      ? sp.department
+      : "";
 
   return (
     <div className="space-y-6">
       <AutoRefresh />
       <h1 className="text-2xl font-semibold tracking-tight">Görevler</h1>
-      <TaskExplorer tasks={tasks} brands={brands} people={people} />
+      <TaskExplorer
+        tasks={tasks}
+        brands={brands}
+        people={people}
+        initialAssigneeId={initialAssigneeId}
+        initialDepartment={initialDepartment}
+      />
     </div>
   );
 }

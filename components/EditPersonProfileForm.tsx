@@ -1,6 +1,7 @@
 import PersonAvatarPicker from "@/components/PersonAvatarPicker";
 import SubmitButton from "@/components/SubmitButton";
 import { updatePersonProfileAction } from "@/lib/actions/people";
+import { DEPARTMENTS, NO_DEPARTMENT_LABEL } from "@/lib/departments";
 import type { Person } from "@/lib/types";
 
 const inputClass =
@@ -38,6 +39,22 @@ export default function EditPersonProfileForm({ person }: { person: Person }) {
           />
         </label>
       </div>
+
+      <label className="grid gap-1.5 text-sm font-medium text-zinc-700 dark:text-zinc-200 sm:max-w-xs">
+        Departman
+        <select name="department" defaultValue={person.department ?? ""} className={inputClass}>
+          <option value="">{NO_DEPARTMENT_LABEL} (departman yok)</option>
+          {DEPARTMENTS.map((department) => (
+            <option key={department.id} value={department.id}>
+              {department.label}
+            </option>
+          ))}
+        </select>
+        <span className="text-xs font-normal text-zinc-500 dark:text-zinc-400">
+          Ekip kanbanındaki satırı ve görev/rapor ekranlarındaki departman
+          filtresini belirler.
+        </span>
+      </label>
 
       <label className="grid gap-1.5 text-sm font-medium text-zinc-700 dark:text-zinc-200">
         Kısa tanıtım

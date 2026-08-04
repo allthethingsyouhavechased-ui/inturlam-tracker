@@ -342,11 +342,83 @@ describe("people profil migration'ı", () => {
       title: null,
       bio: null,
       avatar_path: null,
+      // Eşleme listesinde olmayan bir isim: departmanı boş kalır, "Diğer" sayılır.
+      department: null,
     });
     assert.equal(
       (db.prepare("PRAGMA integrity_check").get() as { integrity_check: string })
         .integrity_check,
       "ok",
+    );
+  });
+});
+
+describe("people.department migration'ı", () => {
+  // Sütun eklenmeden önceki DB'de departman bilgisi yalnızca koda gömülü isim
+  // listesindeydi; migration onu bir kez veriye taşımalı, yoksa mevcut ekip
+  // güncelleme sonrası tamamen "Diğer" satırına düşerdi.
+  function seedPeopleWithoutDepartment(names: [string, string][]): void {
+    const legacy = new DatabaseSync(TMP_DB);
+    legacy.exec(`
+      CREATE TABLE people (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        title TEXT,
+        bio TEXT,
+        avatar_path TEXT,
+        active INTEGER NOT NULL DEFAULT 1
+      );
+    `);
+    const insert = legacy.prepare("INSERT INTO people (id, name) VALUES (?, ?)");
+    for (const [id, name] of names) insert.run(id, name);
+    legacy.close();
+  }
+
+  it("eski isim eşlemesinden departmanları geri dolduruyor", () => {
+    seedPeopleWithoutDepartment([
+      ["yunus", "Yunus Emre"],
+      ["sila", "Sıla"],
+      ["cansu", "Cansu"],
+      ["yeni", "Yeni Üye"],
+    ]);
+
+    const db = getDb();
+    const rows = db
+      .prepare("SELECT id, department FROM people ORDER BY id")
+      .all() as { id: string; department: string | null }[];
+
+    assert.deepEqual(rows.map((row) => ({ ...row })), [
+      { id: "cansu", department: "social" },
+      { id: "sila", department: "design" },
+      { id: "yeni", department: null },
+      // Çok kelimeli isimde ilk kelime eşleşmeli ("Yunus Emre" → yunus).
+      { id: "yunus", department: "video" },
+    ]);
+  });
+
+  it("elle boşaltılan departmanı yeniden doldurmuyor (idempotent)", () => {
+    seedPeopleWithoutDepartment([["yunus", "Yunus Emre"]]);
+
+    const first = getDb();
+    assert.equal(
+      (first.prepare("SELECT department FROM people WHERE id='yunus'").get() as {
+        department: string | null;
+      }).department,
+      "video",
+    );
+    // Kullanıcı arayüzden departmanı kaldırıyor.
+    first.prepare("UPDATE people SET department = NULL WHERE id = 'yunus'").run();
+
+    globalThis.__inturlamDb?.close();
+    globalThis.__inturlamDb = undefined;
+
+    const reopened = getDb();
+    assert.equal(
+      (reopened.prepare("SELECT department FROM people WHERE id='yunus'").get() as {
+        department: string | null;
+      }).department,
+      null,
+      "sütun zaten varsa geri doldurma tekrar çalışmamalı",
     );
   });
 });

@@ -55,6 +55,8 @@ export interface Person {
   title: string | null;
   bio: string | null;
   avatar_path: string | null;
+  // Ekip disiplini (lib/departments.ts). Atanmamışsa null → arayüzde "Diğer".
+  department: string | null;
   active: number;
 }
 

@@ -1,8 +1,12 @@
 "use client";
 
-import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+import Link from "next/link";
+import { useMemo, useState } from "react";
 import EmptyState from "@/components/EmptyState";
+import RangeFilterBar, {
+  PrintButton,
+  type RangeKey,
+} from "@/components/reports/RangeFilterBar";
 import {
   CycleTimePanel,
   DueHealthPanel,
@@ -14,6 +18,13 @@ import {
   TASK_STATUS_PROGRESS,
 } from "@/lib/constants";
 import { downloadCSV, toCSV } from "@/lib/csv";
+import {
+  DEPARTMENTS,
+  NO_DEPARTMENT,
+  NO_DEPARTMENT_LABEL,
+  departmentKey,
+  departmentLabel,
+} from "@/lib/departments";
 import type {
   BrandReportRow,
   CycleTimeReport,
@@ -24,7 +35,7 @@ import type {
   WorkflowReportRow,
 } from "@/lib/repositories/reports";
 
-export type RangeKey = "all" | "week" | "month" | "custom";
+export type { RangeKey };
 
 interface BrandBreakdown {
   brand_id: string;
@@ -49,16 +60,6 @@ export interface PersonReportView extends PersonReportRow {
 export interface BrandReportView extends BrandReportRow {
   people: PersonBreakdown[];
 }
-
-const RANGE_OPTIONS: { key: RangeKey; label: string }[] = [
-  { key: "all", label: "Tümü" },
-  { key: "week", label: "Bu hafta" },
-  { key: "month", label: "Bu ay" },
-  { key: "custom", label: "Özel aralık" },
-];
-
-const inputClass =
-  "min-h-11 rounded-xl border border-black/10 bg-white px-3 text-sm outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15 dark:border-white/15 dark:bg-zinc-950";
 
 function formatRate(value: number | null): string {
   return value == null ? "—" : `%${Math.round(value)}`;
@@ -144,17 +145,50 @@ export default function ReportsClient({
   reportLabel: string;
   generatedAt: string;
 }) {
-  const router = useRouter();
-  const pathname = usePathname();
   const [hideArchived, setHideArchived] = useState(false);
-  const [start, setStart] = useState(customStart);
-  const [end, setEnd] = useState(customEnd);
   const [showPeopleTable, setShowPeopleTable] = useState(true);
   const [showBrandTable, setShowBrandTable] = useState(true);
+  const [departmentFilter, setDepartmentFilter] = useState("");
 
-  const customRangeInvalid = Boolean(start && end && start > end);
   const visibleBrands = hideArchived ? brands.filter((brand) => brand.archived === 0) : brands;
   const workflowTotal = workflow.reduce((total, row) => total + row.task_count, 0);
+
+  // Departman sekmeleri yalnızca ekip tablosunu daraltır; üstteki portföy
+  // özeti ve marka tablosu her zaman tüm ekibi gösterir.
+  const departmentTabs = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const person of people) {
+      const key = departmentKey(person.department);
+      counts.set(key, (counts.get(key) ?? 0) + 1);
+    }
+    return [
+      { id: "", label: "Tümü", count: people.length },
+      ...DEPARTMENTS.map((option) => ({
+        id: option.id as string,
+        label: option.label,
+        count: counts.get(option.id) ?? 0,
+      })),
+      { id: NO_DEPARTMENT, label: NO_DEPARTMENT_LABEL, count: counts.get(NO_DEPARTMENT) ?? 0 },
+    ].filter((tab) => tab.id === "" || tab.count > 0 || tab.id === departmentFilter);
+  }, [people, departmentFilter]);
+
+  const visiblePeople = useMemo(
+    () =>
+      departmentFilter
+        ? people.filter((person) => departmentKey(person.department) === departmentFilter)
+        : people,
+    [people, departmentFilter],
+  );
+
+  // Kişi detayına geçerken seçili dönem korunur — aksi halde "bu ay" raporundan
+  // tıklayan kişi sessizce "tüm zamanlar" verisine düşerdi.
+  const rangeQuery =
+    rangeKey === "all"
+      ? ""
+      : rangeKey === "custom"
+        ? `?range=custom&start=${customStart}&end=${customEnd}`
+        : `?range=${rangeKey}`;
+
   const busiestPerson = people.reduce<PersonReportView | null>(
     (current, person) =>
       !current || person.open_tasks > current.open_tasks ? person : current,
@@ -165,7 +199,7 @@ export default function ReportsClient({
       !current || brand.open_tasks > current.open_tasks ? brand : current,
     null,
   );
-  const maxPersonOpen = Math.max(1, ...people.map((person) => person.open_tasks));
+  const maxPersonOpen = Math.max(1, ...visiblePeople.map((person) => person.open_tasks));
   const maxBrandOpen = Math.max(1, ...visibleBrands.map((brand) => brand.open_tasks));
   const completionCoverage =
     summary.opened_tasks === 0
@@ -176,22 +210,10 @@ export default function ReportsClient({
   const unscheduled = dueHealth.find((row) => row.bucket === "unscheduled")?.task_count ?? 0;
   const dueCoverage = dueTotal === 0 ? null : Math.round(((dueTotal - unscheduled) / dueTotal) * 100);
 
-  function setRange(key: RangeKey) {
-    if (key === "custom") {
-      router.push(`${pathname}?range=custom`);
-      return;
-    }
-    router.push(`${pathname}?range=${key}`);
-  }
-
-  function applyCustomRange() {
-    if (!start || !end || customRangeInvalid) return;
-    router.push(`${pathname}?range=custom&start=${start}&end=${end}`);
-  }
-
   function exportPeopleCSV() {
-    const rows = people.map((person) => ({
+    const rows = visiblePeople.map((person) => ({
       person_name: person.person_name,
+      department: departmentLabel(person.department),
       opened_tasks: person.total_tasks,
       completed_tasks: person.completed_tasks,
       open_tasks: person.open_tasks,
@@ -201,6 +223,7 @@ export default function ReportsClient({
     }));
     const csv = toCSV(rows, [
       { key: "person_name", label: "Kişi" },
+      { key: "department", label: "Departman" },
       { key: "opened_tasks", label: "Dönemde Açılan" },
       { key: "completed_tasks", label: "Dönemde Tamamlanan" },
       { key: "open_tasks", label: "Açık İş Yükü" },
@@ -249,78 +272,9 @@ export default function ReportsClient({
         </div>
       </div>
 
-      <section
-        aria-label="Rapor filtreleri"
-        className="sticky top-[calc(var(--header-h)+0.75rem)] z-20 flex flex-wrap items-center gap-2 rounded-2xl border border-black/10 bg-white/95 p-3 shadow-sm backdrop-blur print:hidden dark:border-white/10 dark:bg-zinc-900/95"
-      >
-        <span className="mr-1 text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-          Dönem
-        </span>
-        {RANGE_OPTIONS.map((option) => (
-          <button
-            key={option.key}
-            type="button"
-            onClick={() => setRange(option.key)}
-            aria-pressed={rangeKey === option.key}
-            className={`min-h-11 rounded-xl px-3 text-sm font-medium transition-colors ${
-              rangeKey === option.key
-                ? "bg-brand-600 text-white"
-                : "text-zinc-600 hover:bg-black/5 dark:text-zinc-300 dark:hover:bg-white/10"
-            }`}
-          >
-            {option.label}
-          </button>
-        ))}
-
-        {rangeKey === "custom" && (
-          <div className="flex w-full flex-wrap items-end gap-2 border-t border-black/5 pt-3 dark:border-white/10 lg:w-auto lg:border-0 lg:pt-0">
-            <label className="grid gap-1 text-xs text-zinc-500 dark:text-zinc-400">
-              Başlangıç
-              <input
-                type="date"
-                value={start}
-                onChange={(event) => setStart(event.target.value)}
-                className={inputClass}
-              />
-            </label>
-            <label className="grid gap-1 text-xs text-zinc-500 dark:text-zinc-400">
-              Bitiş
-              <input
-                type="date"
-                value={end}
-                onChange={(event) => setEnd(event.target.value)}
-                className={inputClass}
-              />
-            </label>
-            <button
-              type="button"
-              onClick={applyCustomRange}
-              disabled={!start || !end || customRangeInvalid}
-              className="min-h-11 rounded-xl bg-brand-600 px-4 text-sm font-medium text-white transition hover:bg-brand-500 disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              Uygula
-            </button>
-            {customRangeInvalid && (
-              <span className="w-full text-xs text-rose-600 dark:text-rose-400">
-                Bitiş tarihi başlangıçtan önce olamaz.
-              </span>
-            )}
-          </div>
-        )}
-
-        <div className="ml-auto flex items-center gap-1">
-          <button
-            type="button"
-            onClick={() => window.print()}
-            className="ui-press inline-flex min-h-11 items-center gap-2 rounded-xl border border-black/10 px-3 text-sm font-medium text-zinc-700 hover:bg-black/5 dark:border-white/10 dark:text-zinc-200 dark:hover:bg-white/10"
-          >
-            <svg viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4" aria-hidden="true">
-              <path fillRule="evenodd" d="M5 2.75A.75.75 0 0 1 5.75 2h8.5a.75.75 0 0 1 .75.75V6h.75A2.25 2.25 0 0 1 18 8.25v5.5A2.25 2.25 0 0 1 15.75 16H15v1.25a.75.75 0 0 1-.75.75h-8.5a.75.75 0 0 1-.75-.75V16h-.75A2.25 2.25 0 0 1 2 13.75v-5.5A2.25 2.25 0 0 1 4.25 6H5V2.75ZM6.5 6h7V3.5h-7V6Zm0 7.5v3h7v-3h-7Z" clipRule="evenodd" />
-            </svg>
-            PDF / Yazdır
-          </button>
-        </div>
-      </section>
+      <RangeFilterBar rangeKey={rangeKey} customStart={customStart} customEnd={customEnd}>
+        <PrintButton />
+      </RangeFilterBar>
 
       <section aria-labelledby="report-summary-title" className="space-y-3">
         <div>
@@ -490,11 +444,12 @@ export default function ReportsClient({
       </section>
 
       <section className="space-y-3">
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h2 className="text-lg font-semibold">Ekip görünümü</h2>
             <p className="text-sm text-zinc-500 dark:text-zinc-400">
-              Performans puanı değil, iş yükü ve teslim görünümü
+              Performans puanı değil, iş yükü ve teslim görünümü — satır
+              sonundaki bağlantı o kişinin detaylı raporunu açar
             </p>
           </div>
           <div className="flex items-center gap-1">
@@ -515,23 +470,62 @@ export default function ReportsClient({
             </button>
           </div>
         </div>
+        {showPeopleTable && (
+          <div
+            className="flex flex-wrap items-center gap-1.5 print:hidden"
+            role="group"
+            aria-label="Departmana göre filtrele"
+          >
+            <span className="mr-1 text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+              Departman
+            </span>
+            {departmentTabs.map((tab) => (
+              <button
+                key={tab.id || "all"}
+                type="button"
+                onClick={() => setDepartmentFilter(tab.id)}
+                aria-pressed={departmentFilter === tab.id}
+                className={`ui-press inline-flex min-h-9 items-center gap-1.5 rounded-full border px-3 text-xs font-medium ${
+                  departmentFilter === tab.id
+                    ? "border-brand-600 bg-brand-600 text-white"
+                    : "border-black/10 bg-white text-zinc-600 hover:bg-black/5 dark:border-white/15 dark:bg-zinc-950 dark:text-zinc-300 dark:hover:bg-white/10"
+                }`}
+              >
+                {tab.label}
+                <span
+                  className={`tabular-nums ${
+                    departmentFilter === tab.id
+                      ? "text-white/75"
+                      : "text-zinc-500 dark:text-zinc-400"
+                  }`}
+                >
+                  {tab.count}
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
         {showPeopleTable &&
-          (people.length > 0 ? (
+          (visiblePeople.length > 0 ? (
         <div className="report-surface ui-enter overflow-x-auto rounded-2xl border border-black/10 bg-white dark:border-white/10 dark:bg-zinc-900">
-          <table className="w-full min-w-[820px] text-sm">
+          <table className="w-full min-w-[1020px] text-sm">
             <thead className="bg-zinc-50/90 dark:bg-zinc-950/70">
               <tr className="border-b border-black/10 text-left text-xs uppercase tracking-wider text-zinc-500 dark:border-white/10 dark:text-zinc-400">
                 <th className="px-4 py-3 font-medium">Kişi</th>
+                <th className="px-3 py-3 font-medium">Departman</th>
                 <th className="px-3 py-3 font-medium">Açılan</th>
                 <th className="px-3 py-3 font-medium">Tamamlanan</th>
                 <th className="px-3 py-3 font-medium">Açık</th>
                 <th className="px-3 py-3 font-medium">Geciken</th>
                 <th className="px-3 py-3 font-medium">Zamanında</th>
                 <th className="px-3 py-3 font-medium">Ort. süre</th>
+                <th className="px-3 py-3 font-medium print:hidden">
+                  <span className="sr-only">Kişi raporu</span>
+                </th>
               </tr>
             </thead>
             <tbody>
-              {people.map((person) => (
+              {visiblePeople.map((person) => (
                 <tr
                   key={person.person_id}
                   className={`border-b border-black/5 transition-colors last:border-0 hover:bg-black/[0.025] dark:border-white/5 dark:hover:bg-white/[0.025] ${
@@ -568,6 +562,9 @@ export default function ReportsClient({
                       )}
                     </details>
                   </td>
+                  <td className="px-3 py-3 text-xs text-zinc-500 dark:text-zinc-400">
+                    {departmentLabel(person.department)}
+                  </td>
                   <td className="px-3 py-3 tabular-nums">{person.total_tasks}</td>
                   <td className="px-3 py-3 font-medium tabular-nums">
                     {person.completed_tasks}
@@ -600,6 +597,17 @@ export default function ReportsClient({
                   <td className="px-3 py-3 tabular-nums">
                     {formatDays(person.average_cycle_days)}
                   </td>
+                  {/* Detay linki kendi sütununda: <summary>'nin içine koymak
+                      satırı açıp kapatan tıklamayla çakışır, içine (açılan
+                      gövdeye) koymak ise satır kapalıyken görünmez yapardı. */}
+                  <td className="px-3 py-3 print:hidden">
+                    <Link
+                      href={`/reports/kisi/${encodeURIComponent(person.person_id)}${rangeQuery}`}
+                      className="whitespace-nowrap text-xs font-semibold text-brand-600 hover:underline dark:text-brand-400"
+                    >
+                      Detaylı rapor →
+                    </Link>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -608,8 +616,27 @@ export default function ReportsClient({
           ) : (
             <EmptyState
               compact
-              title="Ekip raporu için veri yok"
-              description="Görevler kişilere atandığında ekip iş yükü burada görünecek."
+              title={
+                departmentFilter
+                  ? "Bu departmanda kişi yok"
+                  : "Ekip raporu için veri yok"
+              }
+              description={
+                departmentFilter
+                  ? "Ekip sayfasından kişilerin departmanını atayabilirsin."
+                  : "Görevler kişilere atandığında ekip iş yükü burada görünecek."
+              }
+              action={
+                departmentFilter ? (
+                  <button
+                    type="button"
+                    onClick={() => setDepartmentFilter("")}
+                    className="ui-press min-h-11 rounded-xl bg-brand-600 px-4 text-sm font-medium text-white hover:bg-brand-500"
+                  >
+                    Tüm ekibi göster
+                  </button>
+                ) : undefined
+              }
             />
           ))}
       </section>

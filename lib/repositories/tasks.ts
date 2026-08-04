@@ -119,6 +119,62 @@ export function listOpenTasksByAssignee(personId: string): TaskWithContext[] {
   );
 }
 
+// Kişi raporundaki "gecikmiş işler" listesi: en eski teslim tarihi en üstte —
+// rapordaki gecikme sayısının arkasındaki gerçek işleri gösterir.
+export function listOverdueTasksByAssignee(
+  personId: string,
+  today: string,
+): TaskWithContext[] {
+  return plainList<TaskWithContext>(
+    getDb()
+      .prepare(
+        `${WITH_CONTEXT_SELECT}
+         WHERE t.assignee_id = ? AND t.status != 'Yayinlandi'
+           AND t.due_date IS NOT NULL AND t.due_date < ?
+         ORDER BY t.due_date, ${PRIORITY_ORDER_SQL}, b.name`,
+      )
+      .all(personId, today),
+  );
+}
+
+// Bugünden itibaren `days` gün içinde teslim edilecek açık işler (bugün dahil).
+export function listUpcomingTasksByAssignee(
+  personId: string,
+  today: string,
+  days: number,
+): TaskWithContext[] {
+  return plainList<TaskWithContext>(
+    getDb()
+      .prepare(
+        `${WITH_CONTEXT_SELECT}
+         WHERE t.assignee_id = ? AND t.status != 'Yayinlandi'
+           AND t.due_date IS NOT NULL
+           AND t.due_date >= ? AND t.due_date <= date(?, '+' || ? || ' day')
+         ORDER BY t.due_date, ${PRIORITY_ORDER_SQL}, b.name`,
+      )
+      .all(personId, today, today, days),
+  );
+}
+
+// Son tamamlananlar. `completed_at` NULL olan eski kayıtlar (migration öncesi)
+// listeye girmez — tarihsiz bir "en son" satırı sıralamayı yanıltırdı.
+export function listCompletedTasksByAssignee(
+  personId: string,
+  limit: number,
+): TaskWithContext[] {
+  return plainList<TaskWithContext>(
+    getDb()
+      .prepare(
+        `${WITH_CONTEXT_SELECT}
+         WHERE t.assignee_id = ? AND t.status = 'Yayinlandi'
+           AND t.completed_at IS NOT NULL
+         ORDER BY t.completed_at DESC, t.rowid DESC
+         LIMIT ?`,
+      )
+      .all(personId, limit),
+  );
+}
+
 export function createTask(input: {
   contentItemId: string;
   title: string;

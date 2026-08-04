@@ -8,9 +8,9 @@ import TaskGridCard from "@/components/TaskGridCard";
 import { setActiveBrandAction } from "@/lib/actions/activeWork";
 import { hashColor } from "@/lib/colorHash";
 import {
-  groupPeopleByWorkstream,
-  type TeamWorkstreamId,
-} from "@/lib/teamWorkstreams";
+  groupPeopleByDepartment,
+  type DepartmentKey,
+} from "@/lib/departments";
 import type {
   Brand,
   Person,
@@ -29,10 +29,7 @@ function formatUpdatedAt(value: string): string {
   }).format(new Date(isoValue));
 }
 
-const workstreamTone: Record<
-  TeamWorkstreamId | "other",
-  { dot: string; badge: string }
-> = {
+const workstreamTone: Record<DepartmentKey, { dot: string; badge: string }> = {
   video: {
     dot: "bg-sky-500",
     badge: "bg-sky-500/10 text-sky-700 dark:text-sky-300",
@@ -88,7 +85,7 @@ export default function ActiveWorkBoard({
   }
 
   const workstreamRows = useMemo(
-    () => groupPeopleByWorkstream(people),
+    () => groupPeopleByDepartment(people),
     [people],
   );
 

@@ -45,6 +45,17 @@ kategorilere (`clusters` tablosu) ayrılır. Her markanın ayrıca Instagram ara
   çağırır. Dev sunucusu DB'yi açık tutarken yeni tablo/sütun eklendiğinde onun eski bağlantısı
   tabloyu göremez ("no such table"); bu komut şemayı ayrı bir bağlantıdan uygular, SQLite değişikliği
   diğer bağlantılara yansıtır — sunucuyu yeniden başlatmaya gerek kalmaz.
+- Departman: `people.department` (düz, nullable TEXT — CHECK/FK yok). Geçerli değerler
+  `lib/departments.ts`'teki `DEPARTMENTS` id'leri; tanınmayan/boş değer arayüzde "Diğer"
+  sayılır (`departmentKey()` / `departmentLabel()`). Kişileri gruplamak için
+  `groupPeopleByDepartment()`. Departman GÖREVİN değil KİŞİNİN alanı: görev/rapor
+  ekranlarındaki departman filtresi atanan üzerinden dolaylı çalışır, bu yüzden bir
+  departman seçiliyken **atanmamış görevler listeden düşer**.
+- Raporlar iki kapsamda çalışır: `lib/repositories/reports.ts`'teki sayaç fonksiyonlarının
+  hepsi isteğe bağlı bir `scope: PersonScope` (kişi id'si) parametresi alır. `null` →
+  portföy geneli (`/reports`), id → tek kişi (`/reports/kisi/[personId]`). Aynı SQL'i
+  ikinci kez yazma; yeni bir rapor sorgusu eklerken `scopeCondition()`/`scopeParams()`
+  desenini kullan, yoksa kişi raporu sessizce tüm ekibin sayılarını gösterir.
 - Demo veri: `db/seed-demo.mts` (`npm run db:seed:demo`) — uygulamayı elle gezerek test etmek için
   14 içerik + 41 görev + yorum + aktivite yazar. Tüm id'ler `demo-` ön ekli; script her çalıştığında
   önce bu kayıtları silip yeniden yazar (idempotent), `-- --clean` ile sadece siler. Gerçek veriye
@@ -116,6 +127,18 @@ kategorilere (`clusters` tablosu) ayrılır. Her markanın ayrıca Instagram ara
   göre değil de kişi listesi sırasına göre denersen kısa isim uzun ismi böler, yanlış kişiye
   bildirim gider. Bildirim üretimi (`extractMentionedPeople`) ve yorum metnindeki vurgulama
   (`CommentItem`) AYNI `findMentionMatches`'ı çağırır — biri güncellenip diğeri unutulamaz.
+- **SVG `<title>` içine TEK bir metin çocuğu koy:** `<title>{a}: {b} görev</title>` biçimi
+  birden çok text node üretiyor; React bunları SSR çıktısında ayırıcı yorumlarla yazıp
+  hydration'da eşleştiremiyor ve tüm ağaç istemcide baştan çiziliyor ("Hydration failed",
+  `ReportVisuals.tsx`'teki `TrendChart`'ta bir süre sessizce yaşadı). Doğrusu tek bir
+  template literal: `<title>{`${a}: ${b} görev`}</title>`. Grafik tooltip'i yazarken dikkat.
+- **Departman geri doldurması bir kereliktir:** `migratePeopleDepartmentIfNeeded`
+  (`lib/db/client.ts`) sütunu eklerken eski ilk-isim eşlemesinden (DONMUŞ
+  `LEGACY_DEPARTMENT_FIRST_NAMES` listesi) departmanları yazar, ama guard "sütun var mı"
+  diye baktığı için **ikinci açılışta hiç çalışmaz** — kullanıcı birinin departmanını
+  arayüzden boşaltırsa geri gelmez, olması gereken de bu. Aynı sebeple `db/seed.mts`
+  departmanı `COALESCE(people.department, excluded.department)` ile yazıyor: seed, elle
+  yapılan departman değişikliğini ezmez. Bu iki yerden birini değiştirirken diğerini de gör.
 - **Sunucu props'unu optimistic client state'e `useEffect` OLMADAN yansıt:** `NotificationBell`
   gelen `notifications`/`unreadCount` prop'larını yerel state'e kopyalayıp bir `useEffect` içinde
   senkronlamıyor (bu `react-hooks/set-state-in-effect`'e takılırdı, bkz. yukarıdaki Sidebar notu —

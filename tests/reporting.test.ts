@@ -17,10 +17,18 @@ const {
   listDueHealthReport,
   listPersonBrandBreakdown,
   listPersonReport,
+  listPriorityReport,
   listWorkflowReport,
 } = await import("@/lib/repositories/reports");
-const { bulkUpdateTaskStatus, listAllTasks, updateTaskDetails, updateTaskStatus } =
-  await import("@/lib/repositories/tasks");
+const {
+  bulkUpdateTaskStatus,
+  listAllTasks,
+  listCompletedTasksByAssignee,
+  listOverdueTasksByAssignee,
+  listUpcomingTasksByAssignee,
+  updateTaskDetails,
+  updateTaskStatus,
+} = await import("@/lib/repositories/tasks");
 
 function resetDb(): void {
   globalThis.__inturlamDb?.close();
@@ -425,5 +433,171 @@ describe("rapor hesapları", () => {
       { bucket: "later", label: "Daha sonra", task_count: 0 },
       { bucket: "unscheduled", label: "Tarihsiz", task_count: 0 },
     ]);
+  });
+});
+
+// Kişi raporu (/reports/kisi/[personId]) portföy raporuyla AYNI sorguları
+// kullanıyor, sadece `scope` parametresiyle. Buradaki testler asıl riski
+// kilitliyor: kapsam eklenince sayılar sessizce tüm ekibi kapsamasın.
+describe("kişi bazlı rapor kapsamı", () => {
+  function seedTwoPeople(db: DatabaseSync): void {
+    seedBase(db);
+    // p1: 1 tamamlanan (zamanında) + 1 gecikmiş açık
+    insertTask(db, {
+      id: "a1",
+      status: "Yayinlandi",
+      createdAt: "2026-07-01 00:00:00",
+      completedAt: "2026-07-05 00:00:00",
+      dueDate: "2026-07-06",
+      assigneeId: "p1",
+    });
+    insertTask(db, {
+      id: "a2",
+      status: "DevamEdiyor",
+      createdAt: "2026-07-02 00:00:00",
+      dueDate: "2026-07-20",
+      assigneeId: "p1",
+    });
+    // p2: 1 tamamlanan (geç) + 1 yaklaşan açık
+    insertTask(db, {
+      id: "b1",
+      status: "Yayinlandi",
+      createdAt: "2026-07-01 00:00:00",
+      completedAt: "2026-07-20 00:00:00",
+      dueDate: "2026-07-10",
+      assigneeId: "p2",
+    });
+    insertTask(db, {
+      id: "b2",
+      status: "Beklemede",
+      createdAt: "2026-07-03 00:00:00",
+      dueDate: "2026-07-27",
+      assigneeId: "p2",
+    });
+  }
+
+  const range = { start: "2026-07-01", end: "2026-07-31" };
+  const today = "2026-07-25";
+
+  it("özet, akış ve teslim sağlığını yalnızca o kişiye daraltıyor", () => {
+    const db = getDb();
+    seedTwoPeople(db);
+
+    assert.deepEqual(getReportSummary(range, today, "p1"), {
+      opened_tasks: 2,
+      completed_tasks: 1,
+      open_tasks: 1,
+      overdue_tasks: 1,
+      on_time_rate: 100,
+      average_cycle_days: 4,
+    });
+    assert.deepEqual(getReportSummary(range, today, "p2"), {
+      opened_tasks: 2,
+      completed_tasks: 1,
+      open_tasks: 1,
+      overdue_tasks: 0,
+      on_time_rate: 0,
+      average_cycle_days: 19,
+    });
+
+    // Kapsamsız çağrı eskisi gibi tüm ekibi kapsamalı.
+    assert.equal(getReportSummary(range, today).completed_tasks, 2);
+
+    assert.deepEqual(
+      listWorkflowReport("p1").map(({ status, task_count }) => [status, task_count]),
+      [
+        ["Beklemede", 0],
+        ["DevamEdiyor", 1],
+        ["Incelemede", 0],
+        ["Onaylandi", 0],
+      ],
+    );
+
+    assert.deepEqual(
+      listDueHealthReport(today, "p2").map(({ bucket, task_count }) => [bucket, task_count]),
+      [
+        ["overdue", 0],
+        ["today", 0],
+        ["next_seven", 1],
+        ["later", 0],
+        ["unscheduled", 0],
+      ],
+    );
+
+    assert.equal(getCycleTimeReport(range, "p1").sample_size, 1);
+    assert.equal(getCycleTimeReport(range, "p1").average_days, 4);
+    assert.equal(getCycleTimeReport(range).sample_size, 2);
+  });
+
+  it("trend ve marka dağılımını kişiye göre süzüyor", () => {
+    const db = getDb();
+    seedTwoPeople(db);
+
+    const trend = getTrendReport(range, "p1");
+    assert.equal(
+      trend.points.find((point) => point.key === "2026-07-05")?.completed_tasks,
+      1,
+    );
+    assert.equal(
+      trend.points.find((point) => point.key === "2026-07-20")?.completed_tasks,
+      0,
+      "p2'nin tamamladığı iş p1'in trendinde görünmemeli",
+    );
+
+    const breakdown = listPersonBrandBreakdown(range, "p1");
+    assert.equal(breakdown.length, 1);
+    assert.deepEqual(breakdown[0], {
+      person_id: "p1",
+      brand_id: "b1",
+      brand_name: "Test Marka",
+      total_tasks: 2,
+      completed_tasks: 1,
+      open_tasks: 1,
+    });
+    assert.equal(listPersonBrandBreakdown(range).length, 2);
+  });
+
+  it("öncelik dağılımı açık işleri sayıyor, gecikmeyi ayrıca işaretliyor", () => {
+    const db = getDb();
+    seedTwoPeople(db);
+
+    assert.deepEqual(
+      listPriorityReport(today, "p1").map(({ priority, open_tasks, overdue_tasks }) => [
+        priority,
+        open_tasks,
+        overdue_tasks,
+      ]),
+      [
+        ["Acil", 0, 0],
+        ["Yuksek", 0, 0],
+        // Varsayılan öncelik Normal; a2'nin teslimi 20 Temmuz, bugün 25 Temmuz.
+        ["Normal", 1, 1],
+        ["Dusuk", 0, 0],
+      ],
+    );
+  });
+
+  it("kişinin gecikmiş / yaklaşan / son tamamlanan görev listelerini veriyor", () => {
+    const db = getDb();
+    seedTwoPeople(db);
+
+    assert.deepEqual(
+      listOverdueTasksByAssignee("p1", today).map((task) => task.id),
+      ["a2"],
+    );
+    assert.deepEqual(listOverdueTasksByAssignee("p2", today), []);
+
+    // 25 Temmuz + 7 gün → b2 (27 Temmuz) girer, a2 (20 Temmuz, gecikmiş) girmez.
+    assert.deepEqual(
+      listUpcomingTasksByAssignee("p2", today, 7).map((task) => task.id),
+      ["b2"],
+    );
+    assert.deepEqual(listUpcomingTasksByAssignee("p1", today, 7), []);
+
+    assert.deepEqual(
+      listCompletedTasksByAssignee("p1", 5).map((task) => task.id),
+      ["a1"],
+    );
+    assert.equal(listCompletedTasksByAssignee("p2", 5).length, 1);
   });
 });
