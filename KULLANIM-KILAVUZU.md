@@ -285,24 +285,43 @@ arşive düşer. Yanlış sütuna sürüklediysen kartı geri sürüklemen yeter
 geciken ve zamanında tamamlanan görevlerin operasyon özeti görünür. Altında aktif
 iş akışının durum dağılımı ile kişi ve marka tabloları bulunur.
 
+**Kartlar katlanabilir:** grafik/dağılım kartlarının (İş akış trendi, Tamamlanma süresi,
+Teslim sağlığı, Kişi/Marka bazlı iş yükü, Aktif iş akışı ve kişi/departman raporundaki
+karşılıkları) başlığına tıklayınca kart kapanır, yer kaplamaz. **Kapattığın kartlar
+tarayıcında hatırlanır** — sayfayı yenilediğinde ya da başka bir rapora geçtiğinde kapalı
+kalır, tekrar açmak için başlığa yeniden tıklaman yeterli. Bu tercih kişiye/tarayıcıya
+özeldir, diğer kullanıcıları etkilemez.
+
 **Tümü / Bu hafta / Bu ay / Özel aralık** seçenekleriyle dönemi değiştirebilirsin.
-En yoğun kişi ve marka ayrıca işaretlenir. Kişi veya marka satırını açarak ayrıntılı
+En yoğun kişi, departman ve marka ayrıca işaretlenir. Satırları açarak ayrıntılı
 dökümü görebilir, tabloları gizleyebilir veya CSV olarak indirebilirsin.
 
-**Ekip görünümü** tablosunun üstünde **departman sekmeleri** var: tabloyu sadece
-Video / Tasarım / Sosyal Medya / Yönetim ekibine daraltabilirsin. CSV indirmesi de
-o an ekranda görünen kişileri (ve departman sütununu) içerir.
+**Departman görünümü** tablosu her departmanın toplamını yan yana koyar: kaç kişi
+(kaçı aktif), dönemde açılan/tamamlanan, açık iş yükü, geciken, zamanında tamamlama
+ve ortalama süre. Departman adına tıklayınca o departmandaki kişiler tek tek açılır,
+satır sonundaki **"Detaylı rapor →"** ise departmanın kendi raporunu açar.
+
+**Ekip görünümü** tablosunun üstünde ayrıca **departman sekmeleri** var: kişi
+tablosunu sadece Video / Tasarım / Sosyal Medya / Yönetim ekibine daraltabilirsin.
+CSV indirmesi de o an ekranda görünen kişileri (ve departman sütununu) içerir.
+
+> **Departman kişinin alanıdır, görevin değil.** Bir görev, atandığı kişinin
+> departmanına sayılır; **atanmamış görevler hiçbir departmanın raporuna girmez**.
+> Departmanı boş bırakılan (ya da artık kullanılmayan bir departmana bağlı) kişiler
+> **"Diğer"** satırında toplanır. Kişilerin departmanı **Ekip → kişi → Departman**
+> alanından değiştirilir.
 
 ### Excel dökümü
 
 Dönem düğmelerinin sağındaki **"Excel dökümü"** tek bir `.xlsx` dosyası indirir ve
 o dosya **sadece sayı değil, işin kendisini** taşır. Seçtiğin dönem neyse döküm de
-onu kapsar. Dosyanın içinde 4 sayfa var:
+onu kapsar. Dosyanın içinde 5 sayfa var:
 
 | Sayfa | İçindekiler |
 |---|---|
 | **Özet** | Ekranda gördüğün görünümün kendisi: operasyon özeti, iş akışı dağılımı, teslim sağlığı, tamamlanma süresi ve trend tablosu |
 | **Görev dökümü** | Satır satır her görev: **adı**, markası, **kategorisi**, içeriği, içerik türü, sorumlusu, departmanı, durumu, önceliği, teslim/açılış/tamamlanma tarihleri, kaç günde bittiği, gecikmiş mi, yorum sayısı, arşivde mi |
+| **Departman** | Departman tablosunun tamamı (kişi ve aktif kişi sayısıyla) |
 | **Ekip** | Kişi tablosunun tamamı |
 | **Marka** | Marka tablosunun tamamı (kategori sütunuyla) |
 
@@ -339,6 +358,30 @@ kişiye ait tam bir rapor açar. Seçtiğin dönem korunarak açılır. İçinde
 
 > Bu rapor bir performans puanı değildir; iş yükünün nerede biriktiğini ve neyin
 > geciktiğini göstermek için var.
+
+### Departman bazlı detaylı rapor
+
+**Departman görünümü** tablosunda her satırın sonundaki **"Detaylı rapor →"**
+bağlantısı o departmanın tam raporunu açar (seçtiğin dönem korunur). Kişi raporunun
+departman karşılığıdır; farkları:
+
+- **Özet** paragrafı departmanın kaç kişi olduğunu ve **kişi başına kaç açık iş**
+  düştüğünü de söyler — 2 kişilik ekibin 10 açık işi ile 6 kişilik ekibin 10 açık
+  işi aynı şey değildir.
+- **Pay çubukları** ekip ortalamasıyla değil **portföy geneliyle** kıyaslar:
+  portföydeki açık işin ve dönemde tamamlananların yüzde kaçı bu departmanda.
+- **Departmandaki kişiler** tablosu yükün departman içinde kimde biriktiğini
+  gösterir; satır sonundan doğrudan kişinin kendi raporuna geçilir. Pasif kişiler de
+  listede kalır (geçmiş işleri departmana sayılmaya devam eder).
+- **Hangi markalara çalışıyor**, **iş akış trendi**, **tamamlanma süresi**, **teslim
+  sağlığı**, **açık işlerin aşaması/önceliği** — hepsi departmanın tamamı için.
+- **Gecikmiş işler / Önümüzdeki 7 gün / Son tamamlananlar** listelerinde her satırda
+  ayrıca **kimin işi olduğu** yazar.
+- Sağ üstte **"Görevleri aç"** (o departmana filtrelenmiş Görevler sayfası), **CSV**,
+  **Excel dökümü** (Özet + Görev dökümü + yalnızca o departmanın Ekip tablosu) ve
+  **PDF / Yazdır**.
+
+Departmanı atanmamış kişileri görmek için **"Diğer"** satırının detay raporunu aç.
 
 ---
 

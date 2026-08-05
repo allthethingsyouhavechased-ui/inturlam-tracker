@@ -1,4 +1,6 @@
 import { getDb, plainList, plainOne } from "@/lib/db/client";
+import { NO_DEPARTMENT, type DepartmentKey } from "@/lib/departments";
+import { departmentPeopleCondition } from "@/lib/repositories/people";
 import { ARCHIVE_AFTER_DAYS } from "@/lib/taskArchive";
 import type { Task, TaskPriority, TaskStatus, TaskWithContext } from "@/lib/types";
 
@@ -150,27 +152,56 @@ export function listBoardTasksByAssignee(personId: string): TaskWithContext[] {
   );
 }
 
-// Kişi raporundaki "gecikmiş işler" listesi: en eski teslim tarihi en üstte —
+// Rapor listeleri iki kapsamda çalışıyor: tek kişi (`/reports/kisi/...`) ve tek
+// departman (`/reports/departman/...`). SQL tek yerde kalsın diye koşul burada
+// üretiliyor; departman kapsamı `people.department` üzerinden dolaylı çalışır
+// (bkz. `departmentPeopleCondition`) — atanmamış görev hiçbir departmana girmez.
+type TaskScope = { personId: string } | { department: DepartmentKey };
+
+function taskScopeCondition(scope: TaskScope): string {
+  return "personId" in scope
+    ? "t.assignee_id = :personId"
+    : departmentPeopleCondition(scope.department, "t.assignee_id");
+}
+
+function taskScopeParams(scope: TaskScope): Record<string, string | number> {
+  if ("personId" in scope) return { personId: scope.personId };
+  // "Diğer" kovasının koşulu parametresiz (sabit NOT IN listesi).
+  return scope.department === NO_DEPARTMENT ? {} : { department: scope.department };
+}
+
+// Raporlardaki "gecikmiş işler" listesi: en eski teslim tarihi en üstte —
 // rapordaki gecikme sayısının arkasındaki gerçek işleri gösterir.
-export function listOverdueTasksByAssignee(
-  personId: string,
-  today: string,
-): TaskWithContext[] {
+function listOverdueTasksForScope(scope: TaskScope, today: string): TaskWithContext[] {
   return plainList<TaskWithContext>(
     getDb()
       .prepare(
         `${WITH_CONTEXT_SELECT}
-         WHERE t.assignee_id = ? AND t.status != 'Yayinlandi'
-           AND t.due_date IS NOT NULL AND t.due_date < ?
+         WHERE ${taskScopeCondition(scope)} AND t.status != 'Yayinlandi'
+           AND t.due_date IS NOT NULL AND t.due_date < :today
          ORDER BY t.due_date, ${PRIORITY_ORDER_SQL}, b.name`,
       )
-      .all(personId, today),
+      .all({ ...taskScopeParams(scope), today }),
   );
 }
 
-// Bugünden itibaren `days` gün içinde teslim edilecek açık işler (bugün dahil).
-export function listUpcomingTasksByAssignee(
+export function listOverdueTasksByAssignee(
   personId: string,
+  today: string,
+): TaskWithContext[] {
+  return listOverdueTasksForScope({ personId }, today);
+}
+
+export function listOverdueTasksByDepartment(
+  department: DepartmentKey,
+  today: string,
+): TaskWithContext[] {
+  return listOverdueTasksForScope({ department }, today);
+}
+
+// Bugünden itibaren `days` gün içinde teslim edilecek açık işler (bugün dahil).
+function listUpcomingTasksForScope(
+  scope: TaskScope,
   today: string,
   days: number,
 ): TaskWithContext[] {
@@ -178,32 +209,60 @@ export function listUpcomingTasksByAssignee(
     getDb()
       .prepare(
         `${WITH_CONTEXT_SELECT}
-         WHERE t.assignee_id = ? AND t.status != 'Yayinlandi'
+         WHERE ${taskScopeCondition(scope)} AND t.status != 'Yayinlandi'
            AND t.due_date IS NOT NULL
-           AND t.due_date >= ? AND t.due_date <= date(?, '+' || ? || ' day')
+           AND t.due_date >= :today
+           AND t.due_date <= date(:today, '+' || :days || ' day')
          ORDER BY t.due_date, ${PRIORITY_ORDER_SQL}, b.name`,
       )
-      .all(personId, today, today, days),
+      .all({ ...taskScopeParams(scope), today, days }),
   );
+}
+
+export function listUpcomingTasksByAssignee(
+  personId: string,
+  today: string,
+  days: number,
+): TaskWithContext[] {
+  return listUpcomingTasksForScope({ personId }, today, days);
+}
+
+export function listUpcomingTasksByDepartment(
+  department: DepartmentKey,
+  today: string,
+  days: number,
+): TaskWithContext[] {
+  return listUpcomingTasksForScope({ department }, today, days);
 }
 
 // Son tamamlananlar. `completed_at` NULL olan eski kayıtlar (migration öncesi)
 // listeye girmez — tarihsiz bir "en son" satırı sıralamayı yanıltırdı.
-export function listCompletedTasksByAssignee(
-  personId: string,
-  limit: number,
-): TaskWithContext[] {
+function listCompletedTasksForScope(scope: TaskScope, limit: number): TaskWithContext[] {
   return plainList<TaskWithContext>(
     getDb()
       .prepare(
         `${WITH_CONTEXT_SELECT}
-         WHERE t.assignee_id = ? AND t.status = 'Yayinlandi'
+         WHERE ${taskScopeCondition(scope)} AND t.status = 'Yayinlandi'
            AND t.completed_at IS NOT NULL
          ORDER BY t.completed_at DESC, t.rowid DESC
-         LIMIT ?`,
+         LIMIT :limit`,
       )
-      .all(personId, limit),
+      .all({ ...taskScopeParams(scope), limit }),
   );
+}
+
+export function listCompletedTasksByAssignee(
+  personId: string,
+  limit: number,
+): TaskWithContext[] {
+  return listCompletedTasksForScope({ personId }, limit);
+}
+
+export function listCompletedTasksByDepartment(
+  department: DepartmentKey,
+  limit: number,
+): TaskWithContext[] {
+  return listCompletedTasksForScope({ department }, limit);
 }
 
 export function createTask(input: {

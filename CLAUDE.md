@@ -58,9 +58,14 @@ kategorilere (`clusters` tablosu) ayrılır. Her markanın ayrıca Instagram ara
 - Departman: `people.department` (düz, nullable TEXT — CHECK/FK yok). Geçerli değerler
   `lib/departments.ts`'teki `DEPARTMENTS` id'leri; tanınmayan/boş değer arayüzde "Diğer"
   sayılır (`departmentKey()` / `departmentLabel()`). Kişileri gruplamak için
-  `groupPeopleByDepartment()`. Departman GÖREVİN değil KİŞİNİN alanı: görev/rapor
+  `groupPeopleByDepartment()`, rapor satırlarını sabit sıraya dizip eksikleri sıfırlamak
+  için `withAllDepartments()`. Departman GÖREVİN değil KİŞİNİN alanı: görev/rapor
   ekranlarındaki departman filtresi atanan üzerinden dolaylı çalışır, bu yüzden bir
-  departman seçiliyken **atanmamış görevler listeden düşer**.
+  departman seçiliyken **atanmamış görevler listeden düşer**. SQL tarafındaki karşılığı
+  `lib/repositories/people.ts`'te: `departmentPeopleCondition()` (görev sorgusunu
+  departmana daraltan alt sorgu) ve `departmentBucketExpression()` (`people.department`
+  → rapor kovası). İkisi de `DEPARTMENTS` id'lerini SQL'e gömer — kod sabiti, kullanıcı
+  girdisi değil.
 - Excel dökümü: `/reports/export` route handler → `lib/reportWorkbook.ts` (veri → sayfa) →
   `lib/xlsx.ts` (bağımlılıksız XLSX yazıcı, `node:zlib` ile elle ZIP). Rapor EKRANLARI
   yalnızca sayı gösteriyor; döküm ayrıca `listTaskDetailReport()` ile satır satır işleri
@@ -68,11 +73,31 @@ kategorilere (`clusters` tablosu) ayrılır. Her markanın ayrıca Instagram ara
   değil route handler'dan çağrılır — `node:zlib` istemci paketine girmesin diye.
   Sayfa/hücre yapısı `tests/xlsx.test.ts`'te ZIP'i merkezi dizinden okuyarak (Excel'in
   izlediği yol) doğrulanıyor; offset hesabını değiştirirsen o test tutar.
-- Raporlar iki kapsamda çalışır: `lib/repositories/reports.ts`'teki sayaç fonksiyonlarının
-  hepsi isteğe bağlı bir `scope: PersonScope` (kişi id'si) parametresi alır. `null` →
-  portföy geneli (`/reports`), id → tek kişi (`/reports/kisi/[personId]`). Aynı SQL'i
-  ikinci kez yazma; yeni bir rapor sorgusu eklerken `scopeCondition()`/`scopeParams()`
-  desenini kullan, yoksa kişi raporu sessizce tüm ekibin sayılarını gösterir.
+- Raporlar üç kapsamda çalışır: `lib/repositories/reports.ts`'teki sayaç fonksiyonlarının
+  hepsi isteğe bağlı bir `scope: ReportScope` parametresi alır. `null` → portföy geneli
+  (`/reports`), kişi id'si (string) → tek kişi (`/reports/kisi/[personId]`),
+  `{ department }` → tek departman (`/reports/departman/[departmentId]`). Aynı SQL'i
+  ikinci kez yazma; yeni bir rapor sorgusu eklerken `scopeExpression()`/`scopeCondition()`/
+  `scopeParams()` desenini kullan, yoksa kapsamlı rapor sessizce tüm ekibin sayılarını
+  gösterir. Departman kapsamı `assignee_id` üzerinden dolaylı çalıştığı için
+  **atanmamış görevler hiçbir departmanın sayısına girmez** — bilinçli.
+  Rapor listelerinin görev tarafı (`gecikmiş/yaklaşan/son tamamlanan`) da aynı ikiliği
+  taşır: `lib/repositories/tasks.ts`'teki `list*TasksByAssignee` / `list*TasksByDepartment`
+  çiftleri tek bir özel `list*TasksForScope` gövdesini paylaşır.
+- Üç rapor ekranının (portföy/kişi/departman) ortak yapı taşları
+  `components/reports/ReportPrimitives.tsx`'te (`MetricCard`, `ShareBar`, `TaskRow`,
+  `TaskListPanel`, `WorkflowBreakdownPanel`, `PriorityBreakdownPanel`,
+  `BrandBreakdownPanel`, `formatRate`/`formatDays`/`comparePeriod`). `MetricCard` ve
+  dağılım kartları bir dönem iki dosyada birebir kopyalanmıştı; yeni bir rapor ekranı
+  yazarken üçüncü kopyayı üretme.
+- Rapor kartları `components/reports/CollapsiblePanel.tsx` ile katlanıyor. Tercih
+  `localStorage`'da (`inturlam.reportPanels`) ve **yalnızca KAPALI kartlar** saklanıyor:
+  varsayılan açık durum depoda yer tutmasın ki sonradan eklenen bir kart eski kayıtla
+  sessizce kapalı gelmesin. Depo okuması `useSyncExternalStore` ile (efekt + `setState`
+  değil, bkz. Sidebar notu); sunucu anlık görüntüsü hep varsayılan olduğu için SSR
+  çıktısı sabit, kapalı kartlar hydration'dan sonra kapanıyor. `panelKey` aynı olan
+  kartlar tek tercihi paylaşır — kişi ve departman raporundaki eşdeğer kartlar bilinçli
+  olarak `scope-*` anahtarlarını paylaşıyor.
 - Demo veri: `db/seed-demo.mts` (`npm run db:seed:demo`) — uygulamayı elle gezerek test etmek için
   14 içerik + 41 görev + yorum + aktivite yazar. Tüm id'ler `demo-` ön ekli; script her çalıştığında
   önce bu kayıtları silip yeniden yazar (idempotent), `-- --clean` ile sadece siler. Gerçek veriye
@@ -144,6 +169,20 @@ kategorilere (`clusters` tablosu) ayrılır. Her markanın ayrıca Instagram ara
   göre değil de kişi listesi sırasına göre denersen kısa isim uzun ismi böler, yanlış kişiye
   bildirim gider. Bildirim üretimi (`extractMentionedPeople`) ve yorum metnindeki vurgulama
   (`CommentItem`) AYNI `findMentionMatches`'ı çağırır — biri güncellenip diğeri unutulamaz.
+- **SQLite'ta `GROUP BY`/`ORDER BY` takma adı DEĞİL kaynak sütunu seçer:**
+  `SELECT CASE ... END AS department ... GROUP BY department` yazarsan, `people` tablosunda
+  zaten `department` adında bir sütun olduğu için gruplama CASE'in sonucuna değil ham
+  sütuna göre yapılır — `listDepartmentReport`'ta NULL ile tanınmayan değer ayrı satır
+  kalıp "Diğer" ikiye bölünmüştü (test yakaladı). Çıktı takma adı bir kaynak sütunla
+  aynı adı taşıyorsa GROUP BY/ORDER BY'da **ifadenin kendisini** tekrarla.
+- **Rapor sayaçlarında `LEFT JOIN` + "tüm zamanlar" tuzağı:** dönem koşulu aralık
+  verilmediğinde sabit `1 = 1` üretiyor; `LEFT JOIN tasks`'ın görevi olmayan kişi/marka
+  için ürettiği boş satır bu koşulu geçtiğinden "1 açılan iş" gibi sayılıyordu. Açılan
+  işi sayan her `SUM(CASE WHEN <dönem> ...)` ifadesine `t.id IS NOT NULL AND` ekle
+  (`listPersonReport`, `listBrandReport`, `listDepartmentReport`'ta var).
+- **SQL'i template literal içinde yazarken yorumlara backtick koyma:** `-- \`t.id\`` gibi
+  bir SQL yorumu template literal'i erkenden kapatır, hata satır numarasıyla birlikte
+  anlamsız `TS1005` olarak döner. SQL yorumlarında çift tırnak kullan.
 - **SVG `<title>` içine TEK bir metin çocuğu koy:** `<title>{a}: {b} görev</title>` biçimi
   birden çok text node üretiyor; React bunları SSR çıktısında ayırıcı yorumlarla yazıp
   hydration'da eşleştiremiyor ve tüm ağaç istemcide baştan çiziliyor ("Hydration failed",

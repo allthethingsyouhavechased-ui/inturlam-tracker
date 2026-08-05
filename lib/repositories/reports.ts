@@ -1,4 +1,9 @@
 import { getDb, plainList, plainOne } from "@/lib/db/client";
+import { NO_DEPARTMENT, type DepartmentKey } from "@/lib/departments";
+import {
+  departmentBucketExpression,
+  departmentPeopleCondition,
+} from "@/lib/repositories/people";
 import type { TaskPriority, TaskStatus } from "@/lib/types";
 
 export interface DateRange {
@@ -6,18 +11,46 @@ export interface DateRange {
   end: string;
 }
 
-// Raporların çoğu hem portföy geneli hem de tek kişi için çalışıyor. Kapsam
-// null ise sorgu tüm görevleri kapsar; bir kişi id'si verilirse `t.assignee_id`
-// üzerinden daraltılır. Aynı SQL'i iki kez yazmamak için tüm sayaç
-// fonksiyonları bu isteğe bağlı parametreyi alıyor.
-export type PersonScope = string | null;
+// Raporların çoğu üç kapsamda birden çalışıyor: portföy geneli (`null`), tek
+// kişi (kişi id'si) ve tek departman (`{ department }`). Aynı SQL'i üç kez
+// yazmamak için tüm sayaç fonksiyonları bu isteğe bağlı parametreyi alıyor.
+//
+// Departman kapsamı `people.department` üzerinden DOLAYLI çalışır (bkz.
+// `departmentPeopleCondition`): atanmamış görevler hiçbir departmana sayılmaz.
+export type ReportScope = string | { department: DepartmentKey } | null;
 
-function scopeCondition(scope: PersonScope): string {
-  return scope ? "AND t.assignee_id = :personId" : "";
+/** Departman kapsamını okunur biçimde kurmak için — `scope(departmentScope("video"))`. */
+export function departmentScope(department: DepartmentKey): ReportScope {
+  return { department };
 }
 
-function scopeParams(scope: PersonScope): { personId: string } | undefined {
-  return scope ? { personId: scope } : undefined;
+function isDepartmentScope(scope: ReportScope): scope is { department: DepartmentKey } {
+  return typeof scope === "object" && scope !== null;
+}
+
+// Kapsam koşulunun kendisi (AND/WHERE eki olmadan). `column` çağıranın
+// sorgusundaki atanan sütununun tam adı — `getTrendReport`'un alt sorgusunda
+// tablo takma adı yok, orası `assignee_id` geçiyor.
+function scopeExpression(scope: ReportScope, column = "t.assignee_id"): string | null {
+  if (!scope) return null;
+  if (isDepartmentScope(scope)) return departmentPeopleCondition(scope.department, column);
+  return `${column} = :personId`;
+}
+
+function scopeCondition(scope: ReportScope, column = "t.assignee_id"): string {
+  const expression = scopeExpression(scope, column);
+  return expression ? `AND ${expression}` : "";
+}
+
+function scopeParams(
+  scope: ReportScope,
+): { personId: string } | { department: string } | undefined {
+  if (!scope) return undefined;
+  if (isDepartmentScope(scope)) {
+    // "Diğer" kovasının koşulu sabit bir NOT IN listesi — bağlanacak değer yok.
+    return scope.department === NO_DEPARTMENT ? undefined : { department: scope.department };
+  }
+  return { personId: scope };
 }
 
 export interface ReportSummary {
@@ -38,6 +71,9 @@ export interface PersonReportRow {
   person_id: string;
   person_name: string;
   department: string | null;
+  // Departman raporundaki kişi tablosu avatar gösteriyor; ayrı bir kişi sorgusu
+  // açmamak için satırla birlikte geliyor.
+  avatar_path: string | null;
   active: number;
   total_tasks: number;
   completed_tasks: number;
@@ -123,7 +159,7 @@ function rangeParams(range: DateRange | null): { start: string; end: string } | 
   return range ? { start: range.start, end: range.end } : undefined;
 }
 
-function allForRange<T>(sql: string, range: DateRange | null, scope: PersonScope = null): T[] {
+function allForRange<T>(sql: string, range: DateRange | null, scope: ReportScope = null): T[] {
   const statement = getDb().prepare(sql);
   const params = { ...rangeParams(range), ...scopeParams(scope) };
   return plainList<T>(
@@ -179,10 +215,12 @@ function quantile(sortedValues: number[], percentile: number): number | null {
   return Math.round(value * 10) / 10;
 }
 
-export function getTrendReport(range: DateRange | null, scope: PersonScope = null): TrendReport {
+export function getTrendReport(range: DateRange | null, scope: ReportScope = null): TrendReport {
   const conditions = ["event_date IS NOT NULL"];
   if (range) conditions.push("event_date BETWEEN :start AND :end");
-  if (scope) conditions.push("assignee_id = :personId");
+  // Alt sorgudan gelen sütunda tablo takma adı yok.
+  const scoped = scopeExpression(scope, "assignee_id");
+  if (scoped) conditions.push(scoped);
   const statement = getDb().prepare(`
     SELECT event_date, event_type, COUNT(*) AS task_count
       FROM (
@@ -244,7 +282,7 @@ export function getTrendReport(range: DateRange | null, scope: PersonScope = nul
 
 export function getCycleTimeReport(
   range: DateRange | null,
-  scope: PersonScope = null,
+  scope: ReportScope = null,
 ): CycleTimeReport {
   const completed = periodCondition("t.completed_at", range);
   const rows = allForRange<{ duration_days: number }>(
@@ -289,7 +327,7 @@ export function getCycleTimeReport(
 
 export function listDueHealthReport(
   today: string,
-  scope: PersonScope = null,
+  scope: ReportScope = null,
 ): DueHealthRow[] {
   return plainList<DueHealthRow>(
     getDb()
@@ -323,10 +361,11 @@ export function listDueHealthReport(
 export function getReportSummary(
   range: DateRange | null,
   today: string,
-  scope: PersonScope = null,
+  scope: ReportScope = null,
 ): ReportSummary {
   const opened = periodCondition("t.created_at", range);
   const completed = periodCondition("t.completed_at", range);
+  const scoped = scopeExpression(scope);
   const statement = getDb().prepare(`
     SELECT
       COALESCE(SUM(CASE WHEN ${opened} THEN 1 ELSE 0 END), 0) AS opened_tasks,
@@ -359,14 +398,13 @@ export function getReportSummary(
         THEN MAX(julianday(t.completed_at) - julianday(t.created_at), 0)
       END), 1) AS average_cycle_days
     FROM tasks t
-    ${scope ? "WHERE t.assignee_id = :personId" : ""}
+    ${scoped ? `WHERE ${scoped}` : ""}
   `);
-  const params: Record<string, string> = { today };
+  const params: Record<string, string> = { today, ...scopeParams(scope) };
   if (range) {
     params.start = range.start;
     params.end = range.end;
   }
-  if (scope) params.personId = scope;
   return (
     plainOne<ReportSummary>(statement.get(params)) ?? {
       opened_tasks: 0,
@@ -379,7 +417,7 @@ export function getReportSummary(
   );
 }
 
-export function listWorkflowReport(scope: PersonScope = null): WorkflowReportRow[] {
+export function listWorkflowReport(scope: ReportScope = null): WorkflowReportRow[] {
   return plainList<WorkflowReportRow>(
     getDb()
       .prepare(
@@ -408,7 +446,7 @@ export interface PriorityReportRow {
 // ki grafik her kişide aynı 4 satırı göstersin.
 export function listPriorityReport(
   today: string,
-  scope: PersonScope = null,
+  scope: ReportScope = null,
 ): PriorityReportRow[] {
   return plainList<PriorityReportRow>(
     getDb()
@@ -441,8 +479,12 @@ export function listPersonReport(
   const completed = periodCondition("t.completed_at", range);
   const statement = getDb().prepare(`
     SELECT p.id AS person_id, p.name AS person_name,
-      p.department AS department, p.active,
-      COALESCE(SUM(CASE WHEN ${opened} THEN 1 ELSE 0 END), 0) AS total_tasks,
+      p.department AS department, p.avatar_path AS avatar_path, p.active,
+      -- "t.id IS NOT NULL": LEFT JOIN, görevi olmayan kişi için de bir satır
+      -- üretiyor; aralık verilmediğinde dönem koşulu sabit "1 = 1" olduğu için
+      -- o boş satır 1 açılan iş gibi sayılırdı.
+      COALESCE(SUM(CASE WHEN t.id IS NOT NULL AND ${opened} THEN 1 ELSE 0 END), 0)
+        AS total_tasks,
       COALESCE(SUM(CASE
         WHEN t.status = 'Yayinlandi' AND ${completed} THEN 1 ELSE 0 END), 0
       ) AS completed_tasks,
@@ -484,9 +526,126 @@ export function listPersonReport(
   return plainList<PersonReportRow>(statement.all(params));
 }
 
+export interface DepartmentReportRow {
+  department: DepartmentKey;
+  person_count: number;
+  active_person_count: number;
+  total_tasks: number;
+  completed_tasks: number;
+  open_tasks: number;
+  overdue_tasks: number;
+  on_time_rate: number | null;
+  average_cycle_days: number | null;
+}
+
+/**
+ * Departman satırları KİŞİLER üzerinden toplanır (görevde departman sütunu
+ * yok): departmandaki herkesin işi tek satırda birleşir, atanmamış işler
+ * hiçbir satıra girmez.
+ *
+ * Neden ayrı bir sorgu — kişi satırlarından toplanamaz mı? Sayılar toplanabilir
+ * ama "zamanında tamamlama" ve "ortalama süre" toplanamaz: oranların/
+ * ortalamaların ortalaması, iş sayısı farklı kişilerde yanlış sonuç verir.
+ * Departmanı olmayan/tanınmayan kişiler `NO_DEPARTMENT` kovasında toplanır.
+ */
+export function listDepartmentReport(
+  range: DateRange | null,
+  today: string,
+): DepartmentReportRow[] {
+  const opened = periodCondition("t.created_at", range);
+  const completed = periodCondition("t.completed_at", range);
+  // GROUP BY/ORDER BY'da TAKMA AD DEĞİL ifadenin kendisi kullanılmalı: SQLite
+  // `department` adını önce kaynak sütuna (`p.department`) bağlar, çıktı takma
+  // adına değil — takma adla gruplanınca NULL ve tanınmayan değer ayrı satır
+  // kalıyor, "Diğer" ikiye bölünüyordu.
+  const bucket = departmentBucketExpression("p.department");
+  const statement = getDb().prepare(`
+    SELECT ${bucket} AS department,
+      COUNT(DISTINCT p.id) AS person_count,
+      COUNT(DISTINCT CASE WHEN p.active = 1 THEN p.id END) AS active_person_count,
+      -- "t.id IS NOT NULL": bkz. listPersonReport.
+      COALESCE(SUM(CASE WHEN t.id IS NOT NULL AND ${opened} THEN 1 ELSE 0 END), 0)
+        AS total_tasks,
+      COALESCE(SUM(CASE
+        WHEN t.status = 'Yayinlandi' AND ${completed} THEN 1 ELSE 0 END), 0
+      ) AS completed_tasks,
+      COALESCE(SUM(CASE WHEN t.status != 'Yayinlandi' THEN 1 ELSE 0 END), 0)
+        AS open_tasks,
+      COALESCE(SUM(CASE
+        WHEN t.status != 'Yayinlandi'
+         AND t.due_date IS NOT NULL
+         AND t.due_date < :today
+        THEN 1 ELSE 0 END), 0) AS overdue_tasks,
+      ROUND(
+        100.0 * SUM(CASE
+          WHEN t.status = 'Yayinlandi'
+           AND ${completed}
+           AND t.due_date IS NOT NULL
+           AND date(t.completed_at) <= t.due_date
+          THEN 1 ELSE 0 END)
+        / NULLIF(SUM(CASE
+          WHEN t.status = 'Yayinlandi'
+           AND ${completed}
+           AND t.due_date IS NOT NULL
+          THEN 1 ELSE 0 END), 0),
+        0
+      ) AS on_time_rate,
+      ROUND(AVG(CASE
+        WHEN t.status = 'Yayinlandi' AND ${completed}
+        THEN MAX(julianday(t.completed_at) - julianday(t.created_at), 0)
+      END), 1) AS average_cycle_days
+    FROM people p
+    LEFT JOIN tasks t ON t.assignee_id = p.id
+    GROUP BY ${bucket}
+    ORDER BY completed_tasks DESC, open_tasks DESC, ${bucket}
+  `);
+  const params: Record<string, string> = { today };
+  if (range) {
+    params.start = range.start;
+    params.end = range.end;
+  }
+  return plainList<DepartmentReportRow>(statement.all(params));
+}
+
+export interface BrandBreakdownRow {
+  brand_id: string;
+  brand_name: string;
+  total_tasks: number;
+  completed_tasks: number;
+  open_tasks: number;
+}
+
+// Kapsamın (kişi ya da departman) hangi markalara çalıştığı. Kişi raporundaki
+// `listPersonBrandBreakdown`'dan farkı: kişi kırılımı yok, satırlar doğrudan
+// marka bazında toplanıyor — departmanda birden çok kişi var.
+export function listBrandBreakdownForScope(
+  range: DateRange | null,
+  scope: ReportScope = null,
+): BrandBreakdownRow[] {
+  const opened = periodCondition("t.created_at", range);
+  const completed = periodCondition("t.completed_at", range);
+  return allForRange<BrandBreakdownRow>(
+    `SELECT b.id AS brand_id, b.name AS brand_name,
+            SUM(CASE WHEN ${opened} THEN 1 ELSE 0 END) AS total_tasks,
+            SUM(CASE
+              WHEN t.status = 'Yayinlandi' AND ${completed} THEN 1 ELSE 0 END
+            ) AS completed_tasks,
+            SUM(CASE WHEN t.status != 'Yayinlandi' THEN 1 ELSE 0 END) AS open_tasks
+       FROM tasks t
+       JOIN content_items ci ON ci.id = t.content_item_id
+       JOIN brands b ON b.id = ci.brand_id
+      WHERE 1 = 1 ${scopeCondition(scope)}
+      GROUP BY b.id
+     HAVING total_tasks > 0 OR completed_tasks > 0 OR open_tasks > 0
+      ORDER BY completed_tasks DESC, open_tasks DESC, b.name`,
+    range,
+    scope,
+  );
+}
+
 export function listPersonBrandBreakdown(
   range: DateRange | null,
-  scope: PersonScope = null,
+  scope: ReportScope = null,
 ): PersonBrandRow[] {
   const opened = periodCondition("t.created_at", range);
   const completed = periodCondition("t.completed_at", range);
@@ -523,7 +682,10 @@ export function listBrandReport(
     SELECT b.id AS brand_id, b.name AS brand_name, b.cluster AS cluster,
       b.archived AS archived,
       COUNT(DISTINCT CASE WHEN ${contentOpened} THEN ci.id END) AS total_content,
-      COALESCE(SUM(CASE WHEN ${taskOpened} THEN 1 ELSE 0 END), 0) AS total_tasks,
+      -- "t.id IS NOT NULL": bkz. listPersonReport — görevi olmayan markanın
+      -- LEFT JOIN'den gelen boş satırı "1 açılan iş" gibi sayılmasın.
+      COALESCE(SUM(CASE WHEN t.id IS NOT NULL AND ${taskOpened} THEN 1 ELSE 0 END), 0)
+        AS total_tasks,
       COALESCE(SUM(CASE
         WHEN t.status = 'Yayinlandi' AND ${completed} THEN 1 ELSE 0 END), 0
       ) AS completed_tasks,
@@ -604,7 +766,7 @@ export interface TaskDetailRow {
 export function listTaskDetailReport(
   range: DateRange | null,
   today: string,
-  scope: PersonScope = null,
+  scope: ReportScope = null,
 ): TaskDetailRow[] {
   const opened = periodCondition("t.created_at", range);
   const completed = periodCondition("t.completed_at", range);

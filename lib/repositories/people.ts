@@ -1,5 +1,38 @@
 import { getDb, plainList, plainOne } from "@/lib/db/client";
+import { DEPARTMENTS, NO_DEPARTMENT, type DepartmentKey } from "@/lib/departments";
 import type { Person } from "@/lib/types";
+
+// `DEPARTMENTS` id'leri kod sabiti (kullanıcı girdisi DEĞİL), bu yüzden SQL'e
+// doğrudan gömülüyor — parametre listesi departman sayısına göre değişken
+// uzunlukta olurdu ve her sorguda ayrı ayrı bağlanması gerekirdi.
+const KNOWN_DEPARTMENT_LIST = DEPARTMENTS.map((department) => `'${department.id}'`).join(", ");
+
+/**
+ * `people.department` değerini rapor kovasına çevirir: tanınmayan ya da boş
+ * değerlerin hepsi "Diğer"e düşer — arayüzdeki `departmentKey()` ile aynı kural,
+ * sadece SQL tarafında. `column` tam sütun adı olmalı (`p.department` gibi).
+ */
+export function departmentBucketExpression(column: string): string {
+  return `CASE WHEN ${column} IN (${KNOWN_DEPARTMENT_LIST})
+            THEN ${column} ELSE '${NO_DEPARTMENT}' END`;
+}
+
+/**
+ * Verilen departmandaki kişileri seçen koşul. Departman GÖREVİN değil KİŞİNİN
+ * alanı olduğu için görev sorguları bu alt sorguyla daraltılıyor; `column`
+ * çağıranın atanan sütunu (`t.assignee_id` gibi). Sonuç olarak **atanmamış
+ * görevler hiçbir departmanın raporuna girmez**.
+ *
+ * Gerçek bir departman id'si için sorgu `:department` adlı parametreyi bekler
+ * ("Diğer" kovası parametresizdir — koşul sabit bir NOT IN listesi).
+ */
+export function departmentPeopleCondition(department: DepartmentKey, column: string): string {
+  return department === NO_DEPARTMENT
+    ? `${column} IN (SELECT id FROM people
+                      WHERE department IS NULL
+                         OR department NOT IN (${KNOWN_DEPARTMENT_LIST}))`
+    : `${column} IN (SELECT id FROM people WHERE department = :department)`;
+}
 
 export function listActivePeople(): Person[] {
   return plainList<Person>(

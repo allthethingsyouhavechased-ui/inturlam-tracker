@@ -3,6 +3,13 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import EmptyState from "@/components/EmptyState";
+import CollapsiblePanel from "@/components/reports/CollapsiblePanel";
+import {
+  MetricCard,
+  comparePeriod,
+  formatDays,
+  formatRate,
+} from "@/components/reports/ReportPrimitives";
 import RangeFilterBar, {
   ExcelDownloadLink,
   PrintButton,
@@ -29,6 +36,7 @@ import {
 import type {
   BrandReportRow,
   CycleTimeReport,
+  DepartmentReportRow,
   DueHealthRow,
   PersonReportRow,
   ReportSummary,
@@ -62,61 +70,6 @@ export interface BrandReportView extends BrandReportRow {
   people: PersonBreakdown[];
 }
 
-function formatRate(value: number | null): string {
-  return value == null ? "—" : `%${Math.round(value)}`;
-}
-
-function formatDays(value: number | null): string {
-  return value == null ? "—" : `${value.toLocaleString("tr-TR")} gün`;
-}
-
-function MetricCard({
-  label,
-  value,
-  note,
-  tone = "neutral",
-}: {
-  label: string;
-  value: string | number;
-  note: string;
-  tone?: "neutral" | "success" | "danger";
-}) {
-  const dotClass =
-    tone === "success"
-      ? "bg-emerald-500"
-      : tone === "danger"
-        ? "bg-rose-500"
-        : "bg-brand-500";
-  const surfaceClass =
-    tone === "success"
-      ? "border-t-emerald-500 bg-emerald-50/35 dark:bg-emerald-950/10"
-      : tone === "danger"
-        ? "border-t-rose-500 bg-rose-50/45 dark:bg-rose-950/10"
-        : "border-t-brand-500 bg-white dark:bg-zinc-900";
-
-  return (
-    <div
-      className={`min-w-0 border-t-2 px-4 py-4 sm:px-5 ${surfaceClass}`}
-    >
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400">{label}</p>
-          <p className="mt-1 text-2xl font-semibold tracking-tight tabular-nums">{value}</p>
-        </div>
-        <span className={`mt-1 size-2.5 shrink-0 rounded-full ${dotClass}`} aria-hidden="true" />
-      </div>
-      <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">{note}</p>
-    </div>
-  );
-}
-
-function comparePeriod(current: number, previous: number | null | undefined): string {
-  if (previous == null) return "Tüm kayıtlar";
-  const difference = current - previous;
-  if (difference === 0) return "Önceki dönemle aynı";
-  return `Önceki döneme göre ${difference > 0 ? "+" : ""}${difference}`;
-}
-
 export default function ReportsClient({
   summary,
   previousSummary,
@@ -124,6 +77,7 @@ export default function ReportsClient({
   trend,
   cycleTime,
   dueHealth,
+  departments,
   people,
   brands,
   rangeKey,
@@ -138,6 +92,7 @@ export default function ReportsClient({
   trend: TrendReport;
   cycleTime: CycleTimeReport;
   dueHealth: DueHealthRow[];
+  departments: DepartmentReportRow[];
   people: PersonReportView[];
   brands: BrandReportView[];
   rangeKey: RangeKey;
@@ -147,6 +102,7 @@ export default function ReportsClient({
   generatedAt: string;
 }) {
   const [hideArchived, setHideArchived] = useState(false);
+  const [showDepartmentTable, setShowDepartmentTable] = useState(true);
   const [showPeopleTable, setShowPeopleTable] = useState(true);
   const [showBrandTable, setShowBrandTable] = useState(true);
   const [departmentFilter, setDepartmentFilter] = useState("");
@@ -190,6 +146,24 @@ export default function ReportsClient({
         ? `?range=custom&start=${customStart}&end=${customEnd}`
         : `?range=${rangeKey}`;
 
+  // Departman satırının altında açılan kişi listesi — ayrı bir sorgu yerine
+  // zaten elde olan kişi satırlarından türetiliyor.
+  const peopleByDepartment = useMemo(() => {
+    const map = new Map<string, PersonReportView[]>();
+    for (const person of people) {
+      const key = departmentKey(person.department);
+      map.set(key, [...(map.get(key) ?? []), person]);
+    }
+    return map;
+  }, [people]);
+
+  const busiestDepartment = departments.reduce<DepartmentReportRow | null>(
+    (current, department) =>
+      !current || department.open_tasks > current.open_tasks ? department : current,
+    null,
+  );
+  const maxDepartmentOpen = Math.max(1, ...departments.map((row) => row.open_tasks));
+
   const busiestPerson = people.reduce<PersonReportView | null>(
     (current, person) =>
       !current || person.open_tasks > current.open_tasks ? person : current,
@@ -210,6 +184,30 @@ export default function ReportsClient({
   const dueTotal = dueHealth.reduce((total, row) => total + row.task_count, 0);
   const unscheduled = dueHealth.find((row) => row.bucket === "unscheduled")?.task_count ?? 0;
   const dueCoverage = dueTotal === 0 ? null : Math.round(((dueTotal - unscheduled) / dueTotal) * 100);
+
+  function exportDepartmentsCSV() {
+    const rows = departments.map((row) => ({
+      department: departmentLabel(row.department),
+      person_count: row.person_count,
+      opened_tasks: row.total_tasks,
+      completed_tasks: row.completed_tasks,
+      open_tasks: row.open_tasks,
+      overdue_tasks: row.overdue_tasks,
+      on_time_rate: formatRate(row.on_time_rate),
+      average_cycle: formatDays(row.average_cycle_days),
+    }));
+    const csv = toCSV(rows, [
+      { key: "department", label: "Departman" },
+      { key: "person_count", label: "Kişi" },
+      { key: "opened_tasks", label: "Dönemde Açılan" },
+      { key: "completed_tasks", label: "Dönemde Tamamlanan" },
+      { key: "open_tasks", label: "Açık İş Yükü" },
+      { key: "overdue_tasks", label: "Gecikmiş" },
+      { key: "on_time_rate", label: "Zamanında Tamamlama" },
+      { key: "average_cycle", label: "Ortalama Süre" },
+    ]);
+    downloadCSV("departman-raporu.csv", csv);
+  }
 
   function exportPeopleCSV() {
     const rows = visiblePeople.map((person) => ({
@@ -394,31 +392,20 @@ export default function ReportsClient({
 
       <WorkloadComparison people={people} brands={visibleBrands} />
 
-      <section
-        aria-labelledby="workflow-title"
-        className="report-surface rounded-2xl border border-black/10 bg-white p-5 dark:border-white/10 dark:bg-zinc-900"
+      <CollapsiblePanel
+        panelKey="workflow"
+        title="Aktif iş akışı"
+        description="İşlerin şu anda hangi aşamada beklediği"
+        meta={<span className="tabular-nums">{workflowTotal} açık görev</span>}
       >
-        <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <div>
-            <h2 id="workflow-title" className="text-lg font-semibold">
-              Aktif iş akışı
-            </h2>
-            <p className="text-sm text-zinc-500 dark:text-zinc-400">
-              İşlerin şu anda hangi aşamada beklediği
-            </p>
-          </div>
-          <span className="text-sm font-medium tabular-nums">{workflowTotal} açık görev</span>
-        </div>
         {workflowTotal === 0 ? (
-          <div className="mt-5">
-            <EmptyState
-              compact
-              title="Aktif iş akışı boş"
-              description="Açık görev oluştuğunda durum dağılımı burada görünecek."
-            />
-          </div>
+          <EmptyState
+            compact
+            title="Aktif iş akışı boş"
+            description="Açık görev oluştuğunda durum dağılımı burada görünecek."
+          />
         ) : (
-          <div className="mt-5 grid gap-4 md:grid-cols-2">
+          <div className="grid gap-4 md:grid-cols-2">
             {workflow.map((row) => {
               const percentage = (row.task_count / workflowTotal) * 100;
               return (
@@ -445,6 +432,145 @@ export default function ReportsClient({
                 </div>
               );
             })}
+          </div>
+        )}
+      </CollapsiblePanel>
+
+      <section className="space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 className="text-lg font-semibold">Departman görünümü</h2>
+            <p className="text-sm text-zinc-500 dark:text-zinc-400">
+              Departmanın toplam üretimi ve teslim sağlığı — departman kişinin
+              alanı olduğu için atanmamış görevler hiçbir satıra girmez
+            </p>
+          </div>
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={() => setShowDepartmentTable((visible) => !visible)}
+              aria-expanded={showDepartmentTable}
+              className="ui-press inline-flex min-h-11 items-center rounded-xl px-3 text-sm font-medium text-zinc-600 hover:bg-black/5 dark:text-zinc-300 dark:hover:bg-white/10"
+            >
+              {showDepartmentTable ? "Tabloyu gizle" : "Tabloyu göster"}
+            </button>
+            <button
+              type="button"
+              onClick={exportDepartmentsCSV}
+              className="ui-press inline-flex min-h-11 items-center gap-2 rounded-xl px-3 text-sm font-medium text-brand-600 hover:bg-brand-500/10 dark:text-brand-400"
+            >
+              CSV
+            </button>
+          </div>
+        </div>
+        {showDepartmentTable && (
+          <div className="report-surface ui-enter overflow-x-auto rounded-2xl border border-black/10 bg-white dark:border-white/10 dark:bg-zinc-900">
+            <table className="w-full min-w-[960px] text-sm">
+              <thead className="bg-zinc-50/90 dark:bg-zinc-950/70">
+                <tr className="border-b border-black/10 text-left text-xs uppercase tracking-wider text-zinc-500 dark:border-white/10 dark:text-zinc-400">
+                  <th className="px-4 py-3 font-medium">Departman</th>
+                  <th className="px-3 py-3 font-medium">Kişi</th>
+                  <th className="px-3 py-3 font-medium">Açılan</th>
+                  <th className="px-3 py-3 font-medium">Tamamlanan</th>
+                  <th className="px-3 py-3 font-medium">Açık</th>
+                  <th className="px-3 py-3 font-medium">Geciken</th>
+                  <th className="px-3 py-3 font-medium">Zamanında</th>
+                  <th className="px-3 py-3 font-medium">Ort. süre</th>
+                  <th className="px-3 py-3 font-medium print:hidden">
+                    <span className="sr-only">Departman raporu</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {departments.map((row) => {
+                  const members = peopleByDepartment.get(row.department) ?? [];
+                  return (
+                    <tr
+                      key={row.department}
+                      className={`border-b border-black/5 transition-colors last:border-0 hover:bg-black/[0.025] dark:border-white/5 dark:hover:bg-white/[0.025] ${
+                        row.department === busiestDepartment?.department && row.open_tasks > 0
+                          ? "bg-brand-50/45 dark:bg-brand-950/15"
+                          : ""
+                      }`}
+                    >
+                      <td className="px-4 py-3">
+                        <details>
+                          <summary className="cursor-pointer font-medium">
+                            {departmentLabel(row.department)}
+                            {row.department === busiestDepartment?.department &&
+                              row.open_tasks > 0 && (
+                                <span className="ml-2 rounded-full bg-brand-100 px-2 py-0.5 text-[10px] font-semibold text-brand-700 dark:bg-brand-950 dark:text-brand-300">
+                                  en yoğun
+                                </span>
+                              )}
+                          </summary>
+                          {members.length > 0 ? (
+                            <ul className="mt-2 space-y-1 pl-3 text-xs text-zinc-500 dark:text-zinc-400">
+                              {members.map((person) => (
+                                <li key={person.person_id}>
+                                  {person.person_name}: {person.completed_tasks} tamamlanan,{" "}
+                                  {person.open_tasks} açık
+                                </li>
+                              ))}
+                            </ul>
+                          ) : (
+                            <p className="mt-2 pl-3 text-xs text-zinc-500 dark:text-zinc-400">
+                              Bu departmanda kayıtlı kişi yok.
+                            </p>
+                          )}
+                        </details>
+                      </td>
+                      <td className="px-3 py-3 tabular-nums">
+                        {row.person_count}
+                        {row.person_count !== row.active_person_count && (
+                          <span className="ml-1 text-xs text-zinc-500 dark:text-zinc-400">
+                            ({row.active_person_count} aktif)
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-3 py-3 tabular-nums">{row.total_tasks}</td>
+                      <td className="px-3 py-3 font-medium tabular-nums">
+                        {row.completed_tasks}
+                      </td>
+                      <td className="px-3 py-3 tabular-nums">
+                        <div className="flex items-center gap-2">
+                          <span className="min-w-4">{row.open_tasks}</span>
+                          <span className="h-1.5 w-16 overflow-hidden rounded-full bg-black/5 dark:bg-white/10">
+                            <span
+                              className="block h-full rounded-full bg-brand-500"
+                              style={{ width: `${(row.open_tasks / maxDepartmentOpen) * 100}%` }}
+                            />
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-3 py-3 tabular-nums">
+                        <span
+                          className={
+                            row.overdue_tasks > 0
+                              ? "font-medium text-rose-600 dark:text-rose-400"
+                              : undefined
+                          }
+                        >
+                          {row.overdue_tasks}
+                        </span>
+                      </td>
+                      <td className="px-3 py-3 tabular-nums">{formatRate(row.on_time_rate)}</td>
+                      <td className="px-3 py-3 tabular-nums">
+                        {formatDays(row.average_cycle_days)}
+                      </td>
+                      <td className="px-3 py-3 print:hidden">
+                        <Link
+                          href={`/reports/departman/${row.department}${rangeQuery}`}
+                          className="whitespace-nowrap text-xs font-semibold text-brand-600 hover:underline dark:text-brand-400"
+                        >
+                          Detaylı rapor →
+                        </Link>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
         )}
       </section>

@@ -39,6 +39,25 @@ export function departmentLabel(value: string | null | undefined): string {
   );
 }
 
+/**
+ * Rapor satırlarını sabit departman sırasına dizer (Video → Tasarım → Sosyal
+ * Medya → Yönetim → Diğer) ve o dönemde satırı olmayan departman için `empty()`
+ * ile sıfır satırı üretir — tablo her dönem aynı satırları göstersin, işi
+ * olmayan departman "kayboldu" gibi görünmesin. "Diğer" yalnızca gerçekten
+ * satırı varsa eklenir (kimsesiz bir sanal kova sürekli görünmesin).
+ */
+export function withAllDepartments<T extends { department: DepartmentKey }>(
+  rows: T[],
+  empty: (department: DepartmentId) => T,
+): T[] {
+  const byKey = new Map(rows.map((row) => [row.department, row]));
+  const ordered = DEPARTMENTS.map(
+    (department) => byKey.get(department.id) ?? empty(department.id),
+  );
+  const unassigned = byKey.get(NO_DEPARTMENT);
+  return unassigned ? [...ordered, unassigned] : ordered;
+}
+
 export interface DepartmentRow<T> {
   id: DepartmentKey;
   label: string;

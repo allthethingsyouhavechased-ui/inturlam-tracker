@@ -21,6 +21,7 @@ import { departmentLabel } from "@/lib/departments";
 import type {
   BrandReportRow,
   CycleTimeReport,
+  DepartmentReportRow,
   DueHealthRow,
   PersonReportRow,
   ReportSummary,
@@ -46,6 +47,8 @@ export interface ReportWorkbookInput {
   /** Kişi raporunda boş bırakılır — o dosyada ekip tablosu anlamsız. */
   people: PersonReportRow[];
   brands: BrandReportRow[];
+  /** Yalnızca portföy dosyasında dolu; kapsamlı dosyada kapsamı tekrar ederdi. */
+  departments: DepartmentReportRow[];
   clusterLabels: Record<string, string>;
 }
 
@@ -242,6 +245,34 @@ function peopleSheet(input: ReportWorkbookInput): Sheet {
   };
 }
 
+function departmentsSheet(input: ReportWorkbookInput): Sheet {
+  return {
+    name: "Departman",
+    columns: [
+      { header: "Departman", width: 18 },
+      { header: "Kişi", width: 8 },
+      { header: "Aktif kişi", width: 11 },
+      { header: "Dönemde açılan", width: 15 },
+      { header: "Dönemde tamamlanan", width: 19 },
+      { header: "Açık iş yükü", width: 13 },
+      { header: "Gecikmiş", width: 10 },
+      { header: "Zamanında", width: 11 },
+      { header: "Ort. süre (gün)", width: 15 },
+    ],
+    rows: input.departments.map((department) => [
+      departmentLabel(department.department),
+      department.person_count,
+      department.active_person_count,
+      department.total_tasks,
+      department.completed_tasks,
+      department.open_tasks,
+      department.overdue_tasks,
+      rate(department.on_time_rate),
+      days(department.average_cycle_days),
+    ]),
+  };
+}
+
 function brandsSheet(input: ReportWorkbookInput): Sheet {
   return {
     name: "Marka",
@@ -273,11 +304,13 @@ function brandsSheet(input: ReportWorkbookInput): Sheet {
 }
 
 /**
- * Defterin sayfaları. Ekip/marka sayfaları veri yoksa (kişi raporunda ekip
- * tablosu gönderilmiyor) hiç eklenmez — Excel'de boş sekme bırakmamak için.
+ * Defterin sayfaları. Departman/ekip/marka sayfaları veri yoksa (kişi
+ * raporunda ekip tablosu gönderilmiyor) hiç eklenmez — Excel'de boş sekme
+ * bırakmamak için.
  */
 export function buildReportSheets(input: ReportWorkbookInput): Sheet[] {
   const sheets: Sheet[] = [summarySheet(input), taskSheet(input)];
+  if (input.departments.length > 0) sheets.push(departmentsSheet(input));
   if (input.people.length > 0) sheets.push(peopleSheet(input));
   if (input.brands.length > 0) sheets.push(brandsSheet(input));
   return sheets;

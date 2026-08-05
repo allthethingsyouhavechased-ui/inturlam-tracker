@@ -182,3 +182,9 @@ export const TASK_PRIORITY_DOT: Record<TaskPriority, string> = {
   Yuksek: "bg-amber-500",
   Acil: "bg-rose-500",
 };
+
+// Rapor kartlarının ortak yüzeyi (çerçeve + zemin). Burada duruyor çünkü hem
+// `CollapsiblePanel` hem `ReportPrimitives` kullanıyor; bileşenlerden birinde
+// tanımlansaydı ikisi birbirini import edip döngü oluşturuyordu.
+export const REPORT_SURFACE_CLASS =
+  "report-surface rounded-2xl border border-black/10 bg-white dark:border-white/10 dark:bg-zinc-900";

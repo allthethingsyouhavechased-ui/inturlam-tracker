@@ -141,6 +141,7 @@ describe("buildReportSheets", () => {
       tasks: listTaskDetailReport(range, today),
       people: [],
       brands: listBrandReport(range, today),
+      departments: [],
       clusterLabels: { "balik-deniz": "Balık & Deniz" },
     });
 

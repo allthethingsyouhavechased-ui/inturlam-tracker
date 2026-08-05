@@ -1,6 +1,17 @@
 "use client";
 
+// Departman raporu (/reports/departman/[departmentId]).
+//
+// Kişi raporuyla aynı sorguları kullanır, sadece kapsam `{ department }`
+// (bkz. lib/repositories/reports.ts → ReportScope). Kişi raporundan farkı:
+// kıyas ekip ortalamasıyla değil PORTFÖY GENELİYLE yapılır ve raporun ortasında
+// departmanın kendi kişi tablosu vardır — "departmanın yükü kimde" sorusu
+// yalnızca burada cevaplanabiliyor.
+
 import Link from "next/link";
+import EmptyState from "@/components/EmptyState";
+import PersonAvatar from "@/components/PersonAvatar";
+import CollapsiblePanel from "@/components/reports/CollapsiblePanel";
 import {
   BrandBreakdownPanel,
   MetricCard,
@@ -27,9 +38,13 @@ import {
 import { TASK_PRIORITY_LABEL, TASK_STATUS_LABEL } from "@/lib/constants";
 import { downloadCSV, toCSV } from "@/lib/csv";
 import { formatDateShort } from "@/lib/date";
+import type { DepartmentKey } from "@/lib/departments";
 import type {
+  BrandBreakdownRow,
   CycleTimeReport,
+  DepartmentReportRow,
   DueHealthRow,
+  PersonReportRow,
   PriorityReportRow,
   ReportSummary,
   TrendReport,
@@ -37,28 +52,19 @@ import type {
 } from "@/lib/repositories/reports";
 import type { TaskWithContext } from "@/lib/types";
 
-export interface PersonReportBrandRow {
-  brand_id: string;
-  brand_name: string;
-  total_tasks: number;
-  completed_tasks: number;
-  open_tasks: number;
-}
-
-export default function PersonReportClient({
-  personId,
-  personName,
+export default function DepartmentReportClient({
+  departmentId,
   departmentLabel,
-  personTitle,
   summary,
   previousSummary,
-  teamSummary,
-  teamSize,
+  portfolioSummary,
+  totals,
   workflow,
   priorities,
   trend,
   cycleTime,
   dueHealth,
+  members,
   brands,
   overdueTasks,
   upcomingTasks,
@@ -70,20 +76,19 @@ export default function PersonReportClient({
   reportLabel,
   generatedAt,
 }: {
-  personId: string;
-  personName: string;
+  departmentId: DepartmentKey;
   departmentLabel: string;
-  personTitle: string | null;
   summary: ReportSummary;
   previousSummary: ReportSummary | null;
-  teamSummary: ReportSummary;
-  teamSize: number;
+  portfolioSummary: ReportSummary;
+  totals: DepartmentReportRow;
   workflow: WorkflowReportRow[];
   priorities: PriorityReportRow[];
   trend: TrendReport;
   cycleTime: CycleTimeReport;
   dueHealth: DueHealthRow[];
-  brands: PersonReportBrandRow[];
+  members: PersonReportRow[];
+  brands: BrandBreakdownRow[];
   overdueTasks: TaskWithContext[];
   upcomingTasks: TaskWithContext[];
   completedTasks: TaskWithContext[];
@@ -95,57 +100,72 @@ export default function PersonReportClient({
   generatedAt: string;
 }) {
   const today = new Date().toISOString().slice(0, 10);
-  const teamAverageOpen = Math.round((teamSummary.open_tasks / teamSize) * 10) / 10;
-  const teamAverageCompleted = Math.round((teamSummary.completed_tasks / teamSize) * 10) / 10;
-  const workloadShare =
-    teamSummary.open_tasks === 0
-      ? null
-      : Math.round((summary.open_tasks / teamSummary.open_tasks) * 100);
-  const completionShare =
-    teamSummary.completed_tasks === 0
-      ? null
-      : Math.round((summary.completed_tasks / teamSummary.completed_tasks) * 100);
+  const maxMemberOpen = Math.max(1, ...members.map((member) => member.open_tasks));
 
-  // Rapor tek cümlelik bir okuma ile başlasın: rakamları yorumlayan kısa özet.
+  const workloadShare =
+    portfolioSummary.open_tasks === 0
+      ? null
+      : Math.round((summary.open_tasks / portfolioSummary.open_tasks) * 100);
+  const completionShare =
+    portfolioSummary.completed_tasks === 0
+      ? null
+      : Math.round((summary.completed_tasks / portfolioSummary.completed_tasks) * 100);
+  // Kişi başına düşen yük: 2 kişilik departmanın 10 açık işi ile 6 kişilik
+  // departmanın 10 açık işi aynı şey değil.
+  const perPersonOpen =
+    totals.active_person_count === 0
+      ? null
+      : Math.round((summary.open_tasks / totals.active_person_count) * 10) / 10;
+
   const headlineParts: string[] = [
-    `${personName}, seçili dönemde ${summary.completed_tasks} iş tamamladı ve şu anda ${summary.open_tasks} açık işi var.`,
+    `${departmentLabel} departmanı seçili dönemde ${summary.completed_tasks} iş tamamladı ve şu anda ${summary.open_tasks} açık işi var.`,
   ];
+  if (totals.person_count > 0) {
+    headlineParts.push(
+      `Departmanda ${totals.person_count} kişi kayıtlı${
+        totals.active_person_count !== totals.person_count
+          ? ` (${totals.active_person_count} aktif)`
+          : ""
+      }${perPersonOpen != null ? `, kişi başına ${perPersonOpen.toLocaleString("tr-TR")} açık iş düşüyor` : ""}.`,
+    );
+  }
   if (summary.overdue_tasks > 0) {
     headlineParts.push(
-      `Bunların ${summary.overdue_tasks} tanesinin teslim tarihi geçmiş — önce buraya bakılmalı.`,
+      `${summary.overdue_tasks} işin teslim tarihi geçmiş — önce buraya bakılmalı.`,
     );
   } else if (summary.open_tasks > 0) {
     headlineParts.push("Gecikmiş işi yok, teslim görünümü sağlıklı.");
   }
-  // Yüzdeye Türkçe iyelik eki getirmekten kaçınılıyor ("%16'i" / "%0'ini" gibi
-  // yanlış ekler çıkıyordu); cümleler ekin sayıya bağlanmayacağı şekilde kuruldu.
+  // Yüzdeye Türkçe iyelik eki getirmekten kaçınılıyor (bkz. PersonReportClient).
   if (summary.on_time_rate != null) {
     headlineParts.push(
       `Teslim tarihi olan işlerde zamanında tamamlama oranı %${Math.round(summary.on_time_rate)}.`,
     );
   }
   if (workloadShare != null && summary.open_tasks > 0) {
-    headlineParts.push(
-      `Ekibin toplam açık iş yükündeki payı %${workloadShare} (ekip ortalaması ${teamAverageOpen.toLocaleString("tr-TR")} açık iş).`,
-    );
+    headlineParts.push(`Portföydeki toplam açık iş yükünün %${workloadShare} kadarı burada.`);
   }
 
   function exportCSV() {
     const rows = [
       { metric: "Departman", value: departmentLabel },
-      { metric: "Unvan", value: personTitle ?? "—" },
       { metric: "Dönem", value: reportLabel },
+      { metric: "Kişi sayısı", value: String(totals.person_count) },
+      { metric: "Aktif kişi sayısı", value: String(totals.active_person_count) },
       { metric: "Dönemde açılan", value: String(summary.opened_tasks) },
       { metric: "Dönemde tamamlanan", value: String(summary.completed_tasks) },
       { metric: "Açık iş yükü", value: String(summary.open_tasks) },
       { metric: "Gecikmiş", value: String(summary.overdue_tasks) },
       { metric: "Zamanında tamamlama", value: formatRate(summary.on_time_rate) },
       { metric: "Ortalama tamamlanma süresi", value: formatDays(summary.average_cycle_days) },
-      { metric: "Ekip ortalaması (açık)", value: teamAverageOpen.toLocaleString("tr-TR") },
       {
-        metric: "Ekip ortalaması (tamamlanan)",
-        value: teamAverageCompleted.toLocaleString("tr-TR"),
+        metric: "Portföydeki açık iş payı",
+        value: workloadShare == null ? "—" : `%${workloadShare}`,
       },
+      ...members.map((member) => ({
+        metric: `Kişi — ${member.person_name}`,
+        value: `${member.completed_tasks} tamamlanan / ${member.open_tasks} açık / ${member.overdue_tasks} geciken`,
+      })),
       ...workflow.map((row) => ({
         metric: `Durum — ${TASK_STATUS_LABEL[row.status]}`,
         value: String(row.task_count),
@@ -159,15 +179,18 @@ export default function PersonReportClient({
         value: `${brand.completed_tasks} tamamlanan / ${brand.open_tasks} açık`,
       })),
       ...overdueTasks.map((task) => ({
-        metric: `Gecikmiş görev — ${task.brand_name}`,
-        value: `${task.title} (${formatDateShort(task.due_date)})`,
+        metric: `Gecikmiş görev — ${task.assignee_name ?? "Atanmamış"}`,
+        value: `${task.title} (${task.brand_name}, ${formatDateShort(task.due_date)})`,
       })),
     ];
     const csv = toCSV(rows, [
       { key: "metric", label: "Başlık" },
       { key: "value", label: "Değer" },
     ]);
-    downloadCSV(`${personName.toLocaleLowerCase("tr-TR").replace(/\s+/g, "-")}-raporu.csv`, csv);
+    downloadCSV(
+      `${departmentLabel.toLocaleLowerCase("tr-TR").replace(/\s+/g, "-")}-departman-raporu.csv`,
+      csv,
+    );
   }
 
   return (
@@ -175,12 +198,11 @@ export default function PersonReportClient({
       <div className="hidden items-start justify-between border-b border-zinc-300 pb-4 print:flex">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-500">
-            İNTURLAM · KİŞİ RAPORU
+            İNTURLAM · DEPARTMAN RAPORU
           </p>
-          <h1 className="mt-1 text-2xl font-semibold">{personName}</h1>
+          <h1 className="mt-1 text-2xl font-semibold">{departmentLabel}</h1>
           <p className="mt-1 text-sm text-zinc-600">
-            {departmentLabel}
-            {personTitle ? ` · ${personTitle}` : ""} · {reportLabel}
+            {totals.person_count} kişi · {reportLabel}
           </p>
         </div>
         <div className="text-right text-xs text-zinc-500">
@@ -191,10 +213,10 @@ export default function PersonReportClient({
 
       <RangeFilterBar rangeKey={rangeKey} customStart={customStart} customEnd={customEnd}>
         <Link
-          href={`/tasks?assignee=${encodeURIComponent(personId)}`}
+          href={`/tasks?department=${encodeURIComponent(departmentId)}`}
           className="ui-press inline-flex min-h-11 items-center rounded-xl px-3 text-sm font-medium text-brand-600 hover:bg-brand-500/10 dark:text-brand-400"
         >
-          Görevlerini aç
+          Görevleri aç
         </Link>
         <button
           type="button"
@@ -207,7 +229,7 @@ export default function PersonReportClient({
           rangeKey={rangeKey}
           customStart={customStart}
           customEnd={customEnd}
-          personId={personId}
+          departmentId={departmentId}
         />
         <PrintButton />
       </RangeFilterBar>
@@ -224,10 +246,10 @@ export default function PersonReportClient({
         </p>
       </section>
 
-      <section aria-labelledby="person-metrics" className="space-y-3">
+      <section aria-labelledby="department-metrics" className="space-y-3">
         <div>
-          <h2 id="person-metrics" className="text-lg font-semibold">
-            Rakamlarla {personName}
+          <h2 id="department-metrics" className="text-lg font-semibold">
+            Rakamlarla {departmentLabel}
           </h2>
           <p className="text-sm text-zinc-500 dark:text-zinc-400">
             Açılan ve tamamlanan seçili döneme ait; açık ve geciken bugünkü durumu gösterir.
@@ -242,13 +264,17 @@ export default function PersonReportClient({
           <MetricCard
             label="Tamamlanan"
             value={summary.completed_tasks}
-            note={`Ekip ortalaması ${teamAverageCompleted.toLocaleString("tr-TR")}`}
+            note={comparePeriod(summary.completed_tasks, previousSummary?.completed_tasks)}
             tone="success"
           />
           <MetricCard
             label="Açık iş yükü"
             value={summary.open_tasks}
-            note={`Ekip ortalaması ${teamAverageOpen.toLocaleString("tr-TR")}`}
+            note={
+              perPersonOpen == null
+                ? "Aktif kişi yok"
+                : `Kişi başına ${perPersonOpen.toLocaleString("tr-TR")} iş`
+            }
           />
           <MetricCard
             label="Geciken"
@@ -272,16 +298,16 @@ export default function PersonReportClient({
           <div className="grid gap-3 sm:grid-cols-2">
             {workloadShare != null && (
               <ShareBar
-                label="Ekibin açık iş yükündeki payı"
+                label="Portföyün açık iş yükündeki payı"
                 percentage={workloadShare}
-                detail={`${summary.open_tasks} / ${teamSummary.open_tasks} açık görev`}
+                detail={`${summary.open_tasks} / ${portfolioSummary.open_tasks} açık görev`}
               />
             )}
             {completionShare != null && (
               <ShareBar
                 label="Dönemde tamamlananlardaki payı"
                 percentage={completionShare}
-                detail={`${summary.completed_tasks} / ${teamSummary.completed_tasks} tamamlanan görev`}
+                detail={`${summary.completed_tasks} / ${portfolioSummary.completed_tasks} tamamlanan görev`}
                 tone="success"
               />
             )}
@@ -289,11 +315,107 @@ export default function PersonReportClient({
         )}
       </section>
 
+      <CollapsiblePanel
+        panelKey="department-members"
+        title="Departmandaki kişiler"
+        description="Yükün kimde olduğu — satır sonundaki bağlantı kişinin kendi raporunu açar"
+        meta={<span className="tabular-nums">{members.length} kişi</span>}
+      >
+        {members.length === 0 ? (
+          <EmptyState
+            compact
+            title="Bu departmanda kişi yok"
+            description="Ekip sayfasından kişilerin departmanını atayabilirsin."
+          />
+        ) : (
+          <div className="-mx-5 overflow-x-auto">
+            <table className="w-full min-w-[720px] text-sm">
+              <thead className="bg-zinc-50/90 dark:bg-zinc-950/70">
+                <tr className="border-y border-black/10 text-left text-xs uppercase tracking-wider text-zinc-500 dark:border-white/10 dark:text-zinc-400">
+                  <th className="px-5 py-3 font-medium">Kişi</th>
+                  <th className="px-3 py-3 font-medium">Açılan</th>
+                  <th className="px-3 py-3 font-medium">Tamamlanan</th>
+                  <th className="px-3 py-3 font-medium">Açık</th>
+                  <th className="px-3 py-3 font-medium">Geciken</th>
+                  <th className="px-3 py-3 font-medium">Zamanında</th>
+                  <th className="px-3 py-3 font-medium print:hidden">
+                    <span className="sr-only">Kişi raporu</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {members.map((member) => (
+                  <tr
+                    key={member.person_id}
+                    className="border-b border-black/5 last:border-0 dark:border-white/5"
+                  >
+                    <td className="px-5 py-3">
+                      <span className="flex min-w-0 items-center gap-2">
+                        <PersonAvatar
+                          name={member.person_name}
+                          avatarPath={member.avatar_path}
+                          size="sm"
+                        />
+                        <span className="min-w-0">
+                          <span className="block truncate font-medium">
+                            {member.person_name}
+                          </span>
+                          {member.active === 0 && (
+                            <span className="block text-[10px] text-zinc-500 dark:text-zinc-400">
+                              pasif
+                            </span>
+                          )}
+                        </span>
+                      </span>
+                    </td>
+                    <td className="px-3 py-3 tabular-nums">{member.total_tasks}</td>
+                    <td className="px-3 py-3 font-medium tabular-nums">
+                      {member.completed_tasks}
+                    </td>
+                    <td className="px-3 py-3 tabular-nums">
+                      <div className="flex items-center gap-2">
+                        <span className="min-w-4">{member.open_tasks}</span>
+                        <span className="h-1.5 w-16 overflow-hidden rounded-full bg-black/5 dark:bg-white/10">
+                          <span
+                            className="block h-full rounded-full bg-brand-500"
+                            style={{ width: `${(member.open_tasks / maxMemberOpen) * 100}%` }}
+                          />
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-3 py-3 tabular-nums">
+                      <span
+                        className={
+                          member.overdue_tasks > 0
+                            ? "font-medium text-rose-600 dark:text-rose-400"
+                            : undefined
+                        }
+                      >
+                        {member.overdue_tasks}
+                      </span>
+                    </td>
+                    <td className="px-3 py-3 tabular-nums">{formatRate(member.on_time_rate)}</td>
+                    <td className="px-3 py-3 print:hidden">
+                      <Link
+                        href={`/reports/kisi/${encodeURIComponent(member.person_id)}`}
+                        className="whitespace-nowrap text-xs font-semibold text-brand-600 hover:underline dark:text-brand-400"
+                      >
+                        Detaylı rapor →
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </CollapsiblePanel>
+
       <section aria-label="Dağılımlar" className="grid gap-4 xl:grid-cols-2">
         <WorkflowBreakdownPanel
           workflow={workflow}
-          description="Kişinin işlerinin şu anda beklediği durum"
-          emptyDescription="Bu kişiye atanmış açık görev bulunmuyor."
+          description="Departmanın işlerinin şu anda beklediği durum"
+          emptyDescription="Bu departmandaki kişilere atanmış açık görev bulunmuyor."
         />
         <PriorityBreakdownPanel priorities={priorities} />
       </section>
@@ -307,7 +429,7 @@ export default function PersonReportClient({
 
       <BrandBreakdownPanel
         brands={brands}
-        emptyDescription="Bu kişiye bir markanın işi atandığında dağılım burada görünecek."
+        emptyDescription="Departmana bir markanın işi atandığında dağılım burada görünecek."
       />
 
       <TaskListPanel
@@ -322,6 +444,7 @@ export default function PersonReportClient({
           <TaskRow
             key={task.id}
             task={task}
+            showAssignee
             trailing={
               <>
                 <span className="block font-medium text-rose-600 dark:text-rose-400">
@@ -348,6 +471,7 @@ export default function PersonReportClient({
           <TaskRow
             key={task.id}
             task={task}
+            showAssignee
             trailing={
               <>
                 <span className="block font-medium">
@@ -366,8 +490,8 @@ export default function PersonReportClient({
 
       <TaskListPanel
         panelKey="scope-completed"
-        title="Son tamamladıkları"
-        description="En son kapatılan işler"
+        title="Son tamamlananlar"
+        description="Departmanda en son kapatılan işler"
         count={completedTasks.length}
         emptyTitle="Henüz tamamlanan iş yok"
         emptyDescription="Bir görev yayınlandığında burada listelenecek."
@@ -376,6 +500,7 @@ export default function PersonReportClient({
           <TaskRow
             key={task.id}
             task={task}
+            showAssignee
             trailing={
               <span className="block text-emerald-600 dark:text-emerald-400">
                 {formatDateShort(task.completed_at?.slice(0, 10) ?? null)}

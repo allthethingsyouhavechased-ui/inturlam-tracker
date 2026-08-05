@@ -119,12 +119,15 @@ export function ExcelDownloadLink({
   customStart,
   customEnd,
   personId,
+  departmentId,
 }: {
   rangeKey: RangeKey;
   customStart: string;
   customEnd: string;
   /** Verilirse döküm yalnızca o kişinin işlerini kapsar. */
   personId?: string;
+  /** Verilirse döküm o departmandaki kişilerin işlerini kapsar. */
+  departmentId?: string;
 }) {
   const params = new URLSearchParams();
   if (rangeKey !== "all") params.set("range", rangeKey);
@@ -133,6 +136,7 @@ export function ExcelDownloadLink({
     params.set("end", customEnd);
   }
   if (personId) params.set("person", personId);
+  if (departmentId) params.set("department", departmentId);
   const query = params.toString();
 
   return (

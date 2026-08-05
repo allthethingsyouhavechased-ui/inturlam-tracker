@@ -1,4 +1,5 @@
-// Rapor ekranının Excel dökümü: /reports/export?range=month[&start&end][&person=ID]
+// Rapor ekranının Excel dökümü:
+// /reports/export?range=month[&start&end][&person=ID | &department=ID]
 //
 // Neden Server Action değil de route handler: dosya indirmesi bir HTTP yanıtı —
 // tarayıcı `<a download>` ile doğrudan çekiyor, JavaScript'te blob kurmaya
@@ -7,6 +8,13 @@
 
 import { NextResponse } from "next/server";
 import { currentMonthRange, currentWeekRange, todayISO } from "@/lib/date";
+import {
+  departmentKey,
+  departmentLabel,
+  isDepartmentId,
+  NO_DEPARTMENT,
+  type DepartmentKey,
+} from "@/lib/departments";
 import { buildReportSheets } from "@/lib/reportWorkbook";
 import { clusterLabelMap } from "@/lib/repositories/clusters";
 import { getPerson } from "@/lib/repositories/people";
@@ -15,11 +23,13 @@ import {
   getReportSummary,
   getTrendReport,
   listBrandReport,
+  listDepartmentReport,
   listDueHealthReport,
   listPersonReport,
   listTaskDetailReport,
   listWorkflowReport,
   type DateRange,
+  type ReportScope,
 } from "@/lib/repositories/reports";
 import { sweepArchivablePublishedTasks } from "@/lib/repositories/tasks";
 import { buildXlsx, xlsxFileName } from "@/lib/xlsx";
@@ -72,14 +82,23 @@ export async function GET(request: Request): Promise<NextResponse> {
   const { range } = resolveRange(params);
   const today = todayISO();
 
-  // Kişi kapsamı: geçersiz/bilinmeyen id sessizce portföy geneline düşmemeli —
-  // dosyayı açan kişi kimin raporuna baktığını bilmelidir.
+  // Kapsam: geçersiz/bilinmeyen id sessizce portföy geneline düşmemeli —
+  // dosyayı açan kişi hangi kapsama baktığını bilmelidir.
   const personId = params.get("person");
   const person = personId ? getPerson(personId) : undefined;
   if (personId && !person) {
     return NextResponse.json({ error: "Kişi bulunamadı." }, { status: 404 });
   }
-  const scope = person?.id ?? null;
+
+  const departmentParam = params.get("department");
+  if (departmentParam && !isDepartmentId(departmentParam) && departmentParam !== NO_DEPARTMENT) {
+    return NextResponse.json({ error: "Departman bulunamadı." }, { status: 404 });
+  }
+  const department = departmentParam ? (departmentParam as DepartmentKey) : null;
+
+  // Kişi kapsamı departmandan önce gelir: ikisi birden verilirse dosya tek bir
+  // şeyi anlatmalı, kişi daha dar olan.
+  const scope: ReportScope = person?.id ?? (department ? { department } : null);
 
   // Döküm de panolarla aynı arşiv kuralını görsün.
   sweepArchivablePublishedTasks();
@@ -88,8 +107,14 @@ export async function GET(request: Request): Promise<NextResponse> {
     ? `${formatReportDate(range.start)} – ${formatReportDate(range.end)}`
     : "Tüm zamanlar";
 
+  const scopeTitle = person
+    ? `Kişi raporu · ${person.name}`
+    : department
+      ? `Departman raporu · ${departmentLabel(department)}`
+      : "Portföy geneli";
+
   const sheets = buildReportSheets({
-    title: person ? `Kişi raporu · ${person.name}` : "Portföy geneli",
+    title: scopeTitle,
     reportLabel,
     generatedAt: new Intl.DateTimeFormat("tr-TR", {
       dateStyle: "long",
@@ -103,14 +128,24 @@ export async function GET(request: Request): Promise<NextResponse> {
     trend: getTrendReport(range, scope),
     tasks: listTaskDetailReport(range, today, scope),
     // Kişi dosyasında ekip tablosu yok (o kişiyi ekiple kıyaslamak raporun kendi
-    // ekranının işi); marka tablosu ise portföy genelinde anlamlı.
-    people: person ? [] : listPersonReport(range, today),
-    brands: person ? [] : listBrandReport(range, today),
+    // ekranının işi); departman dosyasında ekip tablosu YALNIZCA o departmanın
+    // kişilerini taşır — "yük kimde" sorusu departman raporunun asıl sorusu.
+    people: person
+      ? []
+      : department
+        ? listPersonReport(range, today).filter(
+            (row) => departmentKey(row.department) === department,
+          )
+        : listPersonReport(range, today),
+    // Marka ve departman tabloları yalnızca portföy dosyasında: kapsamlı
+    // dosyada ikisi de kapsamın kendisini tekrar ederdi.
+    brands: person || department ? [] : listBrandReport(range, today),
+    departments: person || department ? [] : listDepartmentReport(range, today),
     clusterLabels: clusterLabelMap(),
   });
 
   const fileName = xlsxFileName([
-    person ? person.name : "inturlam",
+    person ? person.name : department ? `${departmentLabel(department)}-departmani` : "inturlam",
     "rapor",
     range ? `${range.start}_${range.end}` : "tum-zamanlar",
   ]);

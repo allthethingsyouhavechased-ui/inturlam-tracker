@@ -4,12 +4,14 @@ import ReportsClient, {
   type RangeKey,
 } from "@/components/ReportsClient";
 import { currentMonthRange, currentWeekRange, todayISO } from "@/lib/date";
+import { withAllDepartments } from "@/lib/departments";
 import {
   getCycleTimeReport,
   getReportSummary,
   getTrendReport,
   listBrandPersonBreakdown,
   listBrandReport,
+  listDepartmentReport,
   listDueHealthReport,
   listPersonBrandBreakdown,
   listPersonReport,
@@ -70,6 +72,19 @@ export default async function ReportsPage({
   const trend = getTrendReport(range);
   const cycleTime = getCycleTimeReport(range);
   const dueHealth = listDueHealthReport(today);
+  // Departmanı olan/olmayan herkesin satırı sabit sırada; o dönemde hiç işi
+  // olmayan departman da sıfır satırıyla görünsün diye zenginleştiriliyor.
+  const departmentRows = withAllDepartments(listDepartmentReport(range, today), (department) => ({
+    department,
+    person_count: 0,
+    active_person_count: 0,
+    total_tasks: 0,
+    completed_tasks: 0,
+    open_tasks: 0,
+    overdue_tasks: 0,
+    on_time_rate: null,
+    average_cycle_days: null,
+  }));
   const personRows = listPersonReport(range, today);
   const personBrandRows = listPersonBrandBreakdown(range);
   const brandRows = listBrandReport(range, today);
@@ -126,6 +141,7 @@ export default async function ReportsPage({
         trend={trend}
         cycleTime={cycleTime}
         dueHealth={dueHealth}
+        departments={departmentRows}
         people={personViews}
         brands={brandViews}
         rangeKey={rangeKey}

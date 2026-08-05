@@ -21,15 +21,21 @@ kurulumu basit bir iç araç.
 - **Yayın → arşiv akışı:** "Yayınlandı" işaretlenen görev panodan anında kaybolmaz;
   7 gün daha durup arşive düşer. Yanlışlıkla işaretlemek geri alınabilir bir hata olur,
   arşivdeki iş de silinmez — tek tıkla panoya döner.
-- **Operasyon raporları:** Dönem, ekip ve marka bazında iş yükü, gecikme, tamamlanma
-  ve iş akışı dağılımını gösterir.
-- **Excel dökümü:** Raporlardaki "Excel dökümü" düğmesi 4 sayfalık bir `.xlsx` indirir:
+- **Operasyon raporları:** Dönem, departman, ekip ve marka bazında iş yükü, gecikme,
+  tamamlanma ve iş akışı dağılımını gösterir.
+- **Excel dökümü:** Raporlardaki "Excel dökümü" düğmesi 5 sayfalık bir `.xlsx` indirir:
   ekrandaki özet görünümün kendisi + satır satır görev listesi (işin **adı**,
-  **kategorisi**, markası, içeriği, sorumlusu, tarihleri) + ekip ve marka tabloları.
+  **kategorisi**, markası, içeriği, sorumlusu, tarihleri) + departman, ekip ve marka
+  tabloları. Kişi ve departman raporlarından indirilen döküm yalnızca o kapsamı taşır.
 - **Kişi bazlı detaylı rapor:** Raporlar → ekip tablosundaki "Detaylı rapor" bağlantısı
   bir kişinin tam görünümünü açar — düz Türkçe özet, ekip ortalamasıyla karşılaştırma,
   durum/öncelik/marka dağılımı ve sayının arkasındaki gerçek görev listeleri (gecikmiş,
   önümüzdeki 7 gün, son tamamlananlar). CSV, Excel ve yazdırma dahil.
+- **Departman bazlı detaylı rapor:** Raporlar → departman tablosundaki "Detaylı rapor"
+  bağlantısı aynı görünümü bir departmanın tamamı için açar: kişi başına düşen açık iş,
+  portföy içindeki pay, departmandaki kişilerin tek tek yükü ve kim ne yapıyor bilgisiyle
+  görev listeleri. Departman kişinin alanı olduğu için atanmamış görevler bu sayılara
+  girmez; departmanı boş olan kişiler "Diğer" satırında toplanır.
 
 Şifre/hesap sistemi yok — açılışta "Sen kimsin?" ile isim seçilir, cookie'de hatırlanır.
 Veri tek bir yerel dosyada tutulur (`data/inturlam.db`, SQLite) — ayrı bir veritabanı
