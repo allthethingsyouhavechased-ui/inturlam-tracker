@@ -12,6 +12,7 @@ import {
 } from "@/lib/constants";
 import { formatDateShort, todayISO } from "@/lib/date";
 import { getCurrentPerson } from "@/lib/identity";
+import { setPersonalTaskTarget } from "@/lib/repositories/personalTargets";
 import { getPerson } from "@/lib/repositories/people";
 import {
   addTaskAttachment,
@@ -178,6 +179,18 @@ export async function setTaskDueDateAction(taskId: string, dueDate: string | nul
       : `“${task?.title ?? "Görev"}” teslim tarihini kaldırdı`,
   });
   revalidatePath("/", "layout");
+}
+
+export async function setPersonalTaskTargetAction(
+  taskId: string,
+  targetDate: string | null,
+) {
+  const person = await getCurrentPerson();
+  if (!person) throw new Error("Kişisel hedef belirlemek için giriş yapmalısın.");
+
+  const cleanTarget = targetDate?.trim() || null;
+  setPersonalTaskTarget(taskId, person.id, cleanTarget, todayISO());
+  revalidatePath("/panom");
 }
 
 export async function updateTaskDetailsAction(formData: FormData) {

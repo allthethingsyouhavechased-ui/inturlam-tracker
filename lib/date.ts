@@ -23,6 +23,10 @@ export function todayISO(): string {
   return toISODate(new Date());
 }
 
+export function shiftISODate(iso: string, days: number): string {
+  return toISODate(addDays(parseISO(iso), days));
+}
+
 // N gün öncesinin tarihi. "Bu veri bayatladı mı?" kontrolleri için:
 // `kayit.tarih < daysAgoISO(7)` → bir haftadan eski.
 export function daysAgoISO(days: number): string {

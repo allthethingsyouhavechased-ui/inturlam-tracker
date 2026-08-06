@@ -208,6 +208,17 @@ export interface TaskWithContext extends Task {
   badges?: TaskCardBadge[];
 }
 
+export interface PersonalTaskTarget {
+  task_id: string;
+  person_id: string;
+  target_date: string;
+  updated_at: string;
+}
+
+export interface TaskWithPersonalTarget extends TaskWithContext {
+  personal_target_date: string | null;
+}
+
 export interface BrandWithCount extends Brand {
   open_count: number;
 }

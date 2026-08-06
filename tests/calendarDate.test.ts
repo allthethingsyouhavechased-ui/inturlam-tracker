@@ -11,6 +11,7 @@ import {
   monthParamISO,
   monthParamToDate,
   shiftMonthParam,
+  shiftISODate,
 } from "@/lib/date";
 
 describe("calendarGridDays", () => {
@@ -74,5 +75,12 @@ describe("shiftMonthParam", () => {
   it("yıl sınırında doğru dönüyor", () => {
     assert.equal(shiftMonthParam("2026-01", -1), "2025-12");
     assert.equal(shiftMonthParam("2026-12", 1), "2027-01");
+  });
+});
+
+describe("shiftISODate", () => {
+  it("gün ufkunu ay ve yıl sınırlarında kaydırıyor", () => {
+    assert.equal(shiftISODate("2026-08-30", 7), "2026-09-06");
+    assert.equal(shiftISODate("2026-12-30", 3), "2027-01-02");
   });
 });

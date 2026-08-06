@@ -358,12 +358,16 @@ function applyTaskStatusChanges(
       (id, task_id, from_status, to_status, actor_id)
     VALUES (?, ?, ?, ?, ?)
   `);
+  const clearPersonalTargets = db.prepare(
+    "DELETE FROM task_personal_targets WHERE task_id = ?",
+  );
 
   db.exec("BEGIN IMMEDIATE");
   try {
     for (const task of changed) {
       update.run(status, status, status, actorId, task.id);
       insertEvent.run(crypto.randomUUID(), task.id, task.status, status, actorId);
+      if (status === "Yayinlandi") clearPersonalTargets.run(task.id);
     }
     db.exec("COMMIT");
   } catch (error) {
@@ -400,11 +404,25 @@ export function updateTaskDueDate(id: string, dueDate: string | null): void {
 }
 
 export function updateTaskAssignee(id: string, assigneeId: string | null): void {
-  getDb()
-    .prepare(
+  const db = getDb();
+  db.exec("BEGIN IMMEDIATE");
+  try {
+    const current = db.prepare("SELECT assignee_id FROM tasks WHERE id = ?").get(id) as
+      | { assignee_id: string | null }
+      | undefined;
+    if (!current || current.assignee_id === assigneeId) {
+      db.exec("COMMIT");
+      return;
+    }
+    db.prepare(
       "UPDATE tasks SET assignee_id = ?, updated_at = datetime('now') WHERE id = ?",
-    )
-    .run(assigneeId, id);
+    ).run(assigneeId, id);
+    db.prepare("DELETE FROM task_personal_targets WHERE task_id = ?").run(id);
+    db.exec("COMMIT");
+  } catch (error) {
+    db.exec("ROLLBACK");
+    throw error;
+  }
 }
 
 export function updateTaskDetails(input: {
@@ -503,11 +521,33 @@ export function bulkUpdateTaskPriority(ids: string[], priority: TaskPriority): v
 export function bulkUpdateTaskAssignee(ids: string[], assigneeId: string | null): void {
   if (ids.length === 0) return;
   const placeholders = ids.map(() => "?").join(", ");
-  getDb()
-    .prepare(
-      `UPDATE tasks SET assignee_id = ?, updated_at = datetime('now') WHERE id IN (${placeholders})`,
-    )
-    .run(assigneeId, ...ids);
+  const db = getDb();
+  db.exec("BEGIN IMMEDIATE");
+  try {
+    const current = plainList<{ id: string; assignee_id: string | null }>(
+      db.prepare(`SELECT id, assignee_id FROM tasks WHERE id IN (${placeholders})`).all(...ids),
+    );
+    const changedIds = current
+      .filter((task) => task.assignee_id !== assigneeId)
+      .map((task) => task.id);
+    if (changedIds.length === 0) {
+      db.exec("COMMIT");
+      return;
+    }
+
+    const changedPlaceholders = changedIds.map(() => "?").join(", ");
+    db.prepare(
+      `UPDATE tasks SET assignee_id = ?, updated_at = datetime('now')
+        WHERE id IN (${changedPlaceholders})`,
+    ).run(assigneeId, ...changedIds);
+    db.prepare(
+      `DELETE FROM task_personal_targets WHERE task_id IN (${changedPlaceholders})`,
+    ).run(...changedIds);
+    db.exec("COMMIT");
+  } catch (error) {
+    db.exec("ROLLBACK");
+    throw error;
+  }
 }
 
 export function bulkDeleteTasks(ids: string[]): void {

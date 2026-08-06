@@ -123,6 +123,16 @@ CREATE TABLE IF NOT EXISTS tasks (
   updated_at      TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
+-- Resmi teslim tarihinden bağımsız kişisel çalışma hedefi. Kişi bazlı ayrı
+-- tabloda tutulur: görev başka birine geçtiğinde hedef yeni sahibine taşınmaz.
+CREATE TABLE IF NOT EXISTS task_personal_targets (
+  task_id     TEXT NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
+  person_id   TEXT NOT NULL REFERENCES people(id) ON DELETE CASCADE,
+  target_date TEXT NOT NULL,
+  updated_at  TEXT NOT NULL DEFAULT (datetime('now')),
+  PRIMARY KEY (task_id, person_id)
+);
+
 -- Durumların ne zaman değiştiğini append-only saklar. Böylece yalnızca son
 -- durumu değil, işin hangi aşamada ne kadar beklediğini de ileride ölçebiliriz.
 CREATE TABLE IF NOT EXISTS task_status_events (
@@ -227,6 +237,8 @@ CREATE INDEX IF NOT EXISTS idx_tasks_assignee      ON tasks(assignee_id);
 CREATE INDEX IF NOT EXISTS idx_tasks_due_date      ON tasks(due_date);
 CREATE INDEX IF NOT EXISTS idx_tasks_completed_at  ON tasks(completed_at);
 CREATE INDEX IF NOT EXISTS idx_tasks_archived_at   ON tasks(archived_at);
+CREATE INDEX IF NOT EXISTS idx_personal_targets_person
+  ON task_personal_targets(person_id, target_date);
 CREATE INDEX IF NOT EXISTS idx_task_status_events_task
   ON task_status_events(task_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_comments_task       ON comments(task_id);

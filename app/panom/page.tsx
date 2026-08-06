@@ -5,16 +5,16 @@ import PersonalDeadlinePanel from "@/components/PersonalDeadlinePanel";
 import { currentWeekRange, todayISO } from "@/lib/date";
 import { getCurrentPerson } from "@/lib/identity";
 import { listBrandsWithOpenCounts } from "@/lib/repositories/brands";
+import { listPersonalTaskTargets } from "@/lib/repositories/personalTargets";
 import { listActivePeople } from "@/lib/repositories/people";
 import {
   listBoardTasksByAssignee,
   listOverdueTasks,
   listTasksDueThisWeek,
-  listUpcomingTasksByAssignee,
   sweepArchivablePublishedTasks,
 } from "@/lib/repositories/tasks";
 import { archiveCountdownBadge } from "@/lib/taskArchive";
-import type { TaskCardBadge, TaskWithContext } from "@/lib/types";
+import type { TaskCardBadge, TaskWithContext, TaskWithPersonalTarget } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -41,10 +41,16 @@ export default async function PanomPage() {
   const myTasks = me ? listBoardTasksByAssignee(me.id) : [];
   const overdue = listOverdueTasks(today);
   const thisWeek = listTasksDueThisWeek(today, weekEnd);
-  const myOverdue = me ? overdue.filter((task) => task.assignee_id === me.id) : [];
-  const myUpcoming = me
-    ? listUpcomingTasksByAssignee(me.id, today, PERSONAL_DEADLINE_HORIZON_DAYS)
-    : [];
+  const personalTargets = me ? listPersonalTaskTargets(me.id) : [];
+  const targetByTask = new Map(
+    personalTargets.map((target) => [target.task_id, target.target_date]),
+  );
+  const myPlanningTasks: TaskWithPersonalTarget[] = myTasks
+    .filter((task) => task.status !== "Yayinlandi")
+    .map((task) => ({
+      ...task,
+      personal_target_date: targetByTask.get(task.id) ?? null,
+    }));
   const brands = listBrandsWithOpenCounts();
   const people = listActivePeople();
 
@@ -105,8 +111,7 @@ export default async function PanomPage() {
       {me && (
         <PersonalDeadlinePanel
           personId={me.id}
-          overdueTasks={myOverdue}
-          upcomingTasks={myUpcoming}
+          tasks={myPlanningTasks}
           today={today}
           horizonDays={PERSONAL_DEADLINE_HORIZON_DAYS}
         />
