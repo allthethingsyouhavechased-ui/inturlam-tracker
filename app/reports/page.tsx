@@ -5,6 +5,7 @@ import ReportsClient, {
 } from "@/components/ReportsClient";
 import { currentMonthRange, currentWeekRange, todayISO } from "@/lib/date";
 import { withAllDepartments } from "@/lib/departments";
+import { requireReportAccess } from "@/lib/identity";
 import {
   getCycleTimeReport,
   getReportSummary,
@@ -58,6 +59,7 @@ export default async function ReportsPage({
 }: {
   searchParams: Promise<{ range?: string; start?: string; end?: string }>;
 }) {
+  await requireReportAccess();
   const sp = await searchParams;
   const rangeKey: RangeKey =
     sp.range === "week" || sp.range === "month" || sp.range === "custom"

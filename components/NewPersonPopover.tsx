@@ -55,7 +55,7 @@ export default function NewPersonPopover() {
                 Yeni ekip üyesi ekle
               </h3>
               <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
-                Yalnızca isimle oluştur; profil ayrıntıları sonradan eklenebilir.
+                İsim, departman ve ilk giriş şifresini birlikte belirle.
               </p>
             </div>
             <button

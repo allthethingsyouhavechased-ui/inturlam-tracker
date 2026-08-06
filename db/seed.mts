@@ -35,17 +35,19 @@ const BRANDS: { id: string; name: string; cluster: string }[] = [
 // `department` değerleri lib/departments.ts'teki DEPARTMENTS id'leridir. Yalnızca
 // kişi ilk kez yazılırken (ve sonradan boş kalmışsa) uygulanır — arayüzden
 // yapılan departman değişikliğini seed geri almaz (bkz. insertPerson).
-const PEOPLE: { id: string; name: string; department: string | null }[] = [
-  { id: "yunus", name: "Yunus Emre", department: "video" },
-  { id: "arman", name: "Arman", department: "video" },
-  { id: "cansu", name: "Cansu", department: "social" },
-  { id: "defne", name: "Defne", department: "social" },
-  { id: "ekin", name: "Ekin", department: "design" },
-  { id: "emrullah", name: "Emrullah", department: "video" },
-  { id: "erhan", name: "Erhan", department: "video" },
-  { id: "murat", name: "Murat", department: "design" },
-  { id: "ozgun", name: "Özgün", department: "video" },
-  { id: "sila", name: "Sıla", department: "design" },
+const PEOPLE: { id: string; name: string; department: string | null; isManager: boolean }[] = [
+  { id: "yunus", name: "Yunus Emre", department: "video", isManager: true },
+  { id: "arman", name: "Arman", department: "video", isManager: false },
+  { id: "berkant", name: "Berkant", department: "management", isManager: true },
+  { id: "cansu", name: "Cansu", department: "social", isManager: false },
+  { id: "defne", name: "Defne", department: "social", isManager: false },
+  { id: "ekin", name: "Ekin", department: "design", isManager: false },
+  { id: "emrullah", name: "Emrullah", department: "video", isManager: false },
+  { id: "erhan", name: "Erhan", department: "video", isManager: false },
+  { id: "murat", name: "Murat", department: "design", isManager: false },
+  { id: "ozgun", name: "Özgün", department: "video", isManager: false },
+  { id: "ozgur", name: "Özgür", department: "management", isManager: true },
+  { id: "sila", name: "Sıla", department: "design", isManager: true },
 ];
 
 // Artık kullanılmayan placeholder kişiler — hiçbir görev/yoruma bağlı değillerse
@@ -293,12 +295,13 @@ BRANDS.forEach((b, i) => {
 // da sadece boşsa doldurulur. Aksi halde arayüzden yapılan her departman
 // değişikliği bir sonraki seed'de sessizce geri alınırdı.
 const insertPerson = db.prepare(
-  `INSERT INTO people (id, name, department) VALUES (?, ?, ?)
+  `INSERT INTO people (id, name, department, is_manager) VALUES (?, ?, ?, ?)
    ON CONFLICT(id) DO UPDATE SET
      name = excluded.name,
-     department = COALESCE(people.department, excluded.department)`,
+     department = COALESCE(people.department, excluded.department),
+     is_manager = MAX(people.is_manager, excluded.is_manager)`,
 );
-for (const p of PEOPLE) insertPerson.run(p.id, p.name, p.department);
+for (const p of PEOPLE) insertPerson.run(p.id, p.name, p.department, p.isManager ? 1 : 0);
 
 const deletePerson = db.prepare(`DELETE FROM people WHERE id = ?`);
 for (const id of REMOVED_PEOPLE_IDS) deletePerson.run(id);

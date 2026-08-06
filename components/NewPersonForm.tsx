@@ -29,7 +29,7 @@ export default function NewPersonForm({
           setError(getActionErrorMessage(e));
         }
       }}
-      className="grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end"
+      className="grid gap-3 sm:grid-cols-2"
     >
       <label className="grid min-w-0 gap-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">
         İsim
@@ -46,8 +46,18 @@ export default function NewPersonForm({
           ))}
         </select>
       </label>
-      <SubmitButton>Ekip üyesi ekle</SubmitButton>
-      {error && <p role="alert" className="text-xs text-rose-600 dark:text-rose-400 sm:col-span-3">{error}</p>}
+      <label className="grid min-w-0 gap-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">
+        Şifre
+        <input name="password" type="password" required minLength={6} maxLength={128} autoComplete="new-password" className={inputClass} />
+      </label>
+      <label className="grid min-w-0 gap-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">
+        Şifre tekrar
+        <input name="confirmPassword" type="password" required minLength={6} maxLength={128} autoComplete="new-password" className={inputClass} />
+      </label>
+      <div className="sm:col-span-2 sm:flex sm:justify-end">
+        <SubmitButton>Ekip üyesi ekle</SubmitButton>
+      </div>
+      {error && <p role="alert" className="text-xs text-rose-600 dark:text-rose-400 sm:col-span-2">{error}</p>}
     </form>
   );
 }

@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { hashPassword, validatePassword } from "@/lib/auth/password";
 import { normalizeDepartment } from "@/lib/departments";
 import {
   createPerson,
@@ -18,9 +19,19 @@ function optionalText(value: FormDataEntryValue | null): string | null {
 
 export async function createPersonAction(formData: FormData) {
   const name = String(formData.get("name") ?? "").trim();
+  const password = String(formData.get("password") ?? "");
+  const confirmPassword = String(formData.get("confirmPassword") ?? "");
   if (!name) throw new Error("İsim zorunlu.");
+  if (name.length > 80) throw new Error("İsim en fazla 80 karakter olabilir.");
+  const passwordError = validatePassword(password);
+  if (passwordError) throw new Error(passwordError);
+  if (password !== confirmPassword) throw new Error("Şifreler eşleşmiyor.");
 
-  createPerson(name, normalizeDepartment(formData.get("department")));
+  createPerson(
+    name,
+    normalizeDepartment(formData.get("department")),
+    hashPassword(password),
+  );
   revalidatePath("/", "layout");
 }
 

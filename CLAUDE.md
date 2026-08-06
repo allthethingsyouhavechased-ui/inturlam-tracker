@@ -6,7 +6,8 @@
 Marka → İçerik → Görev (+yorum). Markalar kullanıcı tarafından yönetilen
 kategorilere (`clusters` tablosu) ayrılır. Her markanın ayrıca Instagram araştırma verisi
 (takipçi, performans, bulgular, tam denetim metni, diğer markalarla ilişkisi) var.
-İç araç, LAN'da çalışır, kimlik doğrulama yok.
+İç araç, LAN'da çalışır. Kişi adına tıklayıp şifreyle giriş yapılır; raporlar
+yalnızca `people.is_manager = 1` olan yöneticilere açıktır.
 
 ## Stack
 
@@ -21,7 +22,10 @@ kategorilere (`clusters` tablosu) ayrılır. Her markanın ayrıca Instagram ara
 - `lib/repositories/*` — tüm SQL burada (senkron, prepared statements). `brands.ts`'te
   `listBrandRelations()` (karşı markanın bilgisini normalize eder) ve `getBrandAudit()` da var.
 - `lib/actions/*` — `"use server"` mutasyonları; repo çağır + `revalidatePath("/", "layout")`.
-- `lib/identity.ts` — cookie'den (`inturlam_pid`) aktif kişiyi okur. `lib/actions/identity.ts` cookie'yi yazar.
+- `lib/identity.ts` — HttpOnly `inturlam_session` cookie'sindeki rastgele anahtarı
+  `auth_sessions` tablosunda doğrulayıp aktif kişiyi okur. Cookie'de ham kişi id'si
+  veya rol tutulmaz. `lib/actions/identity.ts` giriş/çıkış ve şifre değişimini yönetir;
+  şifreler `lib/auth/password.ts` içinde salt'lı `scrypt` özeti olarak saklanır.
 - Sayfalar `app/`, client component'ler `components/`.
 - Seed: `db/seed.mts` (`npm run db:seed`) — 19 marka + kişiler + `brand_relations` + vault'taki
   tam denetim metinleri (`brand_audits`). Kişileri/marka adlarını buradan düzenle. `getDb()`'yi

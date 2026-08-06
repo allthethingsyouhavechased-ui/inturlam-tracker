@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import ChangePasswordForm from "@/components/ChangePasswordForm";
 import EditPersonProfileForm from "@/components/EditPersonProfileForm";
 import PersonAvatar from "@/components/PersonAvatar";
 import { getCurrentPerson } from "@/lib/identity";
@@ -85,6 +86,18 @@ export default async function PersonProfilePage({
         )}
         <EditPersonProfileForm person={person} />
       </section>
+
+      {current?.id === person.id && (
+        <section className="space-y-3">
+          <div>
+            <h2 className="text-lg font-semibold">Şifreyi değiştir</h2>
+            <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+              Şifre değişince açık oturumların kapatılır ve yeni şifrenle tekrar giriş yaparsın.
+            </p>
+          </div>
+          <ChangePasswordForm />
+        </section>
+      )}
     </div>
   );
 }

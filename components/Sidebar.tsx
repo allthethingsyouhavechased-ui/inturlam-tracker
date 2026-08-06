@@ -1,11 +1,13 @@
 import { listBrandsWithOpenCounts } from "@/lib/repositories/brands";
 import { groupBrandsByCluster, listClusters } from "@/lib/repositories/clusters";
 import { listAllContentSummaries } from "@/lib/repositories/content";
+import { getCurrentPerson } from "@/lib/identity";
 import SidebarBrandGroup from "./SidebarBrandGroup";
 import SidebarClusterGroup from "./SidebarClusterGroup";
 import SidebarNavLinks from "./SidebarNavLinks";
 
-export default function Sidebar() {
+export default async function Sidebar() {
+  const person = await getCurrentPerson();
   const brands = listBrandsWithOpenCounts();
   const contents = listAllContentSummaries();
   const groups = groupBrandsByCluster(brands, listClusters());
@@ -25,7 +27,7 @@ export default function Sidebar() {
   return (
     <aside className="h-[calc(100vh-var(--header-h))] w-72 overflow-y-auto border-r border-black/5 bg-zinc-50/95 md:h-full md:w-60 md:overflow-visible md:bg-transparent dark:border-white/5 dark:bg-zinc-950/95 dark:md:bg-transparent">
       <nav className="space-y-4 p-4 md:sticky md:top-[var(--header-h)] md:max-h-[calc(100vh-var(--header-h))] md:overflow-y-auto">
-        <SidebarNavLinks />
+        <SidebarNavLinks canViewReports={person?.is_manager === 1} />
         {groups.map((group) => {
           if (group.items.length === 0) return null;
           return (

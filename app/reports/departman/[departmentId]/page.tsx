@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import DepartmentReportClient from "@/components/reports/DepartmentReportClient";
 import { currentMonthRange, currentWeekRange, todayISO } from "@/lib/date";
+import { requireReportAccess } from "@/lib/identity";
 import {
   departmentKey,
   departmentLabel,
@@ -88,6 +89,7 @@ export default async function DepartmentReportPage({
   params: Promise<{ departmentId: string }>;
   searchParams: Promise<{ range?: string; start?: string; end?: string }>;
 }) {
+  await requireReportAccess();
   const { departmentId } = await params;
   const sp = await searchParams;
   // Bilinmeyen bir departman id'si sessizce "Diğer"e düşmemeli: rapora bakan

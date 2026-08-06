@@ -7,12 +7,15 @@ import { MAIN_NAV } from "@/lib/nav";
 // Masaüstü bölüm menüsü. 7 link dar ekranda header'ı taşırıp sayfaya yatay
 // kaydırma ekliyordu; `md`nin altında gizleniyor ve aynı linkler mobilde
 // off-canvas panelin üstünde çıkıyor (components/Sidebar.tsx).
-export default function NavLinks() {
+export default function NavLinks({ canViewReports }: { canViewReports: boolean }) {
   const pathname = usePathname();
+  const links = canViewReports
+    ? MAIN_NAV
+    : MAIN_NAV.filter((link) => link.href !== "/reports");
 
   return (
     <span className="hidden items-center gap-1 md:flex">
-      {MAIN_NAV.map((link) => {
+      {links.map((link) => {
         const active = pathname.startsWith(link.href);
         return (
           <Link

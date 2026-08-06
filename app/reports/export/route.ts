@@ -7,6 +7,7 @@
 // `node:zlib` kullanıyor; burada kalınca istemci paketine hiç girmiyor.
 
 import { NextResponse } from "next/server";
+import { getCurrentPerson } from "@/lib/identity";
 import { currentMonthRange, currentWeekRange, todayISO } from "@/lib/date";
 import {
   departmentKey,
@@ -78,6 +79,14 @@ function formatReportDate(value: string): string {
 }
 
 export async function GET(request: Request): Promise<NextResponse> {
+  const currentPerson = await getCurrentPerson();
+  if (!currentPerson) {
+    return NextResponse.json({ error: "Giriş gerekli." }, { status: 401 });
+  }
+  if (currentPerson.is_manager !== 1) {
+    return NextResponse.json({ error: "Bu rapora erişim yetkin yok." }, { status: 403 });
+  }
+
   const params = new URL(request.url).searchParams;
   const { range } = resolveRange(params);
   const today = todayISO();

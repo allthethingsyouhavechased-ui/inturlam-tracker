@@ -6,6 +6,7 @@ import PersonReportClient, {
 } from "@/components/reports/PersonReportClient";
 import { departmentLabel } from "@/lib/departments";
 import { currentMonthRange, currentWeekRange, todayISO } from "@/lib/date";
+import { requireReportAccess } from "@/lib/identity";
 import { getPerson, listActivePeople } from "@/lib/repositories/people";
 import {
   getCycleTimeReport,
@@ -68,6 +69,7 @@ export default async function PersonReportPage({
   params: Promise<{ personId: string }>;
   searchParams: Promise<{ range?: string; start?: string; end?: string }>;
 }) {
+  await requireReportAccess();
   const { personId } = await params;
   const sp = await searchParams;
   const person = getPerson(personId);

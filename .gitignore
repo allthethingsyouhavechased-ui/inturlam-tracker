@@ -45,6 +45,7 @@ next-env.d.ts
 /data/*.db-shm
 /data/*.db-wal
 /data/backup/
+/data/runtime/
 
 # user-uploaded comment images (runtime data, not source)
 /public/uploads/

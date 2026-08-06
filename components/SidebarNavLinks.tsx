@@ -8,12 +8,15 @@ import { MAIN_NAV } from "@/lib/nav";
 // `md`nin altında gizlendiği için (7 link dar ekranda taşıyordu) bölümlere
 // telefondan buradan geçiliyor. Masaüstünde gizli — orada header zaten var.
 // Panel rota değişiminde kendiliğinden kapanır (SidebarMobileFrame).
-export default function SidebarNavLinks() {
+export default function SidebarNavLinks({ canViewReports }: { canViewReports: boolean }) {
   const pathname = usePathname();
+  const links = canViewReports
+    ? MAIN_NAV
+    : MAIN_NAV.filter((link) => link.href !== "/reports");
 
   return (
     <div className="mb-4 space-y-1 border-b border-black/5 pb-4 md:hidden dark:border-white/5">
-      {MAIN_NAV.map((link) => {
+      {links.map((link) => {
         const active = pathname === link.href || pathname.startsWith(`${link.href}/`);
         return (
           <Link

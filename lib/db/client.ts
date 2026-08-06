@@ -44,6 +44,7 @@ function createConnection(): DatabaseSync {
   migrateTasksArchivedAtIfNeeded(db);
   migratePeopleProfilesIfNeeded(db);
   migratePeopleDepartmentIfNeeded(db);
+  migratePeopleAuthIfNeeded(db);
   // SIRA ÖNEMLİ: yukarıdaki iki brands migration'ı tabloyu SABİT bir sütun
   // listesiyle yeniden kuruyor; bu ALTER onlardan sonra çalışmalı, yoksa
   // eklediği sütun rebuild sırasında düşer.
@@ -147,6 +148,37 @@ function migratePeopleDepartmentIfNeeded(db: DatabaseSync): void {
     const firstName = row.name.trim().toLocaleLowerCase("tr-TR").split(/\s+/)[0] ?? "";
     const department = LEGACY_DEPARTMENT_FIRST_NAMES[firstName];
     if (department) update.run(department, row.id);
+  }
+}
+
+// Mevcut LAN kurulumunda hesaplar şifresizdi. Düz sütunlarla veri kaybetmeden
+// kimlik doğrulama alanları eklenir. Yönetici geri doldurması yalnızca rol
+// sütunu ilk kez eklenirken çalışır; sonraki elle yapılan rol değişikliklerini
+// uygulama açılışında sessizce ezmez.
+function migratePeopleAuthIfNeeded(db: DatabaseSync): void {
+  const peopleExists = db
+    .prepare(`SELECT 1 FROM sqlite_master WHERE type='table' AND name='people'`)
+    .get();
+  if (!peopleExists) return;
+
+  const columns = db.prepare(`PRAGMA table_info(people)`).all() as { name: string }[];
+  if (!columns.some((column) => column.name === "password_hash")) {
+    db.exec(`ALTER TABLE people ADD COLUMN password_hash TEXT`);
+  }
+
+  const managerColumnAdded = !columns.some((column) => column.name === "is_manager");
+  if (!managerColumnAdded) return;
+
+  db.exec(`ALTER TABLE people ADD COLUMN is_manager INTEGER NOT NULL DEFAULT 0`);
+  const managerFirstNames = new Set(["sıla", "özgür", "berkant", "yunus"]);
+  const rows = db.prepare(`SELECT id, name FROM people`).all() as {
+    id: string;
+    name: string;
+  }[];
+  const grantManager = db.prepare(`UPDATE people SET is_manager = 1 WHERE id = ?`);
+  for (const row of rows) {
+    const firstName = row.name.trim().toLocaleLowerCase("tr-TR").split(/\s+/)[0] ?? "";
+    if (managerFirstNames.has(firstName)) grantManager.run(row.id);
   }
 }
 

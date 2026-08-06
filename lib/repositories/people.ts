@@ -2,6 +2,19 @@ import { getDb, plainList, plainOne } from "@/lib/db/client";
 import { DEPARTMENTS, NO_DEPARTMENT, type DepartmentKey } from "@/lib/departments";
 import type { Person } from "@/lib/types";
 
+const PUBLIC_PERSON_COLUMNS =
+  "id, name, title, bio, avatar_path, department, is_manager, active";
+
+export interface LoginPerson extends Person {
+  has_password: number;
+}
+
+interface PersonCredentials {
+  id: string;
+  password_hash: string | null;
+  active: number;
+}
+
 // `DEPARTMENTS` id'leri kod sabiti (kullanıcı girdisi DEĞİL), bu yüzden SQL'e
 // doğrudan gömülüyor — parametre listesi departman sayısına göre değişken
 // uzunlukta olurdu ve her sorguda ayrı ayrı bağlanması gerekirdi.
@@ -36,28 +49,75 @@ export function departmentPeopleCondition(department: DepartmentKey, column: str
 
 export function listActivePeople(): Person[] {
   return plainList<Person>(
-    getDb().prepare("SELECT * FROM people WHERE active = 1 ORDER BY name").all(),
+    getDb()
+      .prepare(`SELECT ${PUBLIC_PERSON_COLUMNS} FROM people WHERE active = 1 ORDER BY name`)
+      .all(),
   );
 }
 
 export function getPerson(id: string): Person | undefined {
   return plainOne<Person>(
-    getDb().prepare("SELECT * FROM people WHERE id = ?").get(id),
+    getDb().prepare(`SELECT ${PUBLIC_PERSON_COLUMNS} FROM people WHERE id = ?`).get(id),
   );
 }
 
 export function listInactivePeople(): Person[] {
   return plainList<Person>(
-    getDb().prepare("SELECT * FROM people WHERE active = 0 ORDER BY name").all(),
+    getDb()
+      .prepare(`SELECT ${PUBLIC_PERSON_COLUMNS} FROM people WHERE active = 0 ORDER BY name`)
+      .all(),
   );
 }
 
-export function createPerson(name: string, department: string | null = null): string {
+export function listLoginPeople(): LoginPerson[] {
+  return plainList<LoginPerson>(
+    getDb()
+      .prepare(
+        `SELECT ${PUBLIC_PERSON_COLUMNS},
+                CASE WHEN password_hash IS NULL THEN 0 ELSE 1 END AS has_password
+           FROM people
+          WHERE active = 1
+          ORDER BY name`,
+      )
+      .all(),
+  );
+}
+
+export function getPersonCredentials(id: string): PersonCredentials | undefined {
+  return plainOne<PersonCredentials>(
+    getDb()
+      .prepare("SELECT id, password_hash, active FROM people WHERE id = ?")
+      .get(id),
+  );
+}
+
+export function createPerson(
+  name: string,
+  department: string | null,
+  passwordHash: string,
+): string {
   const id = crypto.randomUUID();
   getDb()
-    .prepare("INSERT INTO people (id, name, department) VALUES (?, ?, ?)")
-    .run(id, name, department);
+    .prepare(
+      "INSERT INTO people (id, name, department, password_hash) VALUES (?, ?, ?, ?)",
+    )
+    .run(id, name, department, passwordHash);
   return id;
+}
+
+export function setInitialPassword(id: string, passwordHash: string): boolean {
+  const result = getDb()
+    .prepare(
+      `UPDATE people
+          SET password_hash = ?
+        WHERE id = ? AND active = 1 AND password_hash IS NULL`,
+    )
+    .run(passwordHash, id);
+  return Number(result.changes) === 1;
+}
+
+export function updatePersonPassword(id: string, passwordHash: string): void {
+  getDb().prepare("UPDATE people SET password_hash = ? WHERE id = ?").run(passwordHash, id);
 }
 
 export function updatePersonProfile(input: {

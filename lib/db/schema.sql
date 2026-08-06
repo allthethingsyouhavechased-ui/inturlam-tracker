@@ -59,8 +59,23 @@ CREATE TABLE IF NOT EXISTS people (
   -- CHECK bilinçli olarak yok — yeni bir departman eklemek tablo yeniden
   -- kurmayı gerektirmesin; geçersiz/boş değerler arayüzde "Diğer" sayılır.
   department  TEXT,
+  password_hash TEXT,
+  is_manager  INTEGER NOT NULL DEFAULT 0,
   active      INTEGER NOT NULL DEFAULT 1
 );
+
+-- Tarayıcı yalnızca rastgele oturum anahtarını taşır; kişi kimliği veya rol
+-- bilgisi cookie'ye güvenilerek belirlenmez. Token'in kendisi de DB'ye yazılmaz,
+-- yalnızca SHA-256 özeti tutulur.
+CREATE TABLE IF NOT EXISTS auth_sessions (
+  token_hash TEXT PRIMARY KEY,
+  person_id  TEXT NOT NULL REFERENCES people(id) ON DELETE CASCADE,
+  expires_at INTEGER NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_auth_sessions_person ON auth_sessions(person_id);
+CREATE INDEX IF NOT EXISTS idx_auth_sessions_expiry ON auth_sessions(expires_at);
 
 -- Ekipte kimin şu anda hangi marka üzerinde çalıştığı. Kişi başına tek seçim
 -- tutulur; değişiklik yeni satır biriktirmek yerine güncel durumu temsil eder.

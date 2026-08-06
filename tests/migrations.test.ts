@@ -344,6 +344,8 @@ describe("people profil migration'ı", () => {
       avatar_path: null,
       // Eşleme listesinde olmayan bir isim: departmanı boş kalır, "Diğer" sayılır.
       department: null,
+      password_hash: null,
+      is_manager: 0,
     });
     assert.equal(
       (db.prepare("PRAGMA integrity_check").get() as { integrity_check: string })
@@ -420,5 +422,28 @@ describe("people.department migration'ı", () => {
       null,
       "sütun zaten varsa geri doldurma tekrar çalışmamalı",
     );
+  });
+
+  it("belirlenen dört yöneticiye rapor rolünü bir kez tanımlar", () => {
+    seedPeopleWithoutDepartment([
+      ["yunus", "Yunus Emre"],
+      ["sila", "Sıla"],
+      ["ozgur", "Özgür"],
+      ["berkant", "Berkant"],
+      ["cansu", "Cansu"],
+    ]);
+
+    const db = getDb();
+    const rows = db
+      .prepare("SELECT id, is_manager FROM people ORDER BY id")
+      .all() as { id: string; is_manager: number }[];
+
+    assert.deepEqual(rows.map((row) => ({ ...row })), [
+      { id: "berkant", is_manager: 1 },
+      { id: "cansu", is_manager: 0 },
+      { id: "ozgur", is_manager: 1 },
+      { id: "sila", is_manager: 1 },
+      { id: "yunus", is_manager: 1 },
+    ]);
   });
 });

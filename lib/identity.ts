@@ -1,14 +1,21 @@
 import { cookies } from "next/headers";
+import { notFound, redirect } from "next/navigation";
 import { cache } from "react";
-import { getPerson } from "@/lib/repositories/people";
+import { getPersonForSession } from "@/lib/repositories/authSessions";
 import type { Person } from "@/lib/types";
 
-export const IDENTITY_COOKIE = "inturlam_pid";
+export const IDENTITY_COOKIE = "inturlam_session";
 
 export const getCurrentPerson = cache(async (): Promise<Person | null> => {
   const store = await cookies();
-  const id = store.get(IDENTITY_COOKIE)?.value;
-  if (!id) return null;
-  const person = getPerson(id);
-  return person && person.active === 1 ? person : null;
+  const token = store.get(IDENTITY_COOKIE)?.value;
+  if (!token) return null;
+  return getPersonForSession(token) ?? null;
 });
+
+export async function requireReportAccess(): Promise<Person> {
+  const person = await getCurrentPerson();
+  if (!person) redirect("/whoami");
+  if (person.is_manager !== 1) notFound();
+  return person;
+}

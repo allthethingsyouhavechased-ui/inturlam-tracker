@@ -39,7 +39,7 @@ export default async function Header() {
                 bloğunu (isim + değiştir + tema) ekran dışına itiyordu. */}
             <span className="hidden sm:inline">İNTURLAM</span>
           </Link>
-          <NavLinks />
+          <NavLinks canViewReports={person?.is_manager === 1} />
         </nav>
         <form
           action="/search"
