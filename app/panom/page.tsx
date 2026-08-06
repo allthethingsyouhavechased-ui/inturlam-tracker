@@ -1,6 +1,7 @@
 import Link from "next/link";
 import AutoRefresh from "@/components/AutoRefresh";
 import PanomViews from "@/components/PanomViews";
+import PersonalDeadlinePanel from "@/components/PersonalDeadlinePanel";
 import { currentWeekRange, todayISO } from "@/lib/date";
 import { getCurrentPerson } from "@/lib/identity";
 import { listBrandsWithOpenCounts } from "@/lib/repositories/brands";
@@ -9,12 +10,15 @@ import {
   listBoardTasksByAssignee,
   listOverdueTasks,
   listTasksDueThisWeek,
+  listUpcomingTasksByAssignee,
   sweepArchivablePublishedTasks,
 } from "@/lib/repositories/tasks";
 import { archiveCountdownBadge } from "@/lib/taskArchive";
 import type { TaskCardBadge, TaskWithContext } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
+
+const PERSONAL_DEADLINE_HORIZON_DAYS = 7;
 
 const BADGE_OVERDUE: TaskCardBadge = {
   label: "Gecikmiş",
@@ -37,6 +41,10 @@ export default async function PanomPage() {
   const myTasks = me ? listBoardTasksByAssignee(me.id) : [];
   const overdue = listOverdueTasks(today);
   const thisWeek = listTasksDueThisWeek(today, weekEnd);
+  const myOverdue = me ? overdue.filter((task) => task.assignee_id === me.id) : [];
+  const myUpcoming = me
+    ? listUpcomingTasksByAssignee(me.id, today, PERSONAL_DEADLINE_HORIZON_DAYS)
+    : [];
   const brands = listBrandsWithOpenCounts();
   const people = listActivePeople();
 
@@ -92,6 +100,16 @@ export default async function PanomPage() {
           </Link>
           . Ekipte gecikmiş ve bu hafta teslim olacak görevler zaten aşağıda.
         </section>
+      )}
+
+      {me && (
+        <PersonalDeadlinePanel
+          personId={me.id}
+          overdueTasks={myOverdue}
+          upcomingTasks={myUpcoming}
+          today={today}
+          horizonDays={PERSONAL_DEADLINE_HORIZON_DAYS}
+        />
       )}
 
       <PanomViews
