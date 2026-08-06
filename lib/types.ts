@@ -11,6 +11,8 @@ export interface ClusterRow {
 
 export type ContentType =
   | "Reel"
+  | "Post"
+  | "Story"
   | "Foto"
   | "Kampanya"
   | "Video"
@@ -195,6 +197,7 @@ export interface TaskWithContext extends Task {
   assignee_name: string | null;
   assignee_avatar_path: string | null;
   content_title: string;
+  content_type: ContentType;
   brand_id: string;
   brand_name: string;
   // Yorum özeti: kartın altında ve liste görünümünün "Yorum" sütununda,

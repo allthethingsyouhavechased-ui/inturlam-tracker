@@ -12,6 +12,7 @@ import TaskNotesAttachments from "@/components/TaskNotesAttachments";
 import TaskPrioritySelect from "@/components/TaskPrioritySelect";
 import TaskRepeatSelect from "@/components/TaskRepeatSelect";
 import TaskStatusSelect from "@/components/TaskStatusSelect";
+import { CONTENT_TYPE_LABEL } from "@/lib/constants";
 import { updateTaskDetailsAction } from "@/lib/actions/tasks";
 import { getCurrentPerson } from "@/lib/identity";
 import { listActivityForEntity } from "@/lib/repositories/activity";
@@ -67,6 +68,12 @@ export default async function TaskPage({
       <h1 className="text-2xl font-semibold tracking-tight">{task.title}</h1>
 
       <div className="flex flex-wrap items-center gap-x-6 gap-y-3 rounded-xl border border-black/10 bg-white p-4 dark:border-white/10 dark:bg-zinc-900">
+        <span className="flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400">
+          Tür
+          <span className="rounded-full bg-black/5 px-2.5 py-1 text-xs font-medium text-zinc-700 dark:bg-white/10 dark:text-zinc-200">
+            {CONTENT_TYPE_LABEL[task.content_type]}
+          </span>
+        </span>
         <label className="flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400">
           Durum
           <TaskStatusSelect taskId={task.id} status={task.status} />

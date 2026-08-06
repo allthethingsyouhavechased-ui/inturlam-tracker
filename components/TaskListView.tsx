@@ -17,6 +17,7 @@ import {
   bulkSetTaskStatusAction,
 } from "@/lib/actions/tasks";
 import {
+  CONTENT_TYPE_LABEL,
   TASK_PRIORITIES,
   TASK_PRIORITY_FLAG_THRESHOLD,
   TASK_PRIORITY_ICON,
@@ -250,7 +251,7 @@ export default function TaskListView({
       {error && <p role="alert" className="text-xs text-rose-600 dark:text-rose-400">{error}</p>}
 
       <div className="overflow-x-auto rounded-xl border border-black/10 bg-white dark:border-white/10 dark:bg-zinc-900">
-        <table className="w-full text-sm">
+        <table className="w-full min-w-[1180px] text-sm">
           <thead>
             <tr className="border-b border-black/10 text-left text-xs uppercase tracking-wider text-zinc-500 dark:text-zinc-400 dark:border-white/10">
               <th className="w-10 px-3 py-2">
@@ -266,11 +267,13 @@ export default function TaskListView({
                 />
               </th>
               <SortableTh column="gorev" label="Görev" sort={sort} onToggle={toggleSort} />
+              <SortableTh column="tur" label="Tür" sort={sort} onToggle={toggleSort} />
               <SortableTh column="marka" label="Marka" sort={sort} onToggle={toggleSort} />
               <SortableTh column="oncelik" label="Öncelik" sort={sort} onToggle={toggleSort} />
               <SortableTh column="durum" label="Durum" sort={sort} onToggle={toggleSort} />
               <SortableTh column="atanan" label="Atanan" sort={sort} onToggle={toggleSort} />
               <SortableTh column="teslim" label="Teslim" sort={sort} onToggle={toggleSort} />
+              <SortableTh column="hedef" label="Hedef teslim" sort={sort} onToggle={toggleSort} />
               <SortableTh column="yorum" label="Yorum" sort={sort} onToggle={toggleSort} />
             </tr>
           </thead>
@@ -305,6 +308,11 @@ export default function TaskListView({
                     </Link>
                     <div className="text-xs text-zinc-500 dark:text-zinc-400">{t.content_title}</div>
                   </td>
+                  <td className="px-3 py-2">
+                    <span className="whitespace-nowrap rounded-full bg-black/5 px-2 py-1 text-xs font-medium text-zinc-600 dark:bg-white/10 dark:text-zinc-300">
+                      {CONTENT_TYPE_LABEL[t.content_type]}
+                    </span>
+                  </td>
                   <td className="px-3 py-2 text-zinc-500 dark:text-zinc-400">{t.brand_name}</td>
                   <td className="px-3 py-2">
                     <TaskPrioritySelect taskId={t.id} priority={t.priority} />
@@ -329,14 +337,16 @@ export default function TaskListView({
                     </div>
                   </td>
                   <td className="px-3 py-2">
-                    <div className="grid gap-1">
-                      <TaskDueDateEdit taskId={t.id} dueDate={t.due_date} />
-                      {t.personal_target_date && (
-                        <span className="whitespace-nowrap text-[11px] font-medium text-brand-600 dark:text-brand-400">
-                          🎯 Hedef {formatDateShort(t.personal_target_date)}
-                        </span>
-                      )}
-                    </div>
+                    <TaskDueDateEdit taskId={t.id} dueDate={t.due_date} />
+                  </td>
+                  <td className="px-3 py-2">
+                    {t.personal_target_date ? (
+                      <span className="whitespace-nowrap text-xs font-medium text-brand-600 dark:text-brand-400">
+                        🎯 {formatDateShort(t.personal_target_date)}
+                      </span>
+                    ) : (
+                      <span className="text-zinc-400 dark:text-zinc-600">—</span>
+                    )}
                   </td>
                   {/* Yorum sütunu: sayı + son yorumun metni `title` içinde,
                       üstüne gelince tam metin okunur. Tıklayınca sağda panel

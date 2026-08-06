@@ -2,7 +2,7 @@ import Link from "next/link";
 import ActivityFeed from "@/components/ActivityFeed";
 import Logo from "@/components/Logo";
 import PersonAvatar from "@/components/PersonAvatar";
-import { TASK_PRIORITY_LABEL } from "@/lib/constants";
+import { CONTENT_TYPE_LABEL, TASK_PRIORITY_LABEL } from "@/lib/constants";
 import { currentWeekRange, formatDateShort, todayISO } from "@/lib/date";
 import { getCurrentPerson } from "@/lib/identity";
 import { listRecentActivity } from "@/lib/repositories/activity";
@@ -82,7 +82,7 @@ function TaskRow({ task, overdue }: { task: TaskWithContext; overdue?: boolean }
             {task.title}
           </span>
           <span className="block truncate text-[11px] text-zinc-500 dark:text-zinc-400">
-            {task.brand_name} · {task.content_title}
+            {task.brand_name} · {CONTENT_TYPE_LABEL[task.content_type]} · {task.content_title}
           </span>
         </span>
         <span className="flex shrink-0 items-center gap-2">

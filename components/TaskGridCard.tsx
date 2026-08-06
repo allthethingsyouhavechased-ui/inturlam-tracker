@@ -4,6 +4,7 @@ import PersonAvatar from "@/components/PersonAvatar";
 import TaskStatusSelect from "@/components/TaskStatusSelect";
 import { hashColor } from "@/lib/colorHash";
 import {
+  CONTENT_TYPE_LABEL,
   TASK_PRIORITY_BADGE,
   TASK_PRIORITY_BORDER,
   TASK_PRIORITY_ICON,
@@ -41,9 +42,9 @@ export default function TaskGridCard({
       <div className="flex items-start justify-between gap-2">
         <span
           className={`inline-block min-w-0 flex-1 truncate rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${hashColor(task.content_title)}`}
-          title={task.content_title}
+          title={`${CONTENT_TYPE_LABEL[task.content_type]} · ${task.content_title}`}
         >
-          {task.content_title}
+          {CONTENT_TYPE_LABEL[task.content_type]} · {task.content_title}
         </span>
         {showStatus && <TaskStatusSelect taskId={task.id} status={task.status} />}
       </div>

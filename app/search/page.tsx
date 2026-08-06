@@ -1,6 +1,7 @@
 import Link from "next/link";
 import BrandLogo from "@/components/BrandLogo";
 import {
+  CONTENT_TYPE_LABEL,
   TASK_PRIORITY_BADGE,
   TASK_PRIORITY_LABEL,
   TASK_STATUS_BADGE,
@@ -109,7 +110,7 @@ export default async function SearchPage({
                     {TASK_PRIORITY_LABEL[task.priority]}
                   </span>
                   <span className="ml-auto text-xs text-zinc-500 dark:text-zinc-400">
-                    {task.brand_name} · {task.content_title}
+                    {task.brand_name} · {CONTENT_TYPE_LABEL[task.content_type]} · {task.content_title}
                   </span>
                 </Link>
               </li>

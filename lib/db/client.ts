@@ -38,6 +38,7 @@ function createConnection(): DatabaseSync {
   migrateBrandsDropClusterCheckIfNeeded(db);
   migrateContentItemsTableIfNeeded(db);
   migrateContentItemsArchivedIfNeeded(db);
+  migrateContentItemTypesIfNeeded(db);
   migrateTasksTableIfNeeded(db);
   migrateTasksRepeatIfNeeded(db);
   migrateTasksReportingIfNeeded(db);
@@ -478,7 +479,7 @@ function migrateContentItemsTableIfNeeded(db: DatabaseSync): void {
         id          TEXT PRIMARY KEY,
         brand_id    TEXT NOT NULL REFERENCES brands(id) ON DELETE CASCADE,
         title       TEXT NOT NULL,
-        type        TEXT NOT NULL CHECK (type IN ('Reel','Foto','Kampanya','Video','Carousel','KurumsalKimlik','Diger')),
+        type        TEXT NOT NULL CHECK (type IN ('Reel','Post','Story','Foto','Kampanya','Video','Carousel','KurumsalKimlik','Diger')),
         target_date TEXT,
         status      TEXT NOT NULL DEFAULT 'Planlandi' CHECK (status IN ('Planlandi','Uretimde','Tamamlandi','IptalEdildi')),
         assignee_id TEXT REFERENCES people(id) ON DELETE SET NULL,
@@ -515,6 +516,53 @@ function migrateContentItemsArchivedIfNeeded(db: DatabaseSync): void {
     .get() as { sql: string } | undefined;
   if (!row || row.sql.includes("archived")) return;
   db.exec(`ALTER TABLE content_items ADD COLUMN archived INTEGER NOT NULL DEFAULT 0`);
+}
+
+// Post ve Story mevcut CHECK listesine sonradan eklendi. SQLite bir CHECK
+// kısıtını ALTER COLUMN ile değiştiremediği için tabloyu bütün güncel alanlarıyla
+// yeniden kuruyoruz. assignee_id ve archived özellikle kopyalanır: eski Carousel
+// migration'ı bu alanlardan önce yazılmıştı ve güncel tabloya uygulanırsa veri
+// kaybına yol açardı.
+function migrateContentItemTypesIfNeeded(db: DatabaseSync): void {
+  const row = db
+    .prepare(`SELECT sql FROM sqlite_master WHERE type='table' AND name='content_items'`)
+    .get() as { sql: string } | undefined;
+  if (!row || (row.sql.includes("'Post'") && row.sql.includes("'Story'"))) return;
+
+  db.exec("PRAGMA foreign_keys = OFF");
+  try {
+    db.exec("BEGIN");
+    db.exec(`
+      CREATE TABLE content_items_new_types_migration (
+        id          TEXT PRIMARY KEY,
+        brand_id    TEXT NOT NULL REFERENCES brands(id) ON DELETE CASCADE,
+        title       TEXT NOT NULL,
+        type        TEXT NOT NULL CHECK (type IN ('Reel','Post','Story','Foto','Kampanya','Video','Carousel','KurumsalKimlik','Diger')),
+        target_date TEXT,
+        status      TEXT NOT NULL DEFAULT 'Planlandi' CHECK (status IN ('Planlandi','Uretimde','Tamamlandi','IptalEdildi')),
+        assignee_id TEXT REFERENCES people(id) ON DELETE SET NULL,
+        archived    INTEGER NOT NULL DEFAULT 0,
+        created_at  TEXT NOT NULL DEFAULT (datetime('now')),
+        updated_at  TEXT NOT NULL DEFAULT (datetime('now'))
+      )
+    `);
+    db.exec(`
+      INSERT INTO content_items_new_types_migration
+        (id, brand_id, title, type, target_date, status, assignee_id, archived, created_at, updated_at)
+      SELECT id, brand_id, title, type, target_date, status, assignee_id, archived, created_at, updated_at
+      FROM content_items
+    `);
+    db.exec(`DROP TABLE content_items`);
+    db.exec(`ALTER TABLE content_items_new_types_migration RENAME TO content_items`);
+    db.exec(`CREATE INDEX IF NOT EXISTS idx_content_items_brand ON content_items(brand_id)`);
+    db.exec(`CREATE INDEX IF NOT EXISTS idx_content_items_assignee ON content_items(assignee_id)`);
+    db.exec("COMMIT");
+  } catch (error) {
+    db.exec("ROLLBACK");
+    throw error;
+  } finally {
+    db.exec("PRAGMA foreign_keys = ON");
+  }
 }
 
 // tasks tablosu priority sütunundan önce kurulmuş olabilir — aynı "yeni tabloyu

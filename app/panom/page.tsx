@@ -76,6 +76,7 @@ export default async function PanomPage() {
   const myBoardTasks: TaskWithContext[] = myTasks.map((t) => ({
     ...t,
     badges: badgesFor(t),
+    personal_target_date: targetByTask.get(t.id) ?? null,
   }));
 
   // İkinci bölüm: bana atanmamış ama portföyde gecikmiş / bu hafta teslim olan

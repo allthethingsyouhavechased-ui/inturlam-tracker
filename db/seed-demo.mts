@@ -34,6 +34,8 @@ function ts(hoursAgo: number): string {
 
 type ContentType =
   | "Reel"
+  | "Post"
+  | "Story"
   | "Foto"
   | "Kampanya"
   | "Video"

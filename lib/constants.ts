@@ -18,6 +18,8 @@ export const NEW_CLUSTER_VALUE = "__new__";
 
 export const CONTENT_TYPES: ContentType[] = [
   "Reel",
+  "Post",
+  "Story",
   "Foto",
   "Kampanya",
   "Video",
@@ -28,6 +30,8 @@ export const CONTENT_TYPES: ContentType[] = [
 
 export const CONTENT_TYPE_LABEL: Record<ContentType, string> = {
   Reel: "Reel",
+  Post: "Post",
+  Story: "Story",
   Foto: "Foto",
   Kampanya: "Kampanya",
   Video: "Video",

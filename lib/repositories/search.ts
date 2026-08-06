@@ -62,7 +62,7 @@ export function searchAll(query: string): SearchResults {
       .prepare(
         `SELECT t.*, p.name AS assignee_name,
                 p.avatar_path AS assignee_avatar_path,
-                ci.title AS content_title,
+                ci.title AS content_title, ci.type AS content_type,
                 b.id AS brand_id, b.name AS brand_name
          FROM tasks t
          JOIN content_items ci ON ci.id = t.content_item_id

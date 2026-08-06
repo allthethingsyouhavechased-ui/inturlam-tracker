@@ -20,7 +20,7 @@ const LAST_COMMENT_ORDER = "ORDER BY c.created_at DESC, c.rowid DESC LIMIT 1";
 const WITH_CONTEXT_SELECT = `
   SELECT t.*, p.name AS assignee_name,
          p.avatar_path AS assignee_avatar_path,
-         ci.title AS content_title,
+         ci.title AS content_title, ci.type AS content_type,
          b.id AS brand_id, b.name AS brand_name,
          (SELECT COUNT(*) FROM comments c WHERE c.task_id = t.id) AS comment_count,
          (SELECT c.body FROM comments c

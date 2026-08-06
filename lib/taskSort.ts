@@ -1,4 +1,4 @@
-import { TASK_PRIORITIES, TASK_STATUSES } from "@/lib/constants";
+import { CONTENT_TYPE_LABEL, TASK_PRIORITIES, TASK_STATUSES } from "@/lib/constants";
 import type { TaskPriority, TaskStatus, TaskWithContext } from "@/lib/types";
 
 // Liste görünümündeki tıklanabilir sütun sıralaması. Hem /tasks hem /panom
@@ -6,11 +6,13 @@ import type { TaskPriority, TaskStatus, TaskWithContext } from "@/lib/types";
 
 export type ListSortKey =
   | "gorev"
+  | "tur"
   | "marka"
   | "oncelik"
   | "durum"
   | "atanan"
   | "teslim"
+  | "hedef"
   | "yorum";
 export type SortDir = "asc" | "desc";
 export interface ListSort {
@@ -21,11 +23,13 @@ export interface ListSort {
 // Sütun başlığındaki metin + tıklandığında ne olacağını anlatan ipucu.
 export const LIST_SORT_HINT: Record<ListSortKey, string> = {
   gorev: "Göreve göre sırala (A → Z)",
+  tur: "İçerik türüne göre sırala (A → Z)",
   marka: "Markaya göre sırala — aynı markanın görevleri alt alta",
   oncelik: "Önceliğe göre sırala (Acil → Düşük)",
   durum: "Duruma göre sırala (Beklemede → Yayınlandı)",
   atanan: "Atanana göre sırala — atanmamışlar en sonda",
   teslim: "Teslim tarihine göre sırala — tarihsizler en sonda",
+  hedef: "Kişisel hedef tarihine göre sırala — hedefsizler en sonda",
   yorum: "Yorum sayısına göre sırala — yorumsuzlar en sonda",
 };
 
@@ -46,6 +50,7 @@ function statusRank(s: TaskStatus): number {
 function isEmpty(t: TaskWithContext, key: ListSortKey): boolean {
   if (key === "atanan") return !t.assignee_name;
   if (key === "teslim") return !t.due_date;
+  if (key === "hedef") return !t.personal_target_date;
   if (key === "yorum") return t.comment_count === 0;
   return false;
 }
@@ -54,6 +59,8 @@ function compare(a: TaskWithContext, b: TaskWithContext, key: ListSortKey): numb
   switch (key) {
     case "gorev":
       return collator.compare(a.title, b.title);
+    case "tur":
+      return collator.compare(CONTENT_TYPE_LABEL[a.content_type], CONTENT_TYPE_LABEL[b.content_type]);
     case "marka":
       // Aynı marka içinde önce projeye, sonra başlığa göre — marka bloğu kendi
       // içinde de rastgele değil, okunabilir sıralansın.
@@ -70,6 +77,8 @@ function compare(a: TaskWithContext, b: TaskWithContext, key: ListSortKey): numb
       return collator.compare(a.assignee_name ?? "", b.assignee_name ?? "");
     case "teslim":
       return (a.due_date ?? "").localeCompare(b.due_date ?? "");
+    case "hedef":
+      return (a.personal_target_date ?? "").localeCompare(b.personal_target_date ?? "");
     case "yorum":
       // "asc" = en çok konuşulan önce. Sayıca sıralamada kullanıcının aradığı
       // şey "hangi görevde trafik var", en boş olan değil.

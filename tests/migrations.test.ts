@@ -449,3 +449,63 @@ describe("people.department migration'ı", () => {
     ]);
   });
 });
+
+describe("content_items tür migration'ı", () => {
+  it("Post ve Story eklerken içerik, atanan, arşiv ve bağlı görevi koruyor", () => {
+    const legacySchema = SCHEMA_SQL.replace(
+      "'Reel','Post','Story','Foto'",
+      "'Reel','Foto'",
+    );
+    assert.notEqual(legacySchema, SCHEMA_SQL, "test eski CHECK şemasını üretmeli");
+
+    const legacy = new DatabaseSync(TMP_DB);
+    legacy.exec("PRAGMA foreign_keys = ON");
+    legacy.exec(legacySchema);
+    legacy.prepare("INSERT INTO brands (id, name, cluster) VALUES ('b1', 'Marka', 'tek')").run();
+    legacy.prepare("INSERT INTO people (id, name) VALUES ('p1', 'Ayşe')").run();
+    legacy.prepare(
+      `INSERT INTO content_items
+         (id, brand_id, title, type, target_date, status, assignee_id, archived)
+       VALUES ('c1', 'b1', 'Mevcut içerik', 'Reel', '2026-08-20', 'Uretimde', 'p1', 1)`,
+    ).run();
+    legacy.prepare(
+      "INSERT INTO tasks (id, content_item_id, title) VALUES ('t1', 'c1', 'Bağlı görev')",
+    ).run();
+    legacy.close();
+
+    const db = getDb();
+    const content = db.prepare("SELECT * FROM content_items WHERE id = 'c1'").get() as
+      | Record<string, unknown>
+      | undefined;
+    assert.equal(content?.title, "Mevcut içerik");
+    assert.equal(content?.type, "Reel");
+    assert.equal(content?.target_date, "2026-08-20");
+    assert.equal(content?.status, "Uretimde");
+    assert.equal(content?.assignee_id, "p1");
+    assert.equal(content?.archived, 1);
+    assert.equal(
+      (db.prepare("SELECT content_item_id FROM tasks WHERE id = 't1'").get() as {
+        content_item_id: string;
+      }).content_item_id,
+      "c1",
+    );
+
+    db.prepare(
+      "INSERT INTO content_items (id, brand_id, title, type) VALUES ('post', 'b1', 'Post işi', 'Post')",
+    ).run();
+    db.prepare(
+      "INSERT INTO content_items (id, brand_id, title, type) VALUES ('story', 'b1', 'Story işi', 'Story')",
+    ).run();
+    assert.deepEqual(
+      (db.prepare("SELECT type FROM content_items WHERE id IN ('post','story') ORDER BY id").all() as {
+        type: string;
+      }[]).map((row) => row.type),
+      ["Post", "Story"],
+    );
+    assert.deepEqual(db.prepare("PRAGMA foreign_key_check").all(), []);
+    assert.equal(
+      (db.prepare("PRAGMA integrity_check").get() as { integrity_check: string }).integrity_check,
+      "ok",
+    );
+  });
+});

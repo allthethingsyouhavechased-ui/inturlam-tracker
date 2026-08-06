@@ -89,7 +89,7 @@ CREATE TABLE IF NOT EXISTS content_items (
   id          TEXT PRIMARY KEY,
   brand_id    TEXT NOT NULL REFERENCES brands(id) ON DELETE CASCADE,
   title       TEXT NOT NULL,
-  type        TEXT NOT NULL CHECK (type IN ('Reel','Foto','Kampanya','Video','Carousel','KurumsalKimlik','Diger')),
+  type        TEXT NOT NULL CHECK (type IN ('Reel','Post','Story','Foto','Kampanya','Video','Carousel','KurumsalKimlik','Diger')),
   target_date TEXT,
   status      TEXT NOT NULL DEFAULT 'Planlandi' CHECK (status IN ('Planlandi','Uretimde','Tamamlandi','IptalEdildi')),
   assignee_id TEXT REFERENCES people(id) ON DELETE SET NULL,

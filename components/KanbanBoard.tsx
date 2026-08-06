@@ -20,6 +20,7 @@ import TaskPrioritySelect from "@/components/TaskPrioritySelect";
 import TaskStatusSelect from "@/components/TaskStatusSelect";
 import { setTaskStatusAction } from "@/lib/actions/tasks";
 import {
+  CONTENT_TYPE_LABEL,
   TASK_PRIORITY_BORDER,
   TASK_PRIORITY_FLAG_THRESHOLD,
   TASK_PRIORITY_ICON,
@@ -86,6 +87,14 @@ function TaskCard({
             />
           </svg>
         </Link>
+      </div>
+      <div className="flex flex-wrap items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+        <span className="rounded-full bg-black/5 px-2 py-0.5 dark:bg-white/10">
+          {CONTENT_TYPE_LABEL[task.content_type]}
+        </span>
+        <span className="min-w-0 truncate normal-case font-medium tracking-normal">
+          {task.content_title}
+        </span>
       </div>
       {/* Yayınlanan kart bu panodan da hemen düşmüyor; geri sayım burada da
           görünsün ki "kayboldu" hissi hiçbir ekranda oluşmasın. Rozet sunucuda

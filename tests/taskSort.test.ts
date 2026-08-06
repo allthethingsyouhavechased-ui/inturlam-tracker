@@ -28,11 +28,13 @@ function task(over: Partial<TaskWithContext> = {}): TaskWithContext {
     assignee_name: "Arman",
     assignee_avatar_path: null,
     content_title: "Ağustos Reel Serisi",
+    content_type: "Reel",
     brand_id: "b1",
     brand_name: "Sihirli Olta",
     comment_count: 0,
     last_comment_body: null,
     last_comment_author: null,
+    personal_target_date: null,
     ...over,
   };
 }
@@ -85,6 +87,35 @@ describe("sortTasksForList", () => {
     assert.deepEqual(
       sortTasksForList(rows, desc("teslim")).map((t) => t.due_date),
       ["2026-08-01", "2026-07-20", null],
+    );
+  });
+
+  it("hedef: kişisel hedefi tarihe göre sıralıyor, hedefsizler iki yönde de sonda", () => {
+    const rows = [
+      task({ personal_target_date: null }),
+      task({ personal_target_date: "2026-08-12" }),
+      task({ personal_target_date: "2026-08-07" }),
+    ];
+    assert.deepEqual(
+      sortTasksForList(rows, asc("hedef")).map((t) => t.personal_target_date),
+      ["2026-08-07", "2026-08-12", null],
+    );
+    assert.deepEqual(
+      sortTasksForList(rows, desc("hedef")).map((t) => t.personal_target_date),
+      ["2026-08-12", "2026-08-07", null],
+    );
+  });
+
+  it("tür: ekranda görünen Türkçe tür etiketine göre sıralıyor", () => {
+    const rows = [
+      task({ content_type: "Story" }),
+      task({ content_type: "Reel" }),
+      task({ content_type: "Foto" }),
+      task({ content_type: "Post" }),
+    ];
+    assert.deepEqual(
+      sortTasksForList(rows, asc("tur")).map((t) => t.content_type),
+      ["Foto", "Post", "Reel", "Story"],
     );
   });
 
