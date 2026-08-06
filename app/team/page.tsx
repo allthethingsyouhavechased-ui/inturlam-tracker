@@ -2,9 +2,11 @@ import ActiveWorkBoard from "@/components/ActiveWorkBoard";
 import Link from "next/link";
 import AutoRefresh from "@/components/AutoRefresh";
 import DeactivatePersonButton from "@/components/DeactivatePersonButton";
+import ManagerRoleButton from "@/components/ManagerRoleButton";
 import NewPersonPopover from "@/components/NewPersonPopover";
 import PersonAvatar from "@/components/PersonAvatar";
 import { getCurrentPerson } from "@/lib/identity";
+import { canManageRoles, ROLE_ADMIN_PERSON_ID } from "@/lib/auth/authorization";
 import { listActiveWorkSelections } from "@/lib/repositories/activeWork";
 import { listBrands } from "@/lib/repositories/brands";
 import { listActivePeople, listInactivePeople } from "@/lib/repositories/people";
@@ -19,6 +21,7 @@ export default async function TeamPage() {
   const selections = listActiveWorkSelections();
   const tasks = listAllTasks();
   const currentPerson = await getCurrentPerson();
+  const canEditRoles = canManageRoles(currentPerson);
 
   return (
     <div className="team-page-wide space-y-6">
@@ -40,6 +43,7 @@ export default async function TeamPage() {
           </h2>
           <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
             Profilleri düzenle veya artık ekipte olmayan hesapları pasife al.
+            {canEditRoles && " Yönetici ve rapor erişimini yalnızca sen değiştirebilirsin."}
           </p>
         </div>
         <NewPersonPopover />
@@ -69,7 +73,17 @@ export default async function TeamPage() {
                   </span>
                 </span>
               </Link>
-              <DeactivatePersonButton personId={p.id} />
+              <div className="flex shrink-0 flex-col items-end gap-1.5">
+                {p.is_manager === 1 && (
+                  <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-800 dark:bg-amber-950/40 dark:text-amber-300">
+                    Yönetici
+                  </span>
+                )}
+                {canEditRoles && p.id !== ROLE_ADMIN_PERSON_ID && (
+                  <ManagerRoleButton personId={p.id} isManager={p.is_manager === 1} />
+                )}
+                <DeactivatePersonButton personId={p.id} />
+              </div>
             </div>
           ))}
           {people.length === 0 && (

@@ -149,3 +149,9 @@ export function setPersonActive(id: string, active: boolean): void {
     .prepare("UPDATE people SET active = ? WHERE id = ?")
     .run(active ? 1 : 0, id);
 }
+
+export function setPersonManager(id: string, isManager: boolean): void {
+  getDb()
+    .prepare("UPDATE people SET is_manager = ? WHERE id = ?")
+    .run(isManager ? 1 : 0, id);
+}

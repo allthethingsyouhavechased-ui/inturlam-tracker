@@ -424,12 +424,13 @@ describe("people.department migration'ı", () => {
     );
   });
 
-  it("belirlenen dört yöneticiye rapor rolünü bir kez tanımlar", () => {
+  it("belirlenen beş yöneticiye rapor rolünü bir kez tanımlar", () => {
     seedPeopleWithoutDepartment([
       ["yunus", "Yunus Emre"],
       ["sila", "Sıla"],
       ["ozgur", "Özgür"],
       ["berkant", "Berkant"],
+      ["erhan", "Erhan"],
       ["cansu", "Cansu"],
     ]);
 
@@ -441,6 +442,7 @@ describe("people.department migration'ı", () => {
     assert.deepEqual(rows.map((row) => ({ ...row })), [
       { id: "berkant", is_manager: 1 },
       { id: "cansu", is_manager: 0 },
+      { id: "erhan", is_manager: 1 },
       { id: "ozgur", is_manager: 1 },
       { id: "sila", is_manager: 1 },
       { id: "yunus", is_manager: 1 },

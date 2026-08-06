@@ -170,7 +170,7 @@ function migratePeopleAuthIfNeeded(db: DatabaseSync): void {
   if (!managerColumnAdded) return;
 
   db.exec(`ALTER TABLE people ADD COLUMN is_manager INTEGER NOT NULL DEFAULT 0`);
-  const managerFirstNames = new Set(["sıla", "özgür", "berkant", "yunus"]);
+  const managerFirstNames = new Set(["sıla", "özgür", "berkant", "yunus", "erhan"]);
   const rows = db.prepare(`SELECT id, name FROM people`).all() as {
     id: string;
     name: string;

@@ -8,6 +8,9 @@ kategorilere (`clusters` tablosu) ayrılır. Her markanın ayrıca Instagram ara
 (takipçi, performans, bulgular, tam denetim metni, diğer markalarla ilişkisi) var.
 İç araç, LAN'da çalışır. Kişi adına tıklayıp şifreyle giriş yapılır; raporlar
 yalnızca `people.is_manager = 1` olan yöneticilere açıktır.
+Yönetici rolünü verme/kaldırma yetkisi şimdilik yalnız sabit `yunus` kişi id'sine
+aittir (`lib/auth/authorization.ts`); arayüz kontrolüne güvenilmez, Server Action
+aynı yetkiyi yeniden doğrular. Yunus kendi yönetici rolünü kaldıramaz.
 
 ## Stack
 

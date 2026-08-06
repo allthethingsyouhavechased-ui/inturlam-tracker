@@ -43,7 +43,7 @@ const PEOPLE: { id: string; name: string; department: string | null; isManager: 
   { id: "defne", name: "Defne", department: "social", isManager: false },
   { id: "ekin", name: "Ekin", department: "design", isManager: false },
   { id: "emrullah", name: "Emrullah", department: "video", isManager: false },
-  { id: "erhan", name: "Erhan", department: "video", isManager: false },
+  { id: "erhan", name: "Erhan", department: "video", isManager: true },
   { id: "murat", name: "Murat", department: "design", isManager: false },
   { id: "ozgun", name: "Özgün", department: "video", isManager: false },
   { id: "ozgur", name: "Özgür", department: "management", isManager: true },

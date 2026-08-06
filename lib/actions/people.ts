@@ -3,11 +3,14 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { hashPassword, validatePassword } from "@/lib/auth/password";
+import { assertCanManageRoles, ROLE_ADMIN_PERSON_ID } from "@/lib/auth/authorization";
 import { normalizeDepartment } from "@/lib/departments";
+import { getCurrentPerson } from "@/lib/identity";
 import {
   createPerson,
   getPerson,
   setPersonActive,
+  setPersonManager,
   updatePersonProfile,
 } from "@/lib/repositories/people";
 import { saveImageFiles, validateImageFiles } from "@/lib/uploads";
@@ -43,6 +46,22 @@ export async function deactivatePersonAction(personId: string) {
 export async function reactivatePersonAction(personId: string) {
   setPersonActive(personId, true);
   revalidatePath("/", "layout");
+}
+
+export async function setManagerRoleAction(personId: string, isManager: boolean) {
+  const actor = await getCurrentPerson();
+  assertCanManageRoles(actor);
+
+  const person = getPerson(personId);
+  if (!person) throw new Error("Kişi bulunamadı.");
+  if (person.id === ROLE_ADMIN_PERSON_ID && !isManager) {
+    throw new Error("Yunus Emre'nin yönetici yetkisi kaldırılamaz.");
+  }
+
+  setPersonManager(person.id, isManager);
+  revalidatePath("/", "layout");
+  revalidatePath("/team");
+  revalidatePath(`/team/${person.id}`);
 }
 
 export async function updatePersonProfileAction(formData: FormData) {
