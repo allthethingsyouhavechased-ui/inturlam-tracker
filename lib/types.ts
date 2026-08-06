@@ -206,6 +206,9 @@ export interface TaskWithContext extends Task {
   // rozetler (Benim/Gecikmiş/Bu hafta gibi) — sunucuda hesaplanıp düz veri
   // olarak taşınır (Server→Client Component sınırında fonksiyon geçirilemez).
   badges?: TaskCardBadge[];
+  // Yalnızca oturumdaki kişiye ait hedef, bu veriyi isteyen sayfalarda eklenir.
+  // Alan opsiyoneldir; ortak görev sorguları başka kullanıcıların hedefini taşımaz.
+  personal_target_date?: string | null;
 }
 
 export interface PersonalTaskTarget {

@@ -62,9 +62,9 @@ export default async function CalendarPage({
   return (
     <div className="space-y-3">
       <AutoRefresh />
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-semibold tracking-tight">Takvim</h1>
-        <div className="flex items-center gap-1">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2">
+        <h1 className="justify-self-start text-2xl font-semibold tracking-tight">Takvim</h1>
+        <nav aria-label="Aylar arasında gezin" className="flex items-center gap-1 justify-self-center">
           <Link
             href={`/calendar?month=${prevMonthParam}`}
             aria-label="Önceki ay"
@@ -82,15 +82,17 @@ export default async function CalendarPage({
           >
             ›
           </Link>
+        </nav>
+        <div className="justify-self-end">
+          {!isCurrentMonth && (
+            <Link
+              href="/calendar"
+              className="ui-press inline-flex min-h-10 items-center rounded-xl px-3 text-sm font-medium text-brand-600 hover:bg-brand-50 dark:text-brand-400 dark:hover:bg-brand-950/30"
+            >
+              Bugün
+            </Link>
+          )}
         </div>
-        {!isCurrentMonth && (
-          <Link
-            href="/calendar"
-            className="ui-press ml-1 inline-flex min-h-10 items-center rounded-xl px-3 text-sm font-medium text-brand-600 hover:bg-brand-50 dark:text-brand-400 dark:hover:bg-brand-950/30"
-          >
-            Bugün
-          </Link>
-        )}
       </div>
 
       {!hasTasksThisMonth && (

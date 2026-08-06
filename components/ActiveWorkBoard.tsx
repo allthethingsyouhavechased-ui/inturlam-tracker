@@ -157,12 +157,13 @@ export default function ActiveWorkBoard({
           const tone = workstreamTone[workstream.id];
 
           return (
-            <section
+            <details
               key={workstream.id}
+              open
               aria-labelledby={`workstream-${workstream.id}`}
-              className="rounded-2xl border border-black/10 bg-white/55 p-3 dark:border-white/10 dark:bg-white/[0.018]"
+              className="group rounded-2xl border border-black/10 bg-white/55 p-3 dark:border-white/10 dark:bg-white/[0.018]"
             >
-              <div className="mb-3 flex items-center justify-between gap-3">
+              <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 rounded-xl px-1 outline-none transition-colors hover:bg-black/[0.025] focus-visible:ring-2 focus-visible:ring-brand-500/40 dark:hover:bg-white/[0.04] [&::-webkit-details-marker]:hidden">
                 <div className="flex items-center gap-2">
                   <span className={`size-2.5 rounded-full ${tone.dot}`} />
                   <h3
@@ -172,14 +173,24 @@ export default function ActiveWorkBoard({
                     {workstream.label}
                   </h3>
                 </div>
-                <span
-                  className={`rounded-full px-2.5 py-1 text-[10px] font-semibold tabular-nums ${tone.badge}`}
-                >
-                  {workstream.people.length} kişi
+                <span className="flex items-center gap-2">
+                  <span
+                    className={`rounded-full px-2.5 py-1 text-[10px] font-semibold tabular-nums ${tone.badge}`}
+                  >
+                    {workstream.people.length} kişi
+                  </span>
+                  <svg
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                    aria-hidden="true"
+                    className="size-4 text-zinc-400 transition-transform duration-200 group-open:rotate-180"
+                  >
+                    <path fillRule="evenodd" d="M5.22 7.47a.75.75 0 0 1 1.06 0L10 11.19l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 8.53a.75.75 0 0 1 0-1.06Z" clipRule="evenodd" />
+                  </svg>
                 </span>
-              </div>
+              </summary>
 
-              <div className="grid grid-cols-1 items-start gap-2.5 sm:grid-cols-2 lg:grid-cols-[repeat(auto-fit,minmax(210px,1fr))]">
+              <div className="mt-3 grid grid-cols-1 items-start gap-2.5 sm:grid-cols-2 lg:grid-cols-[repeat(auto-fit,minmax(210px,1fr))]">
                 {workstream.people.map((person) => {
           const isCurrent = person.id === currentPersonId;
           const storedSelection = selections.find(
@@ -304,7 +315,7 @@ export default function ActiveWorkBoard({
                   );
                 })}
               </div>
-            </section>
+            </details>
           );
         })}
       </div>

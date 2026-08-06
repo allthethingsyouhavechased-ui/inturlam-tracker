@@ -9,6 +9,7 @@ import TaskCommentsPanel from "@/components/TaskCommentsPanel";
 import TaskDueDateEdit from "@/components/TaskDueDateEdit";
 import TaskPrioritySelect from "@/components/TaskPrioritySelect";
 import TaskStatusSelect from "@/components/TaskStatusSelect";
+import { formatDateShort } from "@/lib/date";
 import {
   bulkDeleteTasksAction,
   bulkSetTaskAssigneeAction,
@@ -328,7 +329,14 @@ export default function TaskListView({
                     </div>
                   </td>
                   <td className="px-3 py-2">
-                    <TaskDueDateEdit taskId={t.id} dueDate={t.due_date} />
+                    <div className="grid gap-1">
+                      <TaskDueDateEdit taskId={t.id} dueDate={t.due_date} />
+                      {t.personal_target_date && (
+                        <span className="whitespace-nowrap text-[11px] font-medium text-brand-600 dark:text-brand-400">
+                          🎯 Hedef {formatDateShort(t.personal_target_date)}
+                        </span>
+                      )}
+                    </div>
                   </td>
                   {/* Yorum sütunu: sayı + son yorumun metni `title` içinde,
                       üstüne gelince tam metin okunur. Tıklayınca sağda panel

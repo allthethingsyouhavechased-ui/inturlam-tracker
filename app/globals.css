@@ -66,10 +66,10 @@ body {
   background-attachment: fixed;
 }
 
-/* Ekip panosu kişi bulmaya yönelik, veri yoğun bir yüzey. Standart sayfaların
-   okuma genişliğini bozmadan yalnızca bu sayfada kabuğu genişletir; 1920px
-   ekranda kalan sağ-sol boşluğu kişi gridine kazandırır. */
-.page-shell:has(> .team-page-wide) {
+/* Veri yoğun panolar standart sayfaların okuma genişliğini bozmadan daha geniş
+   bir kabuk kullanır; 1920px ekranda kalan sağ-sol boşluk kartlara kazandırılır. */
+.page-shell:has(> .team-page-wide),
+.page-shell:has(> .workspace-page-wide) {
   max-width: 1600px;
 }
 

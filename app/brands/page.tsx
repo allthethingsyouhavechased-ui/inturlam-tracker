@@ -31,7 +31,7 @@ export default async function BrandsPage({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="workspace-page-wide space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-semibold tracking-tight">Markalar</h1>
         <div className="relative flex w-full min-w-0 flex-wrap items-center justify-start gap-2 sm:w-auto sm:justify-end">
@@ -166,7 +166,7 @@ export default async function BrandsPage({
                 ))}
               </div>
             ) : (
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
                 {inCluster.map((brand) => (
                   <div
                     key={brand.id}
@@ -236,7 +236,7 @@ export default async function BrandsPage({
           <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
             Arşivlenenler ({archived.length})
           </h2>
-          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
             {archived.map((brand) => (
               <div
                 key={brand.id}

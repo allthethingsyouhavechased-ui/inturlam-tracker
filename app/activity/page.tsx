@@ -1,4 +1,4 @@
-import ActivityFeed from "@/components/ActivityFeed";
+import ActivitySearch from "@/components/ActivitySearch";
 import AutoRefresh from "@/components/AutoRefresh";
 import { listRecentActivity } from "@/lib/repositories/activity";
 
@@ -17,12 +17,7 @@ export default function ActivityPage() {
         </p>
       </div>
 
-      <div className="rounded-xl border border-black/10 bg-white p-2 dark:border-white/10 dark:bg-zinc-900">
-        <ActivityFeed
-          entries={entries}
-          emptyText="Henüz kayıtlı hareket yok. Bir görev oluştur, durum değiştir ya da yorum yaz — burada görünecek."
-        />
-      </div>
+      <ActivitySearch entries={entries} />
     </div>
   );
 }

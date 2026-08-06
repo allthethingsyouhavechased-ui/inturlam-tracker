@@ -79,16 +79,23 @@ export default function TaskGridCard({
         {task.brand_name}
       </div>
 
-      <div className="mt-auto flex flex-wrap items-center justify-between gap-2 border-t border-black/[0.06] pt-2 dark:border-white/[0.08]">
-        {task.due_date ? (
-          <span
-            className={`text-xs ${isOverdue(task.due_date) ? "font-medium text-rose-600 dark:text-rose-400" : "text-zinc-500 dark:text-zinc-400"}`}
-          >
-            📅 {formatDateShort(task.due_date)}
-          </span>
-        ) : (
-          <span className="text-xs text-zinc-400 dark:text-zinc-500">Tarih yok</span>
-        )}
+      <div className="mt-auto flex flex-wrap items-end justify-between gap-2 border-t border-black/[0.06] pt-2 dark:border-white/[0.08]">
+        <span className="grid gap-0.5">
+          {task.due_date ? (
+            <span
+              className={`text-xs ${isOverdue(task.due_date) ? "font-medium text-rose-600 dark:text-rose-400" : "text-zinc-500 dark:text-zinc-400"}`}
+            >
+              📅 {formatDateShort(task.due_date)}
+            </span>
+          ) : (
+            <span className="text-xs text-zinc-400 dark:text-zinc-500">Tarih yok</span>
+          )}
+          {task.personal_target_date && (
+            <span className="text-[11px] font-medium text-brand-600 dark:text-brand-400">
+              🎯 Hedef {formatDateShort(task.personal_target_date)}
+            </span>
+          )}
+        </span>
         <span className="flex items-center gap-1.5">
           <span
             className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold ${TASK_PRIORITY_BADGE[task.priority]}`}
