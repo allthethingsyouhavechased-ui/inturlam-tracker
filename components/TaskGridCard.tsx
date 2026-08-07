@@ -2,6 +2,7 @@ import Link from "next/link";
 import CommentIcon from "@/components/CommentIcon";
 import PersonAvatar from "@/components/PersonAvatar";
 import TaskStatusSelect from "@/components/TaskStatusSelect";
+import TaskTargetDateEdit from "@/components/TaskTargetDateEdit";
 import { hashColor } from "@/lib/colorHash";
 import {
   CONTENT_TYPE_LABEL,
@@ -39,12 +40,23 @@ export default function TaskGridCard({
     <div
       className={`flex min-w-0 flex-col gap-2.5 rounded-xl border-2 bg-white p-3 shadow-sm transition-[box-shadow,transform] duration-200 hover:shadow-md dark:bg-zinc-900 ${TASK_PRIORITY_BORDER[task.priority]}`}
     >
+      {/* Tür AYRI bir rozet: içerik adıyla tek etiketde birleşikken uzun
+          başlıklarda `truncate` onu da kesip götürüyordu. `shrink-0` sayesinde
+          kart ne kadar dararsa daralsın görev türü hep okunur kalır. */}
       <div className="flex items-start justify-between gap-2">
-        <span
-          className={`inline-block min-w-0 flex-1 truncate rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${hashColor(task.content_title)}`}
-          title={`${CONTENT_TYPE_LABEL[task.content_type]} · ${task.content_title}`}
-        >
-          {CONTENT_TYPE_LABEL[task.content_type]} · {task.content_title}
+        <span className="flex min-w-0 flex-1 items-center gap-1">
+          <span
+            className="shrink-0 rounded bg-black/5 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-zinc-600 dark:bg-white/10 dark:text-zinc-300"
+            title={`Tür: ${CONTENT_TYPE_LABEL[task.content_type]}`}
+          >
+            {CONTENT_TYPE_LABEL[task.content_type]}
+          </span>
+          <span
+            className={`min-w-0 flex-1 truncate rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${hashColor(task.content_title)}`}
+            title={task.content_title}
+          >
+            {task.content_title}
+          </span>
         </span>
         {showStatus && <TaskStatusSelect taskId={task.id} status={task.status} />}
       </div>
@@ -91,11 +103,21 @@ export default function TaskGridCard({
           ) : (
             <span className="text-xs text-zinc-400 dark:text-zinc-500">Tarih yok</span>
           )}
-          {task.personal_target_date && (
-            <span className="text-[11px] font-medium text-brand-600 dark:text-brand-400">
-              🎯 Hedef {formatDateShort(task.personal_target_date)}
-            </span>
-          )}
+          {/* Alanın hiç taşınmaması ("undefined") "bu görev benim değil"
+              demek; o zaman kişisel hedef satırı hiç çizilmez. Taşınıyorsa
+              (null olsa bile) kart üzerinden tarih verilebilir — yayınlanmış
+              görev hariç: sunucu ona yeni hedef yazmayı reddediyor, o yüzden
+              düzenleme yerine varsa yalnızca mevcut hedef gösterilir. */}
+          {task.personal_target_date !== undefined &&
+            (task.status === "Yayinlandi" ? (
+              task.personal_target_date && (
+                <span className="text-[11px] font-medium text-brand-600 dark:text-brand-400">
+                  🎯 Hedef {formatDateShort(task.personal_target_date)}
+                </span>
+              )
+            ) : (
+              <TaskTargetDateEdit taskId={task.id} targetDate={task.personal_target_date} />
+            ))}
         </span>
         <span className="flex items-center gap-1.5">
           <span

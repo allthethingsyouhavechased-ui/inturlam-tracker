@@ -9,11 +9,12 @@
     "start": "next start -H 0.0.0.0 -p 3000",
     "prestart": "node db/backup.mts",
     "lint": "eslint",
-    "test": "node --import ./tests/register.mjs --test \"tests/**/*.test.ts\"",
+    "test": "node --import ./scripts/register.mjs --test \"tests/**/*.test.ts\"",
     "db:migrate": "node db/migrate.mts",
     "db:seed": "node db/seed.mts",
     "db:seed:demo": "node db/seed-demo.mts",
     "db:clear-work": "node db/clear-work.mts",
+    "social:sync": "node --import ./scripts/register.mjs db/sync-instagram.mts",
     "db:backup": "node db/backup.mts",
     "db:restore": "node db/restore.mts"
   },

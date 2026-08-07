@@ -6,6 +6,7 @@ export const MAIN_NAV = [
   { href: "/brands", label: "Markalar" },
   { href: "/tasks", label: "Görevler" },
   { href: "/calendar", label: "Takvim" },
+  { href: "/social", label: "Sosyal" },
   { href: "/reports", label: "Raporlar" },
   { href: "/activity", label: "Aktivite" },
   { href: "/team", label: "Ekip" },

@@ -105,6 +105,27 @@ aynı yetkiyi yeniden doğrular. Yunus kendi yönetici rolünü kaldıramaz.
   çıktısı sabit, kapalı kartlar hydration'dan sonra kapanıyor. `panelKey` aynı olan
   kartlar tek tercihi paylaşır — kişi ve departman raporundaki eşdeğer kartlar bilinçli
   olarak `scope-*` anahtarlarını paylaşıyor.
+- Instagram takibi: `lib/social/` (sağlayıcı adaptörleri) + `lib/repositories/social.ts` +
+  `lib/socialSilence.ts` (saf kurallar) + `db/sync-instagram.mts` (`npm run social:sync`,
+  Görev Zamanlayıcı'da günde 1 kez 09:00, görev adı "Inturlam Instagram Takip"). Veri kaynağı **takılabilir**: `SocialProvider`
+  arayüzünü karşılayan adaptör (`apify` gerçek, `mock` test) `resolveSocialProvider()`
+  ile seçilir — scraper sağlayıcıları kısa ömürlü olduğu için bu soyutlama isteğe
+  bağlı değil. Taranacak liste ayrı tutulmaz, `brands.instagram_handle`'dan gelir. Uyarı alıcıları
+  `listSocialAlertRecipients()`: aktif yöneticiler VE `department = 'social'` olanlar
+  (tek `OR` sorgusu, ikisinde birden olan kimse iki bildirim almasın).
+  **Sistemin taşıyıcı kuralı: başarısız tarama sessizlik uyarısı ÜRETMEZ.** Sağlayıcı
+  patladığında her hesap "hiç paylaşım yok" gibi görünür; bu yüzden `classifySocial`
+  hata durumunu son paylaşım tarihinin ÖNÜNE koyar ve `shouldAlertSilence` yalnızca
+  `silent` için true döner. "Veri gelmiyor" ile "paylaşım yok" ekranda da ayrı
+  renktedir (`SocialHealthBadge`) — ikisini birleştiren bir "sadeleştirme" yapma.
+  Gün sayısı SQL'de değil `daysBetween` ile JS'te hesaplanır: julianday farkı (24 saatlik
+  dilimler) ile takvim günü farkı ayrışıp rozet ile sınıflandırmayı çelişkiye düşürüyordu.
+- Alias çözücü (`scripts/alias-hook.mjs` + `scripts/register.mjs`): `lib/*` modülleri
+  birbirini `@/...` ile import ettiği için Node ile doğrudan çalışan her şey (testler VE
+  `db/sync-instagram.mts` gibi CLI script'leri) `node --import ./scripts/register.mjs`
+  ile başlatılmalı. Eskiden `tests/` altındaydı; ikinci kullanıcı çıkınca taşındı.
+  `db/seed.mts` gibi eski script'ler hâlâ relative + açık `.ts` uzantısı kullanıyor,
+  onlar hook'suz da çalışır.
 - Demo veri: `db/seed-demo.mts` (`npm run db:seed:demo`) — uygulamayı elle gezerek test etmek için
   14 içerik + 41 görev + yorum + aktivite yazar. Tüm id'ler `demo-` ön ekli; script her çalıştığında
   önce bu kayıtları silip yeniden yazar (idempotent), `-- --clean` ile sadece siler. Gerçek veriye
@@ -202,6 +223,19 @@ aynı yetkiyi yeniden doğrular. Yunus kendi yönetici rolünü kaldıramaz.
   arayüzden boşaltırsa geri gelmez, olması gereken de bu. Aynı sebeple `db/seed.mts`
   departmanı `COALESCE(people.department, excluded.department)` ile yazıyor: seed, elle
   yapılan departman değişikliğini ezmez. Bu iki yerden birini değiştirirken diğerini de gör.
+- **`"use client"` dosyasından sabit import etme (sunucuya):** Bir client component
+  dosyasından export edilen düz değer (sabit string, obje) sunucu tarafında GERÇEK değer
+  değil, bir istemci-referansı proxy'sidir. `BRAND_VIEW_COOKIE` bir süre
+  `BrandViewToggle.tsx` içinde yaşadı ve `app/brands/page.tsx`'te
+  `cookies().get(BRAND_VIEW_COOKIE)` sessizce `undefined` döndü (hata yok, tercih hiç
+  hatırlanmadı — `store.toString()` çerezi gösterdiği hâlde). İki tarafın paylaştığı her
+  sabit `lib/` altında, "use client" OLMAYAN bir modülde durmalı (şimdi `lib/constants.ts`).
+- **Portal eden modal SSR'da `document` arar:** `QuickAddModal` `createPortal(..., document.body)`
+  kullanıyor; takvimden gelen "+" kısayolu için `initialOpen` ile AÇIK render edilince sunucu
+  render'ı `document is not defined` ile patlayıp React sayfayı sessizce istemci render'ına
+  düşürüyordu (konsolda değil, yalnızca dev overlay'inde "Recoverable Error"). Çözüm bileşenin
+  içindeki `useIsClient()` — sunucuda `false`, istemcide `true` döndüren bir
+  `useSyncExternalStore`; portal yalnızca tarayıcıda çizilir, `useEffect` gerekmez.
 - **Sunucu props'unu optimistic client state'e `useEffect` OLMADAN yansıt:** `NotificationBell`
   gelen `notifications`/`unreadCount` prop'larını yerel state'e kopyalayıp bir `useEffect` içinde
   senkronlamıyor (bu `react-hooks/set-state-in-effect`'e takılırdı, bkz. yukarıdaki Sidebar notu —

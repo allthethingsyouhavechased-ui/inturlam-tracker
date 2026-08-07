@@ -227,6 +227,62 @@ CREATE TABLE IF NOT EXISTS notifications (
   created_at     TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
+-- ————————————————————————————————————————————————————————————————————————
+-- Sosyal medya takibi (Instagram). Markaların hesapları günlük taranır; belirli
+-- bir süre paylaşım yapılmayan hesaplar bildirilir. Veri kaynağı takılabilir
+-- (bkz. lib/social/), şu an Apify'ın instagram-post-scraper aktörü.
+-- ————————————————————————————————————————————————————————————————————————
+
+-- Taramada görülen gönderiler. Sağlayıcı aynı gönderiyi her taramada tekrar
+-- döndürdüğü için (platform, external_id) tekil: yeniden yazmak yerine
+-- yok sayılır, "yeni gönderi" sayısı böylece gerçekten yeni olanı sayar.
+CREATE TABLE IF NOT EXISTS social_posts (
+  id          TEXT PRIMARY KEY,
+  brand_id    TEXT NOT NULL REFERENCES brands(id) ON DELETE CASCADE,
+  platform    TEXT NOT NULL DEFAULT 'instagram',
+  external_id TEXT NOT NULL,
+  permalink   TEXT,
+  media_type  TEXT,
+  caption     TEXT,
+  -- Gönderinin yayın anı, ISO 8601 (UTC). Sıralama/karşılaştırma metin olarak
+  -- doğru çalışsın diye hep aynı biçimde yazılır.
+  posted_at   TEXT NOT NULL,
+  fetched_at  TEXT NOT NULL DEFAULT (datetime('now')),
+  UNIQUE (platform, external_id)
+);
+
+-- Her tarama çalıştırması. "Hesapta paylaşım yok" ile "veriyi çekemedik"
+-- ekranda ayrılabilsin diye şart: sessizlik uyarısı yalnızca BAŞARILI bir
+-- taramanın ardından anlamlıdır.
+CREATE TABLE IF NOT EXISTS social_sync_runs (
+  id          TEXT PRIMARY KEY,
+  provider    TEXT NOT NULL,
+  status      TEXT NOT NULL CHECK (status IN ('running','ok','error')),
+  accounts    INTEGER NOT NULL DEFAULT 0,
+  new_posts   INTEGER NOT NULL DEFAULT 0,
+  error       TEXT,
+  started_at  TEXT NOT NULL DEFAULT (datetime('now')),
+  finished_at TEXT
+);
+
+-- Marka bazında en son bilinen durum. social_posts'tan türetilebilir ama
+-- ayrıca tutuluyor: hesap hiç gönderi döndürmediğinde de "en son ne zaman
+-- baktık, hata mı aldık, en son ne zaman uyardık" bilgisi gerekiyor.
+CREATE TABLE IF NOT EXISTS brand_social_state (
+  brand_id        TEXT NOT NULL REFERENCES brands(id) ON DELETE CASCADE,
+  platform        TEXT NOT NULL DEFAULT 'instagram',
+  handle          TEXT,
+  last_post_at    TEXT,
+  last_checked_at TEXT,
+  last_status     TEXT CHECK (last_status IN ('ok','error')),
+  last_error      TEXT,
+  -- Sessizlik bildirimi en son ne zaman gönderildi. Her taramada aynı marka
+  -- için tekrar tekrar bildirim üretilmesini engeller.
+  alerted_at      TEXT,
+  PRIMARY KEY (brand_id, platform)
+);
+
+CREATE INDEX IF NOT EXISTS idx_social_posts_brand ON social_posts(brand_id, posted_at);
 CREATE INDEX IF NOT EXISTS idx_brands_cluster      ON brands(cluster);
 CREATE INDEX IF NOT EXISTS idx_clusters_sort       ON clusters(sort_order);
 CREATE INDEX IF NOT EXISTS idx_person_active_work_brand ON person_active_work(brand_id);

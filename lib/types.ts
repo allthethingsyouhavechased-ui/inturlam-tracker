@@ -228,3 +228,59 @@ export interface TaskWithPersonalTarget extends TaskWithContext {
 export interface BrandWithCount extends Brand {
   open_count: number;
 }
+
+// ————— Sosyal medya takibi —————
+
+export interface SocialPost {
+  id: string;
+  brand_id: string;
+  platform: string;
+  external_id: string;
+  permalink: string | null;
+  media_type: string | null;
+  caption: string | null;
+  posted_at: string;
+  fetched_at: string;
+}
+
+export type SocialSyncStatus = "running" | "ok" | "error";
+
+export interface SocialSyncRun {
+  id: string;
+  provider: string;
+  status: SocialSyncStatus;
+  accounts: number;
+  new_posts: number;
+  error: string | null;
+  started_at: string;
+  finished_at: string | null;
+}
+
+export interface BrandSocialState {
+  brand_id: string;
+  platform: string;
+  handle: string | null;
+  last_post_at: string | null;
+  last_checked_at: string | null;
+  last_status: "ok" | "error" | null;
+  last_error: string | null;
+  alerted_at: string | null;
+}
+
+// Ekranların okuduğu birleşik satır: marka + son durum + türetilmiş sessizlik
+// bilgisi. `days_silent` yalnızca son paylaşım BİLİNİYORSA doludur; hiç veri
+// çekilememiş bir hesapta null kalır ve arayüzde "veri yok" olarak gösterilir
+// — "0 gündür sessiz" ile karıştırılmamalı.
+export interface BrandSocialRow {
+  brand_id: string;
+  brand_name: string;
+  logo_path: string | null;
+  handle: string | null;
+  last_post_at: string | null;
+  last_post_permalink: string | null;
+  last_checked_at: string | null;
+  last_status: "ok" | "error" | null;
+  last_error: string | null;
+  days_silent: number | null;
+  post_count_30d: number;
+}

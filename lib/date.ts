@@ -132,3 +132,14 @@ export function formatDateTime(sqliteUtc: string): string {
   const d = new Date(sqliteUtc.replace(" ", "T") + "Z");
   return format(d, "d MMM HH:mm", { locale: tr });
 }
+
+// Tam ISO 8601 damgası ('2026-08-07T09:15:00.000Z') → yerel saat. Sosyal medya
+// tabloları dış kaynaktan geldiği için saat dilimli ISO tutuyor; yukarıdaki
+// `formatDateTime`'a verilirse sonuna ikinci bir "Z" eklenip geçersiz tarih
+// üretir — ikisi bilinçli olarak ayrı.
+export function formatIsoDateTime(iso: string | null): string {
+  if (!iso) return "—";
+  const parsed = new Date(iso);
+  if (Number.isNaN(parsed.getTime())) return "—";
+  return format(parsed, "d MMM HH:mm", { locale: tr });
+}

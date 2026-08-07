@@ -55,6 +55,22 @@ export function listActivePeople(): Person[] {
   );
 }
 
+// Otomatik üretilen bildirimlerin (ör. sosyal medya sessizlik uyarısı) alıcısı:
+// bir görev/yorum söz konusu olmadığı için kişiye özel bir muhatap yok.
+// Yöneticiler + işi fiilen yapan Sosyal Medya ekibi; `OR` olduğu için ikisinde
+// birden olan kişi tek kayıt döner (aynı bildirimi iki kez almasın).
+export function listSocialAlertRecipients(): Person[] {
+  return plainList<Person>(
+    getDb()
+      .prepare(
+        `SELECT ${PUBLIC_PERSON_COLUMNS} FROM people
+          WHERE active = 1 AND (is_manager = 1 OR department = 'social')
+          ORDER BY name`,
+      )
+      .all(),
+  );
+}
+
 export function getPerson(id: string): Person | undefined {
   return plainOne<Person>(
     getDb().prepare(`SELECT ${PUBLIC_PERSON_COLUMNS} FROM people WHERE id = ?`).get(id),

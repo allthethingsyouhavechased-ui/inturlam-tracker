@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useSyncExternalStore, useTransition } from "react";
 import { createPortal } from "react-dom";
 import { createContentItemAction } from "@/lib/actions/content";
 import { createTaskAction } from "@/lib/actions/tasks";
@@ -29,18 +29,46 @@ interface ContentOption {
 const inputClass =
   "w-full min-h-11 rounded-xl border border-black/10 bg-white px-3 py-2 text-sm outline-none transition-[border-color,box-shadow] focus:border-brand-500 dark:border-white/15 dark:bg-zinc-900";
 
+// Modal `document.body`'ye portal ediliyor; `initialOpen` ile AÇIK başlayınca
+// (takvimden gelen "+" kısayolu) bu sunucu render'ında `document is not
+// defined` hatası veriyordu — React sayfayı sessizce istemci render'ına
+// düşürüyordu. Sunucuda `false`, istemcide `true` döndüren bu abonelik
+// portalı yalnızca tarayıcıda çizer; `useEffect` + `setState` gerektirmez
+// (bkz. CLAUDE.md, Sidebar/CollapsiblePanel notları).
+const emptySubscribe = () => () => {};
+
+function useIsClient(): boolean {
+  return useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false,
+  );
+}
+
 export default function QuickAddModal({
   brands,
   contents,
   people,
   defaultAssigneeId,
+  // Takvimden açıldığında: tıklanan gün teslim tarihi olarak hazır gelir ve
+  // modal doğrudan açılır (bkz. app/calendar/page.tsx — orada `key` gün +
+  // `yeni` parametresinden türetildiği için her yeni istek yeni bir instance).
+  defaultDueDate = "",
+  initialOpen = false,
+  triggerLabel = "+ Yeni",
+  triggerClassName = "inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-md bg-brand-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-brand-500",
 }: {
   brands: BrandOption[];
   contents: ContentOption[];
   people: Person[];
   defaultAssigneeId: string | null;
+  defaultDueDate?: string;
+  initialOpen?: boolean;
+  triggerLabel?: string;
+  triggerClassName?: string;
 }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(initialOpen);
+  const isClient = useIsClient();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
@@ -51,7 +79,7 @@ export default function QuickAddModal({
   const [taskTitle, setTaskTitle] = useState("");
   const [priority, setPriority] = useState(TASK_PRIORITIES[1]);
   const [assigneeId, setAssigneeId] = useState(defaultAssigneeId ?? "");
-  const [dueDate, setDueDate] = useState("");
+  const [dueDate, setDueDate] = useState(defaultDueDate);
 
   const contentsForBrand = useMemo(
     () => contents.filter((c) => c.brand_id === brandId),
@@ -84,7 +112,7 @@ export default function QuickAddModal({
     setTaskTitle("");
     setPriority(TASK_PRIORITIES[1]);
     setAssigneeId(defaultAssigneeId ?? "");
-    setDueDate("");
+    setDueDate(defaultDueDate);
     setError(null);
   }
 
@@ -129,15 +157,12 @@ export default function QuickAddModal({
 
   return (
     <>
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-md bg-brand-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-brand-500"
-      >
-        + Yeni
+      <button type="button" onClick={() => setOpen(true)} className={triggerClassName}>
+        {triggerLabel}
       </button>
 
       {open &&
+        isClient &&
         createPortal(
           <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/40 p-4 pt-16 sm:pt-24">
           <div

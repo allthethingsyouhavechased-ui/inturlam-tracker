@@ -1,7 +1,11 @@
 import Link from "next/link";
 import AutoRefresh from "@/components/AutoRefresh";
 import CalendarGrid from "@/components/CalendarGrid";
+import QuickAddModal from "@/components/QuickAddModal";
 import TaskListView from "@/components/TaskListView";
+import { getCurrentPerson } from "@/lib/identity";
+import { listBrands } from "@/lib/repositories/brands";
+import { listAllContentSummaries } from "@/lib/repositories/content";
 import {
   calendarGridDays,
   formatDateLong,
@@ -22,12 +26,15 @@ const DAY_PARAM_RE = /^\d{4}-\d{2}-\d{2}$/;
 export default async function CalendarPage({
   searchParams,
 }: {
-  searchParams: Promise<{ month?: string; day?: string }>;
+  searchParams: Promise<{ month?: string; day?: string; yeni?: string }>;
 }) {
   const sp = await searchParams;
   const monthDate = monthParamToDate(sp.month);
   const monthParam = monthParamISO(monthDate);
   const selectedDay = sp.day && DAY_PARAM_RE.test(sp.day) ? sp.day : null;
+  // Izgaradaki "+" kısayolu buraya gelir: gün detayı açılırken hızlı görev
+  // formu da o tarihle birlikte açılsın.
+  const wantsNewTask = selectedDay !== null && sp.yeni === "1";
 
   // Aralık, görüntülenen AYIN değil IZGARANIN sınırlarına göre çekiliyor:
   // ızgara başta/sonda bir önceki/sonraki aydan dolgu günleri gösteriyor
@@ -39,6 +46,11 @@ export default async function CalendarPage({
   const tasks = listTasksDueInRange(rangeStart, rangeEnd);
   const people = listActivePeople();
   const today = todayISO();
+  // Gün panelindeki hızlı görev formu için (marka → içerik → görev), header'daki
+  // "+ Yeni" ile aynı bileşen.
+  const me = await getCurrentPerson();
+  const brands = listBrands();
+  const contents = listAllContentSummaries();
 
   const tasksByDate = new Map<string, TaskWithContext[]>();
   for (const t of tasks) {
@@ -127,12 +139,27 @@ export default async function CalendarPage({
                 · {dayTasks.length > 0 ? `${dayTasks.length} görev` : "görev yok"}
               </span>
             </h2>
-            <Link
-              href={`/calendar?month=${monthParam}`}
-              className="ui-press inline-flex min-h-11 items-center rounded-lg px-3 text-xs font-medium text-zinc-500 hover:bg-black/5 hover:text-zinc-800 dark:text-zinc-400 dark:hover:bg-white/10 dark:hover:text-zinc-200"
-            >
-              Kapat ×
-            </Link>
+            <div className="flex items-center gap-2">
+              {/* `key`: gün ya da "yeni" isteği değişince modal yeniden
+                  kurulsun — `initialOpen` yalnızca ilk render'da okunur. */}
+              <QuickAddModal
+                key={`${selectedDay}-${wantsNewTask}`}
+                brands={brands}
+                contents={contents}
+                people={people}
+                defaultAssigneeId={me?.id ?? null}
+                defaultDueDate={selectedDay}
+                initialOpen={wantsNewTask}
+                triggerLabel="+ Bu güne görev ekle"
+                triggerClassName="ui-press inline-flex min-h-11 shrink-0 items-center gap-1 whitespace-nowrap rounded-lg bg-brand-600 px-3 text-xs font-semibold text-white hover:bg-brand-500"
+              />
+              <Link
+                href={`/calendar?month=${monthParam}`}
+                className="ui-press inline-flex min-h-11 items-center rounded-lg px-3 text-xs font-medium text-zinc-500 hover:bg-black/5 hover:text-zinc-800 dark:text-zinc-400 dark:hover:bg-white/10 dark:hover:text-zinc-200"
+              >
+                Kapat ×
+              </Link>
+            </div>
           </div>
           {dayTasks.length > 0 ? (
             <TaskListView tasks={dayTasks} people={people} />

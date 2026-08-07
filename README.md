@@ -212,6 +212,82 @@ takvim kaymaz. (Teslim tarihi hiç yoksa bugünden itibaren hesaplanır.)
 
 Süre `lib/taskArchive.ts` içindeki `ARCHIVE_AFTER_DAYS` sabitiyle değişir (tek satır).
 
+## Instagram takibi (sessiz hesap uyarısı)
+
+Markaların Instagram hesapları düzenli taranır; **3 günden uzun süre paylaşım
+yapmayan** hesaplar **ana sayfada**, **Sosyal** sayfasında, Panom'daki kartta ve
+yöneticiler + Sosyal Medya ekibine giden bildirimlerde işaretlenir. Taranacak hesap listesi ayrıca tutulmuyor — marka
+kaydındaki **Instagram kullanıcı adı** alanı neyse o taranır.
+
+### Kurulum (tek seferlik)
+
+1. [apify.com](https://apify.com) üzerinde ücretsiz hesap aç.
+2. **Settings → Integrations**'tan API token'ı kopyala.
+3. Proje kökündeki `.env.local` dosyasına yapıştır:
+
+   ```
+   APIFY_TOKEN=apify_api_...
+   ```
+
+4. Bir kez elle çalıştırıp doğrula:
+
+   ```bash
+   npm run social:sync
+   ```
+
+Maliyet: kullanılan aktör (`apify/instagram-post-scraper`) sonuç başına ücretlendirilir,
+~$2,7 / 1.000 gönderi. 19 hesap × 3 gönderi × günde 1 tarama ≈ **ayda ~$5**; Apify'ın
+ücretsiz planındaki aylık kredi bunu büyük ölçüde karşılar. Hesap başına çekilen gönderi
+sayısı `SOCIAL_POSTS_PER_ACCOUNT` ile ayarlanır ve maliyeti doğrudan etkiler.
+
+### Günlük otomatik çalıştırma (Windows Görev Zamanlayıcı)
+
+Ofis PC'sinde **kurulu**: `Inturlam Instagram Takip` görevi her gün **09:00**'da çalışır.
+PC o saatte kapalıysa, açıldığında ilk fırsatta çalışır (`-StartWhenAvailable`).
+
+Durumu görmek / elle tetiklemek:
+
+```powershell
+Get-ScheduledTaskInfo -TaskName "Inturlam Instagram Takip"   # son çalışma + sonuç (0 = başarılı)
+Start-ScheduledTask   -TaskName "Inturlam Instagram Takip"   # hemen çalıştır
+```
+
+Başka bir makinede kurmak ya da saati değiştirmek için:
+
+```powershell
+$args = '/c cd /d "C:\Users\intur\repos\inturlam-tracker" && npm run social:sync >> "data\runtime\social-sync.log" 2>&1'
+$action = New-ScheduledTaskAction -Execute 'cmd.exe' -Argument $args
+$trigger = New-ScheduledTaskTrigger -Daily -At 09:00
+$settings = New-ScheduledTaskSettingsSet -StartWhenAvailable -ExecutionTimeLimit (New-TimeSpan -Minutes 30)
+Register-ScheduledTask -TaskName "Inturlam Instagram Takip" -Action $action -Trigger $trigger -Settings $settings -Force
+```
+
+Sunucuyu (`npm run start`) yeniden başlatmaya gerek yok — script ayrı bir süreç,
+aynı veritabanını WAL modunda paylaşır. Log `data/runtime/social-sync.log` altına
+yazılır (git'e girmez).
+
+### Nasıl okunur
+
+- **Sessiz** (kırmızı): hesap gerçekten uzun süredir paylaşım yapmamış.
+- **Veri yok / Hata** (sarı): tarama o hesap için sonuç döndüremedi — hesap özel
+  olabilir, kullanıcı adı değişmiş olabilir, sağlayıcı hata vermiş olabilir.
+  **Bu "paylaşım yapmıyor" demek değildir** ve bildirim üretmez; yanlış alarm
+  vermemek için bilinçli olarak ayrılmıştır.
+- Tarama komple başarısız olursa hiçbir sessizlik bildirimi gönderilmez, tüm
+  hesaplar "hata" olarak damgalanır ve Sosyal sayfasının üstünde son taramanın
+  durumu görünür.
+
+Eşikler `.env.local` ile ayarlanır: `SOCIAL_SILENCE_DAYS` (kaç gün sonra sessiz),
+`SOCIAL_REALERT_DAYS` (aynı marka için bildirim tekrarı aralığı).
+
+### Sağlayıcıyı değiştirmek
+
+Veri kaynağı `lib/social/` altında soyutlandı (`SocialProvider` arayüzü). Apify
+bozulur ya da resmi Meta API'ye geçilirse yalnızca yeni bir adaptör yazılıp
+`resolveSocialProvider()`'a eklenir; şema, kurallar ve ekranlar değişmez.
+Test için `SOCIAL_PROVIDER=mock` + `SOCIAL_MOCK_FILE=...json` ile ağa çıkmadan
+tüm zincir denenebilir.
+
 ## Yedekleme
 
 Tüm veri tek dosyada: `data/inturlam.db`, dosya ekleri `public/uploads/` altında.

@@ -6,13 +6,17 @@ import AutoRefresh from "@/components/AutoRefresh";
 import BrandLogo from "@/components/BrandLogo";
 import EditBrandForm from "@/components/EditBrandForm";
 import NewContentForm from "@/components/NewContentForm";
+import SocialHealthBadge from "@/components/SocialHealthBadge";
 import {
   CONTENT_STATUS_BADGE,
   CONTENT_STATUS_LABEL,
   CONTENT_TYPE_LABEL,
   UNKNOWN_CLUSTER_LABEL,
 } from "@/lib/constants";
-import { daysAgoISO, formatDateShort } from "@/lib/date";
+import { daysAgoISO, formatDateShort, formatIsoDateTime, todayISO } from "@/lib/date";
+import { SOCIAL_SILENCE_DAYS } from "@/lib/social";
+import { listBrandSocialRows } from "@/lib/repositories/social";
+import { classifySocial } from "@/lib/socialSilence";
 import { getCurrentPerson } from "@/lib/identity";
 import { getBrand } from "@/lib/repositories/brands";
 import { listActivityForBrand } from "@/lib/repositories/activity";
@@ -45,6 +49,13 @@ export default async function BrandPage({
   // "tazelenmeli" uyarısı çıkar. Tarihler 'YYYY-MM-DD' olduğu için düz metin
   // karşılaştırması kronolojik sıralamayı doğru verir.
   const staleStats = (brand.stats_updated_at ?? "") < daysAgoISO(7);
+
+  // Instagram kullanıcı adı girilmemiş markalar takip listesinde yok; o zaman
+  // rozet de çizilmez (yanlışlıkla "taranmadı" demek yerine hiç bahsetmemek).
+  const socialRow = listBrandSocialRows().find((row) => row.brand_id === brandId) ?? null;
+  const socialHealth = socialRow
+    ? classifySocial(socialRow, SOCIAL_SILENCE_DAYS, todayISO())
+    : null;
 
   return (
     <div className="space-y-6">
@@ -82,6 +93,30 @@ export default async function BrandPage({
               </>
             )}
           </div>
+          {/* Sosyal takip durumu: hesap taranıyorsa son paylaşımın ne kadar
+              geride kaldığı burada da görünsün — markaya bakan kişi /social'a
+              gitmeden fark etsin. */}
+          {socialHealth && (
+            <div className="mt-1.5 flex flex-wrap items-center gap-2 text-xs">
+              <SocialHealthBadge
+                health={socialHealth}
+                detail={
+                  socialRow?.days_silent != null ? `${socialRow.days_silent} gün` : undefined
+                }
+              />
+              {socialRow?.last_post_at && (
+                <span className="text-zinc-500 dark:text-zinc-400">
+                  son paylaşım {formatIsoDateTime(socialRow.last_post_at)}
+                </span>
+              )}
+              <Link
+                href="/social"
+                className="font-medium text-brand-600 hover:underline dark:text-brand-400"
+              >
+                takip →
+              </Link>
+            </div>
+          )}
         </div>
       </div>
 

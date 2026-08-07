@@ -9,6 +9,7 @@ import TaskCommentsPanel from "@/components/TaskCommentsPanel";
 import TaskDueDateEdit from "@/components/TaskDueDateEdit";
 import TaskPrioritySelect from "@/components/TaskPrioritySelect";
 import TaskStatusSelect from "@/components/TaskStatusSelect";
+import TaskTargetDateEdit from "@/components/TaskTargetDateEdit";
 import { formatDateShort } from "@/lib/date";
 import {
   bulkDeleteTasksAction,
@@ -339,8 +340,14 @@ export default function TaskListView({
                   <td className="px-3 py-2">
                     <TaskDueDateEdit taskId={t.id} dueDate={t.due_date} />
                   </td>
+                  {/* Kişisel hedef yalnızca görev SANA atanmışsa taşınır
+                      (alan undefined ise başkasının işi) — o zaman düzenleme
+                      değil düz bir tire gösterilir. Yayınlanmış görevde de
+                      düzenleme kapalı: sunucu yeni hedef yazmayı reddediyor. */}
                   <td className="px-3 py-2">
-                    {t.personal_target_date ? (
+                    {t.personal_target_date !== undefined && t.status !== "Yayinlandi" ? (
+                      <TaskTargetDateEdit taskId={t.id} targetDate={t.personal_target_date} />
+                    ) : t.personal_target_date ? (
                       <span className="whitespace-nowrap text-xs font-medium text-brand-600 dark:text-brand-400">
                         🎯 {formatDateShort(t.personal_target_date)}
                       </span>

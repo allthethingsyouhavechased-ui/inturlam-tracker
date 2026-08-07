@@ -190,7 +190,9 @@ export async function setPersonalTaskTargetAction(
 
   const cleanTarget = targetDate?.trim() || null;
   setPersonalTaskTarget(taskId, person.id, cleanTarget, todayISO());
-  revalidatePath("/panom");
+  // Hedef artık yalnızca Panom'da değil, Görevler panosunda/listesinde ve
+  // takvimde de gösteriliyor — tek bir sayfayı tazelemek yetmiyor.
+  revalidatePath("/", "layout");
 }
 
 export async function updateTaskDetailsAction(formData: FormData) {

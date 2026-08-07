@@ -60,6 +60,9 @@ export default function CalendarGrid({
         const isToday = day.date === today;
         const isSelected = day.date === selectedDay;
         const dayHref = `/calendar?month=${monthParam}&day=${day.date}`;
+        // `yeni=1`: gün detayını açar VE hızlı görev formunu bu tarihle
+        // doğrudan başlatır (bkz. app/calendar/page.tsx).
+        const newTaskHref = `${dayHref}&yeni=1`;
         const dayNumber = Number(day.date.slice(-2));
         const dayLabel = formatDateLong(day.date);
 
@@ -81,6 +84,19 @@ export default function CalendarGrid({
               >
                 {dayNumber}
               </span>
+            </Link>
+
+            {/* Hücrenin sağ üstünde, üzerine gelince beliren "bu güne görev
+                ekle" kısayolu. Tarih numarasının linkiyle KARDEŞ (iç içe <a>
+                geçersiz olurdu). Mobilde gizli: orada hücrenin tamamı gün
+                detayına gidiyor, ekleme düğmesi o panelde. */}
+            <Link
+              href={newTaskHref}
+              aria-label={`${dayLabel} için görev ekle`}
+              title="Bu güne görev ekle"
+              className="ui-press absolute right-1 top-1 z-10 hidden size-6 items-center justify-center rounded-lg text-sm font-semibold text-zinc-400 opacity-0 transition-opacity hover:bg-brand-50 hover:text-brand-700 focus-visible:opacity-100 group-hover:opacity-100 sm:inline-flex dark:text-zinc-500 dark:hover:bg-brand-950 dark:hover:text-brand-300"
+            >
+              +
             </Link>
 
             {/* sm+: öncelik renkli, başlığı okunabilir pill'ler */}

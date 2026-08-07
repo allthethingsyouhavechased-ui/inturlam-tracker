@@ -57,7 +57,10 @@ export default async function AllTasksPage({
       : "";
 
   return (
-    <div className="workspace-page-wide space-y-6">
+    // Panom ile AYNI genişlik (layout'un max-w-7xl kabuğu). Bir dönem
+    // `workspace-page-wide` (1600px) kullanıyordu; iki sayfa arasında gidip
+    // gelirken pano gözle görülür şekilde sıçrıyordu.
+    <div className="space-y-6">
       <AutoRefresh />
       <h1 className="text-2xl font-semibold tracking-tight">Görevler</h1>
       <TaskExplorer

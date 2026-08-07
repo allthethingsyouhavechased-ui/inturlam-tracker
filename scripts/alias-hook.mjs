@@ -2,7 +2,8 @@
 //
 // Neden gerekli: `lib/*` dosyaları birbirini `@/lib/...` diye import ediyor.
 // Bu alias yalnızca bundler'ın (Next/Turbopack) ve tsconfig'in bildiği bir şey;
-// dosyaları doğrudan Node ile çalıştıran testler `ERR_MODULE_NOT_FOUND` alır.
+// dosyaları doğrudan Node ile çalıştıran testler ve CLI script'leri
+// (db/sync-instagram.mts gibi) `ERR_MODULE_NOT_FOUND` alır.
 // Bağımlılık eklemek (tsx, ts-node…) yerine Node'un kendi loader API'siyle
 // çözüyoruz — proje "harici paket yok" çizgisini koruyor.
 //

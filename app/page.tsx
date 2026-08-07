@@ -5,8 +5,12 @@ import PersonAvatar from "@/components/PersonAvatar";
 import { CONTENT_TYPE_LABEL, TASK_PRIORITY_LABEL } from "@/lib/constants";
 import { currentWeekRange, formatDateShort, todayISO } from "@/lib/date";
 import { getCurrentPerson } from "@/lib/identity";
+import SilentAccountsCard from "@/components/SilentAccountsCard";
+import { SOCIAL_SILENCE_DAYS } from "@/lib/social";
 import { listRecentActivity } from "@/lib/repositories/activity";
 import { listBrandsWithOpenCounts } from "@/lib/repositories/brands";
+import { getLatestSyncRun, listBrandSocialRows } from "@/lib/repositories/social";
+import { classifySocial } from "@/lib/socialSilence";
 import {
   listAllTasks,
   listOverdueTasks,
@@ -193,6 +197,20 @@ export default async function HomePage() {
     ? openTasks.filter((t) => t.assignee_id === me.id)
     : [];
 
+  // Sessiz Instagram hesapları. Sınıflandırma /social ve Panom ile AYNI
+  // fonksiyondan geliyor; üç ekran farklı şey söylemesin.
+  const socialHealth = listBrandSocialRows().map((row) => ({
+    row,
+    health: classifySocial(row, SOCIAL_SILENCE_DAYS, today),
+  }));
+  const silentAccounts = socialHealth
+    .filter((item) => item.health === "silent")
+    .map((item) => item.row);
+  const brokenAccounts = socialHealth.filter(
+    (item) => item.health === "error" || item.health === "unknown",
+  ).length;
+  const lastSocialRun = getLatestSyncRun();
+
   return (
     <div className="space-y-8">
       <div className="flex items-center gap-3">
@@ -223,6 +241,16 @@ export default async function HomePage() {
           accent="amber"
         />
       </div>
+
+      {/* Sessiz hesaplar sayfanın ÜST kısmında: bir markanın paylaşım
+          akışının durması, tek tek görevlerden önce fark edilmesi gereken bir
+          şey. Sessiz hesap ve tarama sorunu yoksa hiç çizilmez. */}
+      <SilentAccountsCard
+        silent={silentAccounts}
+        brokenCount={brokenAccounts}
+        thresholdDays={SOCIAL_SILENCE_DAYS}
+        syncBroken={lastSocialRun?.status === "error"}
+      />
 
       {/* Ana sayfa artık "nereye gideyim?" değil "bugün ne var?" sorusunu
           cevaplıyor. Eskiden burada üstteki nav'ı ve soldaki sidebar'ı

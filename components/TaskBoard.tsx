@@ -66,8 +66,12 @@ function DraggableCard({ task }: { task: TaskWithContext }) {
         isDragging ? "scale-[0.98] opacity-25" : ""
       }`}
       onPointerDownCapture={(e) => {
-        // Başlık linkine tıklamak sürüklemeyi tetiklemesin.
-        if ((e.target as HTMLElement).closest("a")) e.stopPropagation();
+        // Kartın içindeki etkileşimli öğeler (başlık linki, kişisel hedef
+        // düğmesi, tarih seçici) sürüklemeyi tetiklemesin — yoksa tarihe
+        // tıklamak kartı sürüklemeye başlıyor.
+        if ((e.target as HTMLElement).closest("a, button, select, input")) {
+          e.stopPropagation();
+        }
       }}
     >
       <TaskGridCard task={task} showStatus={false} badges={task.badges} />
@@ -149,10 +153,15 @@ export default function TaskBoard({
   tasks,
   sortKey: externalSortKey,
   boardId,
+  toolbar,
 }: {
   tasks: TaskWithContext[];
   sortKey?: SortKey;
   boardId: string;
+  // "Sırala:" satırının sağ ucuna yerleşen ek denetim (Panom'da Pano/Liste
+  // düğmesi). Board kendi sıralama düğmelerini göstermediğinde (kontrollü mod)
+  // satır yalnızca bunun için çizilir.
+  toolbar?: React.ReactNode;
 }) {
   const [taskList, setTaskList] = useState(tasks);
   const [prevTasks, setPrevTasks] = useState(tasks);
@@ -192,23 +201,28 @@ export default function TaskBoard({
 
   return (
     <div className="space-y-2">
-      {!isControlled && (
+      {(!isControlled || toolbar) && (
         <div className="flex flex-wrap items-center gap-1.5 text-xs">
-          <span className="text-zinc-500 dark:text-zinc-400">Sırala:</span>
-          {SORT_OPTIONS.map((opt) => (
-            <button
-              key={opt.key}
-              type="button"
-              onClick={() => setInternalSortKey(opt.key)}
-              className={`ui-press min-h-11 rounded-full px-3 py-2 font-medium ${
-                sortKey === opt.key
-                  ? "bg-brand-600 text-white"
-                  : "bg-black/5 text-zinc-600 hover:bg-black/10 dark:bg-white/10 dark:text-zinc-300 dark:hover:bg-white/20"
-              }`}
-            >
-              {opt.label}
-            </button>
-          ))}
+          {!isControlled && (
+            <>
+              <span className="text-zinc-500 dark:text-zinc-400">Sırala:</span>
+              {SORT_OPTIONS.map((opt) => (
+                <button
+                  key={opt.key}
+                  type="button"
+                  onClick={() => setInternalSortKey(opt.key)}
+                  className={`ui-press min-h-11 rounded-full px-3 py-2 font-medium ${
+                    sortKey === opt.key
+                      ? "bg-brand-600 text-white"
+                      : "bg-black/5 text-zinc-600 hover:bg-black/10 dark:bg-white/10 dark:text-zinc-300 dark:hover:bg-white/20"
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </>
+          )}
+          {toolbar && <div className="ml-auto">{toolbar}</div>}
         </div>
       )}
       <DndContext

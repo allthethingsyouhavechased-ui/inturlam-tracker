@@ -1,79 +1,12 @@
 "use client";
 
 // Rapor ekranlarındaki grafik/dağılım kartları uzun; kullanıcı ilgilenmediği
-// kartı kapatabilsin ve bu tercih kalıcı olsun diye küçük bir localStorage
-// deposu. Yalnızca KAPALI kartlar saklanıyor: varsayılan (açık) durum depoda
-// yer tutmuyor, böylece ileride yeni bir kart eklendiğinde eski tercihler
-// onu sessizce kapatmıyor.
-//
-// Neden `useSyncExternalStore` de `useEffect` + `setState` değil: prop/depo
-// senkronizasyonu için efekt yazmak `react-hooks/set-state-in-effect` kuralına
-// takılıyor ve fazladan bir render turu demek (bkz. CLAUDE.md, Sidebar notu).
-// Sunucu anlık görüntüsü her zaman varsayılan değer olduğu için ilk boyama
-// SSR ile aynı; kapalı kartlar hydration'dan hemen sonra kapanıyor.
+// kartı kapatabilsin ve bu tercih kalıcı olsun diye başlığından katlanıyorlar.
+// Tercihin `localStorage` deposu artık `lib/usePanelOpen.ts`'te — Panom'un
+// kişisel teslim radarı da aynı depoyu kullanıyor.
 
-import { useCallback, useSyncExternalStore } from "react";
 import { REPORT_SURFACE_CLASS } from "@/lib/constants";
-
-const STORAGE_KEY = "inturlam.reportPanels";
-
-type PanelState = Record<string, boolean>;
-
-let cache: PanelState | null = null;
-const listeners = new Set<() => void>();
-
-function readState(): PanelState {
-  if (cache) return cache;
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    const parsed: unknown = raw ? JSON.parse(raw) : {};
-    cache = parsed && typeof parsed === "object" ? (parsed as PanelState) : {};
-  } catch {
-    // Gizli sekme / depolama kapalı: tercih saklanmaz, kartlar varsayılanla çalışır.
-    cache = {};
-  }
-  return cache;
-}
-
-function writeState(key: string, open: boolean): void {
-  const next = { ...readState() };
-  if (open) delete next[key];
-  else next[key] = false;
-  cache = next;
-  try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-  } catch {
-    // Yazamıyorsak da ekran güncel kalsın; sadece kalıcılık kaybolur.
-  }
-  for (const listener of listeners) listener();
-}
-
-function subscribe(listener: () => void): () => void {
-  listeners.add(listener);
-  // Başka bir sekmede değiştirilen tercih bu sekmede de geçerli olsun.
-  const onStorage = (event: StorageEvent) => {
-    if (event.key !== null && event.key !== STORAGE_KEY) return;
-    cache = null;
-    listener();
-  };
-  window.addEventListener("storage", onStorage);
-  return () => {
-    listeners.delete(listener);
-    window.removeEventListener("storage", onStorage);
-  };
-}
-
-function usePanelOpen(panelKey: string, defaultOpen: boolean) {
-  const open = useSyncExternalStore(
-    subscribe,
-    () => readState()[panelKey] ?? defaultOpen,
-    () => defaultOpen,
-  );
-  const toggle = useCallback(() => {
-    writeState(panelKey, !(readState()[panelKey] ?? defaultOpen));
-  }, [panelKey, defaultOpen]);
-  return { open, toggle };
-}
+import { usePanelOpen } from "@/lib/usePanelOpen";
 
 /**
  * Başlığına tıklanınca açılıp kapanan rapor kartı. `panelKey` tercihin
